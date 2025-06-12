@@ -1,0 +1,61 @@
+# Stage 1: Le "Builder"
+# On part d'une image officielle Dart pour garantir une version à jour et stable.
+FROM dart:stable AS builder
+
+# 1. Installation des dépendances système
+# On installe Java (requis par Android), git, unzip, et wget.
+RUN apt-get update && apt-get install -y \
+    openjdk-17-jdk \
+    git \
+    unzip \
+    wget \
+    bash \
+    libglu1-mesa \
+    && rm -rf /var/lib/apt/lists/*
+
+# 2. Installation du SDK Flutter
+# On clone la branche stable depuis le dépôt officiel de Flutter.
+ENV FLUTTER_HOME=/usr/lib/flutter
+RUN git clone https://github.com/flutter/flutter.git --depth 1 --branch stable $FLUTTER_HOME
+ENV PATH="$PATH:${FLUTTER_HOME}/bin"
+
+# 3. Installation du SDK Android
+# On définit les variables d'environnement pour Android.
+ENV ANDROID_SDK_ROOT=/usr/lib/android-sdk
+ENV PATH="$PATH:${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${ANDROID_SDK_ROOT}/platform-tools"
+
+# On télécharge et installe les outils de ligne de commande du SDK Android.
+# La version 11076708 est une version récente (début 2024).
+RUN mkdir -p ${ANDROID_SDK_ROOT}/cmdline-tools && \
+    wget -q -O cmdline-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip && \
+    unzip -q cmdline-tools.zip -d ${ANDROID_SDK_ROOT}/cmdline-tools && \
+    mv ${ANDROID_SDK_ROOT}/cmdline-tools/cmdline-tools ${ANDROID_SDK_ROOT}/cmdline-tools/latest && \
+    rm cmdline-tools.zip
+
+# On accepte les licences Android et on installe les paquets nécessaires.
+# On spécifie les versions pour une compilation reproductible.
+# CORRECTION: Ajout de la version spécifique du NDK.
+RUN yes | sdkmanager --licenses > /dev/null
+RUN sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" "ndk;27.0.12077973"
+
+# On lance flutter doctor pour pré-télécharger les binaires et vérifier l'installation.
+RUN flutter doctor -v
+
+# 4. Processus de compilation de l'application
+# Même logique que précédemment.
+WORKDIR /app
+
+COPY pubspec.yaml pubspec.lock ./
+RUN flutter pub get
+
+COPY . .
+
+RUN flutter clean
+# Compilation pour Android
+# Pour un Apk
+RUN flutter build apk --release
+# Pour un App Bundle
+RUN flutter build appbundle --release
+
+# Compilation pour Linux
+RUN flutter build linux --release

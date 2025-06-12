@@ -1,0 +1,39 @@
+services:
+  site:
+    image: registry.profluens.com/plop_site
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: 20m
+        max-file: '10'
+    ports:
+      - "80:80"
+    networks:
+      - main_network
+      - front-proxy-network
+  service:
+    image: registry.profluens.com/plop_service
+    build:
+      dockerfile: Dockerfile
+      context: server
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: 20m
+        max-file: '10'
+    ports:
+      - "8080:8080"
+    networks:
+      - main_network
+      - front-proxy-network
+networks:
+  main_network:
+  front-proxy-network:
+    external: true
+    name: proxy_network
+

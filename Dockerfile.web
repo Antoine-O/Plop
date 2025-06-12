@@ -1,0 +1,51 @@
+# Stage 1: Build the Flutter web application
+FROM dart:stable AS build
+
+# Install Flutter dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    git \
+    curl \
+    unzip \
+    libglu1-mesa \
+    libgmp10 \
+    libstdc++6 \
+    sudo && \
+    rm -rf /var/lib/apt/lists/*
+
+# Clone Flutter SDK
+ENV FLUTTER_HOME=/usr/lib/flutter
+RUN git clone https://github.com/flutter/flutter.git --depth 1 --branch stable $FLUTTER_HOME
+ENV PATH="$PATH:${FLUTTER_HOME}/bin"
+# On lance flutter doctor pour pré-télécharger les binaires et vérifier l'installation.
+RUN flutter doctor -v
+
+# 4. Processus de compilation de l'application
+# Même logique que précédemment.
+WORKDIR /app
+
+COPY pubspec.yaml pubspec.lock ./
+RUN flutter pub get
+
+COPY . .
+
+RUN flutter clean
+
+# Build the Flutter web application
+# --release for optimized production build
+RUN flutter build web --release
+
+# Stage 2: Serve the application with NGINX
+FROM nginx:alpine AS serve
+
+# Copy custom NGINX configuration
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Copy the built Flutter web assets into NGINX web root
+COPY --from=build /app/build/web /usr/share/nginx/html
+
+# Expose port 80 for web traffic
+EXPOSE 80
+
+# Start NGINX
+CMD ["nginx", "-g", "daemon off;"]

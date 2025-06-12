@@ -1,0 +1,31 @@
+# Stage 1: Le "Builder" Windows
+# On utilise une image Windows avec Visual Studio, nécessaire pour la compilation.
+FROM mcr.microsoft.com/windows/servercore:ltsc2022 AS builder
+
+# Installation de Chocolatey (un gestionnaire de paquets pour Windows)
+RUN powershell -NoProfile -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))"
+
+# Installation de Git et Flutter via Chocolatey
+RUN choco install git -y
+RUN choco install flutter -y
+
+# Ajout de Flutter au PATH
+ENV PATH="C:\\ProgramData\\chocolatey\\bin;C:\\ProgramData\\chocolatey\\lib\\flutter\\tools\\flutter\\bin;%PATH%"
+
+# Activation du support pour Windows
+RUN flutter config --enable-windows-desktop
+
+# Création du répertoire de travail
+WORKDIR C:\\app
+
+# Copie des fichiers de l'application
+COPY . .
+
+# Installation des dépendances et compilation
+RUN flutter pub get
+RUN flutter clean
+RUN flutter build windows --release
+
+# Stage 2: Création de l'image finale
+# On part d'une image Windows minimale pour l'image finale
+FROM mcr.microsoft.com/windows/servercore:ltsc2022
