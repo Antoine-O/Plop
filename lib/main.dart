@@ -39,6 +39,35 @@ void connectToApi() async {
     print('ERREUR DE CONNEXION DÉTAILLÉE: $e');
   }
 }
+
+void connectToName() async {
+  // Récupère l'URL compilée
+  final String apiUrl = "https://www.google.com";
+  print('Tentative de connexion à : $apiUrl'); // Vérifiez que l'URL est parfaite
+
+  try {
+    final response = await http.get(Uri.parse(apiUrl));
+    print('Réponse reçue: ${response.statusCode}');
+  } catch (e) {
+    // C'EST LA PARTIE LA PLUS IMPORTANTE !
+    print('ERREUR DE CONNEXION DÉTAILLÉE: $e');
+  }
+}
+
+void connectToIp() async {
+  // Récupère l'URL compilée
+  final String apiUrl = "https://8.8.8.8";
+  print('Tentative de connexion à : $apiUrl'); // Vérifiez que l'URL est parfaite
+
+  try {
+    final response = await http.get(Uri.parse(apiUrl));
+    print('Réponse reçue: ${response.statusCode}');
+  } catch (e) {
+    // C'EST LA PARTIE LA PLUS IMPORTANTE !
+    print('ERREUR DE CONNEXION DÉTAILLÉE: $e');
+  }
+}
+
 void main() {
   // On lance directement le widget de chargement
   // AVOID SSL ERROR - to debug connection issues
@@ -75,7 +104,7 @@ class _AppLoaderState extends State<AppLoader> {
 
     await dotenv.load(fileName: ".env");
 
-    connectToApi();
+
 
     // Initialisation des packages
     await Hive.initFlutter();
@@ -90,7 +119,9 @@ class _AppLoaderState extends State<AppLoader> {
     await NotificationService().init();
     final userService = UserService();
     await userService.init();
-
+    connectToIp();
+    connectToName();
+    connectToApi();
     // Retourne le service utilisateur pour le passer à l'application
     return userService;
   }
@@ -100,6 +131,7 @@ class _AppLoaderState extends State<AppLoader> {
     return FutureBuilder<UserService>(
       future: _initializationFuture,
       builder: (context, snapshot) {
+
         // CORRECTION : On vérifie d'abord s'il y a une erreur pour l'afficher.
         if (snapshot.hasError) {
           return MaterialApp(
@@ -143,6 +175,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    connectToIp();
+    connectToName();
+    connectToApi();
     return Consumer<LocaleProvider>(
       builder: (context, localeProvider, child) {
         return MaterialApp(

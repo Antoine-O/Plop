@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:plop/core/models/contact_model.dart';
+// import 'package:plop/core/models/contact_model.dart';
 import 'package:plop/core/models/message_model.dart';
 import 'package:plop/core/services/database_service.dart';
 import 'package:plop/core/services/locale_provider.dart';
@@ -31,7 +31,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   // State
   late List<MessageModel> _messages;
-  List<Contact> _contacts = [];
+  // List<Contact> _contacts = [];
   String? _userId;
   bool _isLoading = true;
 
@@ -57,7 +57,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() => _isLoading = true);
     await _userService.init();
     _messages = _databaseService.getAllMessages();
-    _contacts = await _databaseService.getAllContactsOrdered();
+    // _contacts = await _databaseService.getAllContactsOrdered();
     _usernameController.text = _userService.username ?? '';
     _userId = _userService.userId;
     setState(() => _isLoading = false);

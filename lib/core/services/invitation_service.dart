@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:plop/core/config/app_config.dart';
+import 'package:flutter/foundation.dart';
 
 class InvitationService {
   final String _baseUrl = AppConfig.baseUrl;
@@ -17,7 +18,7 @@ class InvitationService {
         };
       }
     } catch (e) {
-      print('Erreur lors de la création du code d\'invitation: $e');
+      debugPrint('Erreur lors de la création du code d\'invitation: $e');
     }
     return null;
   }
@@ -41,7 +42,7 @@ class InvitationService {
         };
       }
     } catch (e) {
-      print('Erreur lors de l\'utilisation du code d\'invitation: $e');
+      debugPrint('Erreur lors de l\'utilisation du code d\'invitation: $e');
     }
     return null;
   }

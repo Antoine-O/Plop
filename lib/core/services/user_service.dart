@@ -4,6 +4,7 @@ import 'package:plop/core/models/contact_model.dart';
 import 'package:plop/core/services/database_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:plop/core/config/app_config.dart';
+import 'package:flutter/foundation.dart';
 
 class UserService {
   late SharedPreferences _prefs;
@@ -24,7 +25,7 @@ class UserService {
   bool hasUser() => userId != null && username != null;
 
   Future<bool> createUser(String newUsername) async {
-    print('Appel de l\'URL : |$_baseUrl/users/generate-id|');
+    debugPrint('Appel de l\'URL : |$_baseUrl/users/generate-id|');
     try {
       final response = await http.get(Uri.parse('$_baseUrl/users/generate-id'));
       if (response.statusCode == 200) {
@@ -36,7 +37,7 @@ class UserService {
         return true;
       }
     } catch (e) {
-      print('Erreur createUser: $e');
+      debugPrint('Erreur createUser: $e');
     }
     return false;
   }
@@ -74,7 +75,7 @@ class UserService {
         }
       }
     } catch (e) {
-      print('Erreur syncContactsPseudos: $e');
+      debugPrint('Erreur syncContactsPseudos: $e');
     }
     return hasBeenUpdated;
   }

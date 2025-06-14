@@ -4,10 +4,5 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
-    <application
-        android:label="plop"
-        android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher"
-        >
-    </application>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 </manifest>
