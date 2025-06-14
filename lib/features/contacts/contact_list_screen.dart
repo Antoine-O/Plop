@@ -15,7 +15,7 @@ import 'package:plop/features/settings/sync_account_screen.dart';
 import 'package:plop/l10n/app_localizations.dart';
 
 class ContactListScreen extends StatefulWidget {
-  const ContactListScreen({Key? key}) : super(key: key);
+  const ContactListScreen({super.key});
   @override
   _ContactListScreenState createState() => _ContactListScreenState();
 }

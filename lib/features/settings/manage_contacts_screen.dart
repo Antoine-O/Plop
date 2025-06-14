@@ -10,7 +10,7 @@ import 'package:plop/features/settings/advanced_contact_settings_screen.dart';
 import 'package:plop/l10n/app_localizations.dart';
 
 class ManageContactsScreen extends StatefulWidget {
-  const ManageContactsScreen({Key? key}) : super(key: key);
+  const ManageContactsScreen({super.key});
 
   @override
   _ManageContactsScreenState createState() => _ManageContactsScreenState();
@@ -154,6 +154,7 @@ class _ManageContactsScreenState extends State<ManageContactsScreen> {
           padding: const EdgeInsets.all(8.0),
           child: Text(AppLocalizations.of(context)!.reorderListHint),
         ),
+        onReorder: _reorderContacts,
         children: _contacts.map((contact) {
           final bool hasCustomAlias = contact.alias.isNotEmpty && contact.alias != contact.originalPseudo;
           final String primaryName = hasCustomAlias ? contact.alias : contact.originalPseudo;
@@ -168,7 +169,7 @@ class _ManageContactsScreenState extends State<ManageContactsScreen> {
               ),
               title: Text(primaryName, style: TextStyle(fontWeight: FontWeight.bold)),
               subtitle: secondaryName != null
-                  ? Text("(${secondaryName})", style: TextStyle(color: Colors.grey.shade600, fontSize: 12))
+                  ? Text("($secondaryName)", style: TextStyle(color: Colors.grey.shade600, fontSize: 12))
                   : null,
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -193,7 +194,6 @@ class _ManageContactsScreenState extends State<ManageContactsScreen> {
             ),
           );
         }).toList(),
-        onReorder: _reorderContacts,
       ),
       floatingActionButton: _contacts.isNotEmpty
           ? SpeedDial(

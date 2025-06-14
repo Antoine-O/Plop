@@ -10,6 +10,7 @@ import (
 	"os"
 	"sync"
 	"time"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
@@ -88,6 +89,7 @@ func main() {
 	mux.HandleFunc("/users/get-pseudos", handleGetPseudos)
 	mux.HandleFunc("/sync/create", handleCreateSyncCode)
 	mux.HandleFunc("/sync/use", handleUseSyncCode)
+	mux.HandleFunc("/ping", handlePing)
 
 	handler := cors.New(cors.Options{
 		AllowedOrigins: []string{"*"},
@@ -393,4 +395,14 @@ func cleanupExpiredSyncCodes() {
 		}
 		syncCodesMutex.Unlock()
 	}
+}
+
+
+func handlePing(w http.ResponseWriter, r *http.Request) {
+	// Affiche un message dans la console du serveur à chaque appel pour le suivi.
+	log.Println("Requête reçue sur /ping")
+
+	// Écrit la réponse "ping" dans le corps de la réponse HTTP.
+	// Fprintf est une manière simple d'écrire du texte dans la réponse.
+	fmt.Fprintf(w, "pong")
 }

@@ -10,7 +10,7 @@ import 'package:plop/core/services/websocket_service.dart';
 class ContactTile extends StatefulWidget {
   final Contact contact;
 
-  const ContactTile({Key? key, required this.contact}) : super(key: key);
+  const ContactTile({super.key, required this.contact});
 
   @override
   _ContactTileState createState() => _ContactTileState();

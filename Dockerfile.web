@@ -34,7 +34,7 @@ RUN flutter clean
 
 # Build the Flutter web application
 # --release for optimized production build
-RUN flutter build web --release
+RUN flutter build web --release  --dart-define=BASE_URL=${BASE_URL} --dart-define=WEBSOCKET_URL=${WEBSOCKET_URL}
 
 # Stage 2: Serve the application with NGINX
 FROM nginx:alpine AS serve

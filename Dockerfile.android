@@ -11,20 +11,16 @@ RUN apt-get update && apt-get install -y \
     wget \
     bash \
     libglu1-mesa \
+    clang \
     cmake \
     ninja-build \
-    clang  \
-    cmake  \
-    ninja-build  \
-    pkg-config  \
-    libgtk-3-dev  \
-    libstdc++-12-dev  \
-    pkg-config  \
-    libgtk-3-dev  \
-    libboost-all-dev  \
-    libsecret-1-dev  \
-    libjsoncpp-dev   \
-    libsecret-1-0  \
+    pkg-config \
+    libgtk-3-dev \
+    libstdc++-12-dev \
+    libboost-all-dev \
+    libsecret-1-dev \
+    libjsoncpp-dev \
+    libsecret-1-0 \
     libfcl-dev \
     && rm -rf /var/lib/apt/lists/*
 
@@ -70,9 +66,9 @@ RUN if [ "$PRODUCTION" == "true" ]; then echo "PRODUCTION" ; cat env.prod ; cp -
 RUN flutter clean
 # Compilation pour Android
 # Pour un Apk
-RUN flutter build apk --release
+RUN flutter build apk --release --dart-define=BASE_URL=${BASE_URL} --dart-define=WEBSOCKET_URL=${WEBSOCKET_URL}
 # Pour un App Bundle
-RUN flutter build appbundle --release
+RUN flutter build appbundle --release --dart-define=BASE_URL=${BASE_URL} --dart-define=WEBSOCKET_URL=${WEBSOCKET_URL}
 
 FROM debian:stable-slim
 

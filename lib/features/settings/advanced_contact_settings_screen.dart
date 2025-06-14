@@ -7,8 +7,7 @@ import 'package:plop/l10n/app_localizations.dart';
 class AdvancedContactSettingsScreen extends StatefulWidget {
   final dynamic contactKey;
 
-  const AdvancedContactSettingsScreen({Key? key, required this.contactKey})
-      : super(key: key);
+  const AdvancedContactSettingsScreen({super.key, required this.contactKey});
 
   @override
   _AdvancedContactSettingsScreenState createState() =>

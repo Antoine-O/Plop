@@ -5,7 +5,7 @@ import 'package:plop/l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ImportAccountScreen extends StatefulWidget {
-  const ImportAccountScreen({Key? key}) : super(key: key);
+  const ImportAccountScreen({super.key});
 
   @override
   _ImportAccountScreenState createState() => _ImportAccountScreenState();

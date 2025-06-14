@@ -5,6 +5,10 @@ services:
       dockerfile: Dockerfile.android
       args:
         PRODUCTION: "true"
+        BASE_URL: ${BASE_URL}
+        WEBSOCKET_URL: ${WEBSOCKET_URL}
+    volumes:
+      - ./build_output:/app
 #    volumes:
 #      - ./build_output:/app
 

@@ -8,10 +8,10 @@ class InvitationDialog extends StatelessWidget {
   final int validityMinutes;
 
   const InvitationDialog({
-    Key? key,
+    super.key,
     required this.invitationCode,
     required this.validityMinutes,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

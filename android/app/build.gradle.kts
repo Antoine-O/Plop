@@ -33,7 +33,6 @@ android {
     buildTypes {
         release {
             signingConfig = signingConfigs.getByName("debug")
-            consumerProguardFiles 'proguard-rules.pro'
         }
     }
 }

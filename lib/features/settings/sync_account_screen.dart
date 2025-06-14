@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:plop/core/services/database_service.dart';
@@ -10,7 +9,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SyncAccountScreen extends StatefulWidget {
-  const SyncAccountScreen({Key? key}) : super(key: key);
+  const SyncAccountScreen({super.key});
 
   @override
   _SyncAccountScreenState createState() => _SyncAccountScreenState();

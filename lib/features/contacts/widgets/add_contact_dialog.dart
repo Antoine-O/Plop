@@ -8,7 +8,7 @@ class AddContactDialog extends StatefulWidget {
   final String myUserId;
   final String myPseudo;
 
-  const AddContactDialog({Key? key, required this.myUserId, required this.myPseudo}) : super(key: key);
+  const AddContactDialog({super.key, required this.myUserId, required this.myPseudo});
   @override
   _AddContactDialogState createState() => _AddContactDialogState();
 }

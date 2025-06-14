@@ -1,9 +1,12 @@
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:plop/core/config/app_config.dart';
 import 'package:plop/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'core/models/contact_model.dart';
@@ -14,9 +17,33 @@ import 'core/services/notification_service.dart';
 import 'core/services/user_service.dart';
 import 'features/contacts/contact_list_screen.dart';
 import 'features/setup/setup_screen.dart';
+import 'package:http/http.dart' as http;
 
+class MyHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    return super.createHttpClient(context)
+      ..badCertificateCallback = (X509Certificate cert, String host, int port) => true;
+  }
+}
+void connectToApi() async {
+  // Récupère l'URL compilée
+  final String apiUrl = AppConfig.baseUrl;
+  print('Tentative de connexion à : $apiUrl'); // Vérifiez que l'URL est parfaite
+
+  try {
+    final response = await http.get(Uri.parse(apiUrl));
+    print('Réponse reçue: ${response.statusCode}');
+  } catch (e) {
+    // C'EST LA PARTIE LA PLUS IMPORTANTE !
+    print('ERREUR DE CONNEXION DÉTAILLÉE: $e');
+  }
+}
 void main() {
   // On lance directement le widget de chargement
+  // AVOID SSL ERROR - to debug connection issues
+  HttpOverrides.global = MyHttpOverrides();
+  connectToApi();
   runApp(
     ChangeNotifierProvider(
       create: (context) => LocaleProvider(),
@@ -27,7 +54,7 @@ void main() {
 
 // Ce widget gère l'initialisation des services.
 class AppLoader extends StatefulWidget {
-  const AppLoader({Key? key}) : super(key: key);
+  const AppLoader({super.key});
 
   @override
   _AppLoaderState createState() => _AppLoaderState();
@@ -109,7 +136,7 @@ class _AppLoaderState extends State<AppLoader> {
 // Le widget principal de l'application, maintenant lancé après l'initialisation
 class MyApp extends StatelessWidget {
   final UserService userService;
-  const MyApp({Key? key, required this.userService}) : super(key: key);
+  const MyApp({super.key, required this.userService});
 
   @override
   Widget build(BuildContext context) {
