@@ -361,8 +361,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get next => 'Weiter';
 
   @override
-  String get serverConnectionError =>
-      'Fehler: Der Server konnte nicht kontaktiert werden. Bitte versuchen Sie es erneut.';
+  String serverConnectionError(Object server) {
+    return 'Fehler: Der Server $server konnte nicht kontaktiert werden. Bitte versuchen Sie es erneut.';
+  }
 
   @override
   String get languageUpdated => 'Sprache aktualisiert!';

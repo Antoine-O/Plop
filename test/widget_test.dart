@@ -1,7 +1,7 @@
 // test/widget_test.dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:plop_app/core/services/user_service.dart';
-import 'package:plop_app/main.dart';
+import 'package:plop/core/services/user_service.dart';
+import 'package:plop/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {

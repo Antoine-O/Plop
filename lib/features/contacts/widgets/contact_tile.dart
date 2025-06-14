@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:plop_app/core/config/app_config.dart';
-import 'package:plop_app/core/models/contact_model.dart';
-import 'package:plop_app/core/models/message_model.dart';
-import 'package:plop_app/core/services/database_service.dart';
-import 'package:plop_app/core/services/websocket_service.dart';
+import 'package:plop/core/config/app_config.dart';
+import 'package:plop/core/models/contact_model.dart';
+import 'package:plop/core/models/message_model.dart';
+import 'package:plop/core/services/database_service.dart';
+import 'package:plop/core/services/websocket_service.dart';
 
 class ContactTile extends StatefulWidget {
   final Contact contact;

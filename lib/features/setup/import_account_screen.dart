@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:plop_app/core/services/sync_service.dart';
-import 'package:plop_app/features/contacts/contact_list_screen.dart';
+import 'package:plop/core/services/sync_service.dart';
+import 'package:plop/features/contacts/contact_list_screen.dart';
+import 'package:plop/l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:plop_app/l10n/app_localizations.dart';
 
 class ImportAccountScreen extends StatefulWidget {
   const ImportAccountScreen({Key? key}) : super(key: key);

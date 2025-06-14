@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:plop_app/core/services/user_service.dart';
-import 'package:plop_app/features/contacts/contact_list_screen.dart';
-import 'package:plop_app/features/setup/import_account_screen.dart';
+import 'package:plop/core/services/user_service.dart';
+import 'package:plop/features/contacts/contact_list_screen.dart';
+import 'package:plop/features/setup/import_account_screen.dart';
+import 'package:plop/l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:plop_app/l10n/app_localizations.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class SetupScreen extends StatefulWidget {
   const SetupScreen({Key? key}) : super(key: key);
@@ -35,7 +36,7 @@ class _SetupScreenState extends State<SetupScreen> {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur: Impossible de contacter le serveur. Veuillez réessayer.')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.serverConnectionError(dotenv.env['BASE_URL']!))),
       );
     }
   }
@@ -186,7 +187,7 @@ class _SetupScreenState extends State<SetupScreen> {
           ),
           TextButton(
             onPressed: () async {
-              final url = Uri.parse('https://www.buymeacoffee.com/flutterdev'); // URL de don à remplacer
+              final url = Uri.parse('https://www.buymeacoffee.com/antoineo'); // URL de don à remplacer
               if (await canLaunchUrl(url)) {
                 await launchUrl(url, mode: LaunchMode.externalApplication);
               }

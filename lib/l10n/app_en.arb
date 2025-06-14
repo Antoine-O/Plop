@@ -109,6 +109,6 @@
 "previous": "Previous",
 "finish": "Finish",
 "next": "Next",
-"serverConnectionError": "Error: Could not contact the server. Please try again.",
+"serverConnectionError": "Error: Could not contact the server {server}. Please try again.",
     "languageUpdated": "Language updated!"
 }

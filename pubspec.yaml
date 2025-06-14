@@ -1,8 +1,8 @@
-name: plop_app
+name: plop
 description: "Une application de notification minimaliste et multiplateforme."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.0+1
+version: 1.0.0+2
 
 environment:
   sdk: '>=3.2.0 <4.0.0' # Assurez-vous d'utiliser une version récente de Dart
@@ -56,7 +56,7 @@ dev_dependencies:
   hive_generator:  ^2.0.1
   build_runner:  ^2.4.15
   analyzer: ^6.11.0
-
+  flutter_launcher_icons: ^0.14.4
 
 flutter:
   uses-material-design: true
@@ -78,3 +78,27 @@ flutter:
   assets:
     - .env
     - assets/sounds/plop.mp3
+
+flutter_launcher_icons:
+  # --- Configuration Générale ---
+  # Chemin vers votre image source
+  image_path: "assets/icon/icon.png"
+
+  # --- Configuration par Plateforme ---
+  # Active la génération pour Android
+  android: true
+  # Active la génération pour iOS
+  ios: true
+  # Active la génération pour le Web
+  web:
+    generate: true
+  # Active la génération pour Windows
+  windows:
+    generate: true
+    # Chemin vers votre image source (peut être le même)
+    image_path: "assets/icon/icon.png"
+  # Active la génération pour macOS
+  macos:
+    generate: true
+    # Chemin vers votre image source (peut être le même)
+    image_path: "assets/icon/icon.png"

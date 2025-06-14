@@ -1,4 +1,4 @@
-package com.example.plop_app
+package com.quickcontest.plop
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -42,7 +42,7 @@ class NotificationService {
     AndroidNotificationDetails(
       'plop_channel_id',
       'Plop Notifications',
-      channelDescription: 'Channel for Plop app notifications',
+      channelDescription: 'Channel for Plop notifications',
       importance: Importance.max,
       priority: Priority.high,
       showWhen: false,

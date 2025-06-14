@@ -109,7 +109,7 @@
 "previous": "Precedente",
 "finish": "Fine",
 "next": "Avanti",
-"serverConnectionError": "Errore: Impossibile contattare il server. Si prega di riprovare.",
+"serverConnectionError": "Errore: Impossibile contattare il server {server}. Si prega di riprovare.",
     "languageUpdated": "Lingua aggiornata!"
 
 }

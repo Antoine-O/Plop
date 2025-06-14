@@ -1,0 +1,13 @@
+services:
+  compile-android:
+    build:
+      context: .
+      dockerfile: Dockerfile.android
+      args:
+        PRODUCTION: "true"
+#    volumes:
+#      - ./build_output:/app
+
+
+#  docker compose  -f docker-compose-build-android.yml create
+#  docker compose cp compile-android:/app ./build_output

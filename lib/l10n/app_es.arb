@@ -109,7 +109,7 @@
 "previous": "Anterior",
 "finish": "Terminar",
 "next": "Siguiente",
-"serverConnectionError": "Error: No se pudo contactar con el servidor. Por favor, inténtelo de nuevo.",
+"serverConnectionError": "Error: No se pudo contactar con el servidor {server}. Por favor, inténtelo de nuevo.",
     "languageUpdated": "¡Idioma actualizado!"
 
 }

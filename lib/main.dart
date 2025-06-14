@@ -4,6 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:plop/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'core/models/contact_model.dart';
 import 'core/models/message_model.dart';
@@ -13,7 +14,6 @@ import 'core/services/notification_service.dart';
 import 'core/services/user_service.dart';
 import 'features/contacts/contact_list_screen.dart';
 import 'features/setup/setup_screen.dart';
-import 'package:plop_app/l10n/app_localizations.dart';
 
 void main() {
   // On lance directement le widget de chargement
@@ -116,7 +116,7 @@ class MyApp extends StatelessWidget {
     return Consumer<LocaleProvider>(
       builder: (context, localeProvider, child) {
         return MaterialApp(
-          title: 'Plop App',
+          title: 'Plop',
           locale: localeProvider.locale,
           localizationsDelegates: const [
             AppLocalizations.delegate,

@@ -2,7 +2,7 @@
 import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:plop_app/core/services/locale_provider.dart';
+import 'package:plop/core/services/locale_provider.dart';
 import 'package:provider/provider.dart';
 
 class AppConfig {

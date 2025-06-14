@@ -6,9 +6,10 @@ plugins {
 }
 
 android {
-    namespace = "com.example.plop_app"
+    namespace = "com.quickcontest.plop"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = "27.0.12077973"
+
 
     compileOptions {
         // CORRECTION: Syntaxe pour Kotlin DSL
@@ -22,7 +23,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.plop_app"
+        applicationId = "com.quickcontest.plop"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
@@ -32,6 +33,7 @@ android {
     buildTypes {
         release {
             signingConfig = signingConfigs.getByName("debug")
+            consumerProguardFiles 'proguard-rules.pro'
         }
     }
 }

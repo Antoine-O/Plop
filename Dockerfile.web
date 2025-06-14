@@ -28,6 +28,7 @@ COPY pubspec.yaml pubspec.lock ./
 RUN flutter pub get
 
 COPY . .
+RUN if [ "$PRODUCTION" == "true" ]; then echo "PRODUCTION" ; cat env.prod ; cp -f env.prod .env; else echo "DEV" ; cat env.dev ; cp -f env.dev .env; fi
 
 RUN flutter clean
 

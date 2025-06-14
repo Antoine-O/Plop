@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:plop_app/core/models/contact_model.dart';
-import 'package:plop_app/core/services/database_service.dart';
-import 'package:plop_app/core/services/invitation_service.dart';
-import 'package:plop_app/l10n/app_localizations.dart';
+import 'package:plop/core/models/contact_model.dart';
+import 'package:plop/core/services/database_service.dart';
+import 'package:plop/core/services/invitation_service.dart';
+import 'package:plop/l10n/app_localizations.dart';
 
 class AddContactDialog extends StatefulWidget {
   final String myUserId;

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
-import 'package:plop_app/core/models/contact_model.dart';
-import 'package:plop_app/core/services/database_service.dart';
-import 'package:plop_app/core/services/invitation_service.dart';
-import 'package:plop_app/core/services/user_service.dart';
-import 'package:plop_app/features/contacts/widgets/add_contact_dialog.dart';
-import 'package:plop_app/features/contacts/widgets/invitation_dialog.dart';
-import 'package:plop_app/features/settings/advanced_contact_settings_screen.dart';
-import 'package:plop_app/l10n/app_localizations.dart';
+import 'package:plop/core/models/contact_model.dart';
+import 'package:plop/core/services/database_service.dart';
+import 'package:plop/core/services/invitation_service.dart';
+import 'package:plop/core/services/user_service.dart';
+import 'package:plop/features/contacts/widgets/add_contact_dialog.dart';
+import 'package:plop/features/contacts/widgets/invitation_dialog.dart';
+import 'package:plop/features/settings/advanced_contact_settings_screen.dart';
+import 'package:plop/l10n/app_localizations.dart';
 
 class ManageContactsScreen extends StatefulWidget {
   const ManageContactsScreen({Key? key}) : super(key: key);

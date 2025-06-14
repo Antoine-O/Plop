@@ -1,0 +1,27 @@
+services:
+  site:
+    image: registry.profluens.com/plop_site:local
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: 20m
+        max-file: '10'
+    ports:
+      - "80:80"
+  service:
+    image: registry.profluens.com/plop_service:local
+    build:
+      dockerfile: Dockerfile
+      context: server
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: 20m
+        max-file: '10'
+    ports:
+      - "8080:8080"

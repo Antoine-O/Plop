@@ -1,0 +1,97 @@
+# --- Étape 1: Le "Builder" ---
+# On utilise une image officielle Dart pour garantir une version à jour et stable.
+FROM dart:stable AS builder
+
+# 1. Installation des dépendances système nécessaires pour la compilation Linux.
+RUN apt-get update && apt-get install -y \
+    clang \
+    cmake \
+    ninja-build \
+    pkg-config \
+    libgtk-3-dev \
+    liblzma-dev \
+    libgstreamer1.0-dev \
+    libgstreamer-plugins-base1.0-dev \
+    libsecret-1-dev \
+    git \
+    unzip \
+    wget \
+    bash \
+    && rm -rf /var/lib/apt/lists/*
+
+# 2. Installation du SDK Flutter
+ENV FLUTTER_HOME=/usr/lib/flutter
+RUN git clone https://github.com/flutter/flutter.git --depth 1 --branch stable $FLUTTER_HOME
+ENV PATH="$PATH:${FLUTTER_HOME}/bin"
+
+# Active le support pour la compilation sur Linux et pré-télécharge les binaires.
+RUN flutter config --enable-linux-desktop
+RUN flutter doctor -v
+
+# 3. Processus de compilation de l'application
+WORKDIR /app
+
+# Copie les fichiers de gestion des dépendances en premier pour profiter du cache Docker.
+COPY pubspec.* ./
+RUN flutter pub get
+
+# Copie le reste du code source de l'application.
+COPY . .
+
+RUN if [ "$PRODUCTION" == "true" ]; then echo "PRODUCTION" ; cat env.prod ; cp -f env.prod .env; else echo "DEV" ; cat env.dev ; cp -f env.dev .env; fi
+
+# Nettoie les anciennes compilations et construit l'application en mode "release".
+RUN flutter clean
+RUN flutter build linux --release
+
+
+# --- Étape 2: Création du Paquet .deb ---
+# Création de la structure de répertoires pour notre paquet
+RUN mkdir -p /app/package/DEBIAN
+RUN mkdir -p /app/package/opt/plop
+RUN mkdir -p /app/package/usr/share/applications
+RUN mkdir -p /app/package/usr/share/icons/hicolor/512x512/apps
+
+# Création du fichier de contrôle (métadonnées du paquet)
+# PERSONNALISEZ CES INFORMATIONS
+RUN echo "Package: plop" > /app/package/DEBIAN/control && \
+    echo "Version: 1.0.0" >> /app/package/DEBIAN/control && \
+    echo "Architecture: amd64" >> /app/package/DEBIAN/control && \
+    echo "Maintainer: Votre Nom <votre.email@example.com>" >> /app/package/DEBIAN/control && \
+    echo "Description: Une application de messagerie simple et privée." >> /app/package/DEBIAN/control
+
+# Copie des fichiers de l'application compilée
+RUN cp -rf /app/build/linux/x64/release/bundle/* /app/package/opt/plop/
+
+# Création du raccourci de lancement (.desktop)
+# Assurez-vous que le nom de l'exécutable et de l'icône correspondent
+RUN echo "[Desktop Entry]" > /app/package/usr/share/applications/plop.desktop && \
+    echo "Name=Plop" >> /app/package/usr/share/applications/plop.desktop && \
+    echo "Comment=Messagerie simple et privée" >> /app/package/usr/share/applications/plop.desktop && \
+    echo "Exec=/opt/plop/plop" >> /app/package/usr/share/applications/plop.desktop && \
+    echo "Icon=plop" >> /app/package/usr/share/applications/plop.desktop && \
+    echo "Terminal=false" >> /app/package/usr/share/applications/plop.desktop && \
+    echo "Type=Application" >> /app/package/usr/share/applications/plop.desktop && \
+    echo "Categories=Network;InstantMessaging;" >> /app/package/usr/share/applications/plop.desktop
+
+# Copie de l'icône de l'application
+# Assurez-vous d'avoir une icône dans assets/icon/icon.png (512x512)
+COPY assets/icon/icon.png /app/package/usr/share/icons/hicolor/512x512/apps/plop.png
+
+# Construction du paquet .deb
+RUN dpkg-deb --build /app/package /app/build/plop-1.0.0-amd64.deb
+
+
+# --- Étape 2: L'image Finale ---
+# On part d'une image de base Debian minimale pour l'image finale.
+FROM debian:stable-slim
+
+# Crée un répertoire pour l'application.
+WORKDIR /app
+
+# Copie uniquement les fichiers compilés depuis l'étape "builder".
+# Cela permet de garder l'image finale aussi petite que possible.
+COPY --from=builder /app/build/plop-1.0.0-amd64.deb .
+
+CMD ["sleep","infinity"]
+

@@ -1,0 +1,9 @@
+services:
+  compile-windows:
+    build:
+      context: .
+      dockerfile: Dockerfile.windows
+      args:
+        PRODUCTION: "true"
+#    volumes:
+#      - ./build_output:/app:ro

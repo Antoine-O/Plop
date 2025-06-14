@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'package:plop_app/core/config/app_config.dart';
+import 'package:plop/core/config/app_config.dart';
 
 class SyncService {
   final String _baseUrl = AppConfig.baseUrl;

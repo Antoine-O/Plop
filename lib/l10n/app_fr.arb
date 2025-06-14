@@ -111,6 +111,6 @@
 "previous": "Précédent",
 "finish": "Terminer",
 "next": "Suivant",
-"serverConnectionError": "Erreur : Impossible de contacter le serveur. Veuillez réessayer.",
+"serverConnectionError": "Error: Could not contact the server {server}. Please try again.",
     "languageUpdated": "Langue mise à jour !"
 }

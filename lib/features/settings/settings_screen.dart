@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:plop_app/core/models/message_model.dart';
-import 'package:plop_app/core/models/contact_model.dart';
-import 'package:plop_app/core/services/database_service.dart';
-import 'package:plop_app/core/services/user_service.dart';
-import 'package:plop_app/features/settings/advanced_contact_settings_screen.dart';
-import 'package:plop_app/features/setup/setup_screen.dart';
-import 'package:plop_app/l10n/app_localizations.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:plop/core/models/contact_model.dart';
+import 'package:plop/core/models/message_model.dart';
+import 'package:plop/core/services/database_service.dart';
+import 'package:plop/core/services/locale_provider.dart';
+import 'package:plop/core/services/user_service.dart';
+import 'package:plop/features/setup/setup_screen.dart';
+import 'package:plop/l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'package:provider/provider.dart';
-import 'package:plop_app/core/services/locale_provider.dart';
-import 'package:plop_app/l10n/app_localizations.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -100,18 +98,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  void _reorderContacts(int oldIndex, int newIndex) {
-    setState(() {
-      if (newIndex > oldIndex) {
-        newIndex -= 1;
-      }
-      final Contact item = _contacts.removeAt(oldIndex);
-      _contacts.insert(newIndex, item);
-
-      final List<String> orderedIds = _contacts.map((c) => c.userId).toList();
-      _databaseService.saveContactOrder(orderedIds);
-    });
-  }
+  // void _reorderContacts(int oldIndex, int newIndex) {
+  //   setState(() {
+  //     if (newIndex > oldIndex) {
+  //       newIndex -= 1;
+  //     }
+  //     final Contact item = _contacts.removeAt(oldIndex);
+  //     _contacts.insert(newIndex, item);
+  //
+  //     final List<String> orderedIds = _contacts.map((c) => c.userId).toList();
+  //     _databaseService.saveContactOrder(orderedIds);
+  //   });
+  // }
   String _getLanguageName(BuildContext context, String code) {
     switch (code) {
       case 'fr': return AppLocalizations.of(context)!.french;
@@ -122,28 +120,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
       default: return code;
     }
   }
-  Future<void> _deleteContact(String userId) async {
-    final bool? confirm = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-              title: Text(AppLocalizations.of(context)!.deleteThisContact),
-              content: Text(AppLocalizations.of(context)!.actionIsPermanent),
-              actions: [
-                TextButton(
-                    onPressed: () => Navigator.of(context).pop(false),
-                    child: Text(AppLocalizations.of(context)!.cancel)),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  child: Text(AppLocalizations.of(context)!.delete, style: TextStyle(color: Colors.red)),
-                ),
-              ],
-            ));
-
-    if (confirm == true) {
-      await _databaseService.deleteContact(userId);
-      await _loadAllData(); // Recharger les données pour mettre à jour l'UI
-    }
-  }
+  // Future<void> _deleteContact(String userId) async {
+  //   final bool? confirm = await showDialog<bool>(
+  //       context: context,
+  //       builder: (context) => AlertDialog(
+  //             title: Text(AppLocalizations.of(context)!.deleteThisContact),
+  //             content: Text(AppLocalizations.of(context)!.actionIsPermanent),
+  //             actions: [
+  //               TextButton(
+  //                   onPressed: () => Navigator.of(context).pop(false),
+  //                   child: Text(AppLocalizations.of(context)!.cancel)),
+  //               TextButton(
+  //                 onPressed: () => Navigator.of(context).pop(true),
+  //                 child: Text(AppLocalizations.of(context)!.delete, style: TextStyle(color: Colors.red)),
+  //               ),
+  //             ],
+  //           ));
+  //
+  //   if (confirm == true) {
+  //     await _databaseService.deleteContact(userId);
+  //     await _loadAllData(); // Recharger les données pour mettre à jour l'UI
+  //   }
+  // }
 
   Future<void> _resetApp() async {
     final bool? confirm = await showDialog<bool>(
@@ -182,13 +180,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  void _openAdvancedSettings(Contact contact) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => AdvancedContactSettingsScreen(contactKey: contact.key),
-      ),
-    ).then((_) => _loadAllData()); // Recharge les données au retour
-  }
+  // void _openAdvancedSettings(Contact contact) {
+  //   Navigator.of(context).push(
+  //     MaterialPageRoute(
+  //       builder: (context) => AdvancedContactSettingsScreen(contactKey: contact.key),
+  //     ),
+  //   ).then((_) => _loadAllData()); // Recharge les données au retour
+  // }
   @override
   Widget build(BuildContext context) {
     final localeProvider = Provider.of<LocaleProvider>(context); if (!_isLocaleInitialized) {
@@ -238,6 +236,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           );
                         },
                       ),
+                    ),
+                  SizedBox(height: 10),
+                  if (_userId != null)
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text('WS server'),
+                      subtitle: Text(dotenv.env['WEBSOCKET_URL']!),
+
+                    ),
+                  SizedBox(height: 10),
+                  if (_userId != null)
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text('HTTP Server'),
+                      subtitle: Text(dotenv.env['BASE_URL']!),
+
                     ),
 
                  Divider(height: 40),

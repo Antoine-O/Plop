@@ -1,10 +1,9 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:plop_app/core/models/contact_model.dart';
-import 'package:plop_app/core/services/database_service.dart';
+import 'package:plop/core/models/contact_model.dart';
+import 'package:plop/core/services/database_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'package:plop_app/core/config/app_config.dart';
+import 'package:plop/core/config/app_config.dart';
 
 class UserService {
   late SharedPreferences _prefs;
@@ -25,6 +24,7 @@ class UserService {
   bool hasUser() => userId != null && username != null;
 
   Future<bool> createUser(String newUsername) async {
+    print('Appel de l\'URL : |$_baseUrl/users/generate-id|');
     try {
       final response = await http.get(Uri.parse('$_baseUrl/users/generate-id'));
       if (response.statusCode == 200) {

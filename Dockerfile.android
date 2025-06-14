@@ -11,6 +11,21 @@ RUN apt-get update && apt-get install -y \
     wget \
     bash \
     libglu1-mesa \
+    cmake \
+    ninja-build \
+    clang  \
+    cmake  \
+    ninja-build  \
+    pkg-config  \
+    libgtk-3-dev  \
+    libstdc++-12-dev  \
+    pkg-config  \
+    libgtk-3-dev  \
+    libboost-all-dev  \
+    libsecret-1-dev  \
+    libjsoncpp-dev   \
+    libsecret-1-0  \
+    libfcl-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # 2. Installation du SDK Flutter
@@ -50,6 +65,8 @@ RUN flutter pub get
 
 COPY . .
 
+RUN if [ "$PRODUCTION" == "true" ]; then echo "PRODUCTION" ; cat env.prod ; cp -f env.prod .env; else echo "DEV" ; cat env.dev ; cp -f env.dev .env; fi
+
 RUN flutter clean
 # Compilation pour Android
 # Pour un Apk
@@ -57,5 +74,14 @@ RUN flutter build apk --release
 # Pour un App Bundle
 RUN flutter build appbundle --release
 
-# Compilation pour Linux
-RUN flutter build linux --release
+FROM debian:stable-slim
+
+# Crée un répertoire pour l'application.
+WORKDIR /app
+
+# Copie uniquement les fichiers compilés depuis l'étape "builder".
+# Cela permet de garder l'image finale aussi petite que possible.
+COPY --from=builder /app/build/app/outputs/bundle/release .
+COPY --from=builder /app/build/app/outputs/apk/release .
+
+CMD ["sleep","infinity"]

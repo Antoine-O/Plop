@@ -3,7 +3,7 @@ services:
   # Nom de notre service. Vous pouvez l'appeler comme vous voulez.
   plop-server:
     # 'build: .' indique à Docker Compose de construire l'image
-    # en utilisant le Dockerfile.android-linux qui se trouve dans le répertoire courant (.).
+    # en utilisant le Dockerfile.android qui se trouve dans le répertoire courant (.).
     build: .
     # Nom que l'on donne au conteneur une fois qu'il est lancé.
     container_name: plop_server_container

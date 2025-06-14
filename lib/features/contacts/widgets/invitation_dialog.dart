@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:plop_app/l10n/app_localizations.dart';
+import 'package:plop/l10n/app_localizations.dart';
 
 class InvitationDialog extends StatelessWidget {
   final String invitationCode;

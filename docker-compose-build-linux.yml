@@ -1,0 +1,12 @@
+services:
+  compile-linux:
+    build:
+      context: .
+      dockerfile: Dockerfile.linux
+      args:
+        PRODUCTION: "true"
+#    volumes:
+#      - ./build_output_linux:/app
+
+#  docker compose  -f docker-compose-build-linux.yml create
+#   docker compose cp compile-linux:/app ./build_output

@@ -3,13 +3,13 @@ import 'dart:convert';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:plop_app/core/models/contact_model.dart';
-import 'package:plop_app/core/models/message_model.dart';
-import 'package:plop_app/core/services/database_service.dart';
-import 'package:plop_app/core/services/notification_service.dart';
-import 'package:plop_app/core/services/user_service.dart';
+import 'package:plop/core/models/contact_model.dart';
+import 'package:plop/core/models/message_model.dart';
+import 'package:plop/core/services/database_service.dart';
+import 'package:plop/core/services/notification_service.dart';
+import 'package:plop/core/services/user_service.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
-import 'package:plop_app/core/config/app_config.dart';
+import 'package:plop/core/config/app_config.dart';
 
 class WebSocketService {
   WebSocketService._privateConstructor();

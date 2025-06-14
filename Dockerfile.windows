@@ -20,6 +20,7 @@ WORKDIR C:\\app
 
 # Copie des fichiers de l'application
 COPY . .
+RUN If ($PRODUCTION -eq "true" ) { Copy-Item -Path .env.prod -Destination .env} Else  { Copy-Item -Path .env.dev -Destination .env}
 
 # Installation des dépendances et compilation
 RUN flutter pub get
