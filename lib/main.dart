@@ -28,7 +28,7 @@ class MyHttpOverrides extends HttpOverrides {
 }
 void connectToApi() async {
   // Récupère l'URL compilée
-  final String apiUrl = AppConfig.baseUrl;
+  final String apiUrl = AppConfig.baseUrl + "/ping";
   print('Tentative de connexion à : $apiUrl'); // Vérifiez que l'URL est parfaite
 
   try {
@@ -43,7 +43,7 @@ void main() {
   // On lance directement le widget de chargement
   // AVOID SSL ERROR - to debug connection issues
   HttpOverrides.global = MyHttpOverrides();
-  connectToApi();
+
   runApp(
     ChangeNotifierProvider(
       create: (context) => LocaleProvider(),
@@ -74,6 +74,9 @@ class _AppLoaderState extends State<AppLoader> {
     WidgetsFlutterBinding.ensureInitialized();
 
     await dotenv.load(fileName: ".env");
+
+    connectToApi();
+
     // Initialisation des packages
     await Hive.initFlutter();
     await initializeDateFormatting('fr_FR', null); // Initialisation de la localisation
