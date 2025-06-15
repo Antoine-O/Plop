@@ -14,7 +14,7 @@ on:
 jobs:
   build-and-release:
     # Nom du job
-    name: Build and Release APK
+    name: Build and Release Linux
     # Utilise la dernière version d'Ubuntu disponible sur GitHub Actions
     runs-on: ubuntu-latest
 
@@ -38,8 +38,8 @@ jobs:
             --file Dockerfile.linux \
             --tag flutter-app-builder:latest \
             --build-arg PRODUCTION=true \
-            --build-arg BASE_URL=${{ secrets.API_URL }}
-            --build-arg WEBSOCKET_URL=${{ secrets.API_URL }}
+            --build-arg BASE_URL=${{ secrets.API_URL }} \
+            --build-arg WEBSOCKET_URL=${{ secrets.API_URL }} 
 
       # 3. Création d'un dossier pour l'APK
       # Prépare un dossier local pour y copier l'APK depuis l'image Docker.

@@ -38,7 +38,7 @@ jobs:
             --file Dockerfile.android \
             --tag flutter-app-builder:latest \
             --build-arg PRODUCTION=true \
-            --build-arg BASE_URL=${{ secrets.API_URL }}
+            --build-arg BASE_URL=${{ secrets.API_URL }} \
             --build-arg WEBSOCKET_URL=${{ secrets.API_URL }}
 
       # 3. Création d'un dossier pour l'APK
