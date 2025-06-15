@@ -1,0 +1,69 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+
+name: Source application
+
+on:
+  push:
+    branches: [ "main", "test"]
+  pull_request:
+    branches: [ "main", "test"]
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: .
+
+env:
+  DOCKER_REGISTRY_URL: registry.profluens.com
+  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+jobs:
+  build_docker:
+    # Job name that shows in the GitHub UI
+    name: Build Docker Images
+    # Runner to use
+    runs-on: ubuntu-latest
+#    needs: test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+
+      # Build the Docker image
+      - name: Build the Docker image
+        run: docker compose  -f docker-compose.yml build
+
+      - name: Login to registry
+        run: echo $DOCKER_PASSWORD | docker login https://$DOCKER_REGISTRY_URL/v2/ -u $DOCKER_USERNAME --password-stdin
+        continue-on-error: true
+
+      - name: Login to registry
+        run: echo $DOCKER_PASSWORD | docker login https://$DOCKER_REGISTRY_URL/v2/ -u $DOCKER_USERNAME --password-stdin
+        continue-on-error: true
+
+      - name: Login to registry
+        run: echo $DOCKER_PASSWORD | docker login https://$DOCKER_REGISTRY_URL/v2/ -u $DOCKER_USERNAME --password-stdin
+        continue-on-error: true
+
+      # Push the images to the registry
+      - name: Push the Docker image with version number
+        run: docker compose  -f docker-compose.yml --env-file push
+        continue-on-error: true
+
+      - name: Push the Docker image with version number
+        run: docker compose  -f docker-compose.yml --env-file push
+        continue-on-error: true
+
+      - name: Push the Docker image with version number
+        run: docker compose -f docker-compose.yml --env-file push
+        continue-on-error: true
+
+      # Remove the local images
+      - name: Remove the Docker image with version number
+        run:  docker compose -f docker-compose.yml down --rmi all
+
+

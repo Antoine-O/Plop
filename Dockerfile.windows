@@ -1,34 +1,59 @@
-# Stage 1: Le "Builder" Windows
-# On utilise une image Windows avec Visual Studio, nécessaire pour la compilation.
+# Stage 1: Le "Builder" - Met en place l'environnement et compile l'application.
 FROM mcr.microsoft.com/windows/servercore:ltsc2022 AS builder
 
-# Installation de Chocolatey (un gestionnaire de paquets pour Windows)
-RUN powershell -NoProfile -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))"
+# Passage en PowerShell pour des scripts plus robustes.
+SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
-# Installation de Git et Flutter via Chocolatey
+# Installation de Chocolatey (gestionnaire de paquets pour Windows).
+RUN Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+
+# Installation des dépendances essentielles : Git, Flutter, et les outils de build C++ de Visual Studio.
 RUN choco install git -y
 RUN choco install flutter -y
+# L'installation des outils de build C++ est INDISPENSABLE pour Flutter sur Windows.
+RUN choco install visualstudio2022-workload-native-desktop -y --package-parameters "--add Microsoft.VisualStudio.Component.VC.Tools.x86.x64"
 
-# Ajout de Flutter au PATH
-ENV PATH="C:\\ProgramData\\chocolatey\\bin;C:\\ProgramData\\chocolatey\\lib\\flutter\\tools\\flutter\\bin;%PATH%"
+# Ajout de Flutter au PATH de l'environnement.
+ENV PATH="C:\\ProgramData\\chocolatey\\bin;C:\\ProgramData\\chocolatey\\lib\\flutter\\tools\\flutter\\bin;${env:PATH}"
 
-RUN refreshenv
+# CORRECTION : On rafraîchit l'environnement et on active le support Windows dans la MÊME commande.
+# L'opérateur '&&' garantit que la seconde commande s'exécute dans le même contexte que la première.
+RUN refreshenv && flutter config --enable-windows-desktop
 
-# Activation du support pour Windows
-RUN flutter config --enable-windows-desktop
-
-# Création du répertoire de travail
+# Création du répertoire de travail pour l'application.
 WORKDIR C:\\app
 
-# Copie des fichiers de l'application
-COPY . .
-RUN If ($PRODUCTION -eq "true" ) { Copy-Item -Path env.prod -Destination .env} Else  { Copy-Item -Path env.dev -Destination .env}
+# Copie des fichiers de configuration.
+COPY pubspec.yaml pubspec.lock ./
 
-# Installation des dépendances et compilation
+# Installation des dépendances Flutter.
 RUN flutter pub get
-RUN flutter clean
-RUN flutter build windows --release --dart-define=BASE_URL=${BASE_URL} --dart-define=WEBSOCKET_URL=${WEBSOCKET_URL}
 
-# Stage 2: Création de l'image finale
-# On part d'une image Windows minimale pour l'image finale
+# Copie du reste du code source de l'application.
+COPY . .
+
+# Définition des arguments de build pour les URLs et le mode de production.
+ARG PRODUCTION="true"
+ARG BASE_URL="https://default.api.com"
+ARG WEBSOCKET_URL="wss://default.websocket.com"
+
+# Copie du bon fichier d'environnement (.env) en fonction de l'argument PRODUCTION.
+RUN If ($env:PRODUCTION -eq "true" ) { Copy-Item -Path .env.prod -Destination .env} Else { Copy-Item -Path .env.dev -Destination .env}
+
+# Nettoyage et compilation de l'application en mode release.
+RUN flutter clean
+RUN flutter build windows --release --dart-define=BASE_URL=$env:BASE_URL --dart-define=WEBSOCKET_URL=$env:WEBSOCKET_URL
+
+# ---
+# Stage 2: L'image finale - Contient uniquement l'application compilée.
 FROM mcr.microsoft.com/windows/servercore:ltsc2022
+
+# Création d'un répertoire pour l'application dans l'image finale.
+WORKDIR C:\\App
+
+# Copie UNIQUEMENT du dossier de la release compilée depuis le stage "builder".
+# Cela permet de garder une image finale très légère.
+COPY --from=builder C:\\app\\build\\windows\\runner\\Release .
+
+# La commande par défaut pour simplement garder le conteneur en vie.
+CMD ["cmd"]
