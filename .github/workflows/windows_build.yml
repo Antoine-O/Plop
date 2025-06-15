@@ -57,7 +57,7 @@ jobs:
       # 6. Compression du dossier de la release en .zip
       # Le résultat du build est un dossier complet, on le compresse pour la distribution.
       - name: Zip Release folder
-        run: powershell Compress-Archive -Path ./build/windows/runner/Release/* -DestinationPath ./plop-windows-release.zip
+        run: powershell Compress-Archive -Path ./build/windows/x64/runner/Release/* -DestinationPath ./plop-windows-release.zip
 
       # 7. Publication du .zip dans une Release GitHub
       - name: Create GitHub Release and Upload Zip
@@ -66,5 +66,5 @@ jobs:
           tag_name: latest-build
           name: Latest Windows Build
           prerelease: true
-          files: ./plop-windows-release.zip
+          files: ./build/windows/runner/Release/plop.exe
 
