@@ -11,7 +11,7 @@ RUN Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointMa
 RUN choco install git -y
 RUN choco install flutter -y
 # L'installation des outils de build C++ est INDISPENSABLE pour Flutter sur Windows.
-RUN choco install visualstudio2022-workload-native-desktop -y --package-parameters "--add Microsoft.VisualStudio.Component.VC.Tools.x86.x64"
+RUN choco install visualstudio2022-buildtools -y --package-parameters "--add Microsoft.VisualStudio.Workload.NativeDesktop --includeRecommended"
 
 # Ajout de Flutter au PATH de l'environnement.
 ENV PATH="C:\\ProgramData\\chocolatey\\bin;C:\\ProgramData\\chocolatey\\lib\\flutter\\tools\\flutter\\bin;${env:PATH}"

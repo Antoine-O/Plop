@@ -46,8 +46,8 @@ jobs:
       - name: Extract APK from Docker image
         run: |
           docker create --name extractor flutter-app-builder:latest
-          # Le Dockerfile copie l'APK dans /app/build/, qui contient plop-1.0.0-amd64.deb
-          docker cp extractor:/app/build/plop-1.0.0-amd64.deb ./build/linux/plop-1.0.0-amd64.deb
+          # Le Dockerfile copie l'APK dans /app, qui contient plop-1.0.0-amd64.deb
+          docker cp extractor:/app/plop-1.0.0-amd64.deb ./build/linux/plop-1.0.0-amd64.deb
           docker rm extractor
 
       # 5. Publication du .deb dans une Release GitHub

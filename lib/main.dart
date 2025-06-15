@@ -28,43 +28,43 @@ class MyHttpOverrides extends HttpOverrides {
 }
 void connectToApi() async {
   // Récupère l'URL compilée
-  final String apiUrl = AppConfig.baseUrl + "/ping";
-  print('Tentative de connexion à : $apiUrl'); // Vérifiez que l'URL est parfaite
+  final String apiUrl = "${AppConfig.baseUrl}/ping";
+  debugPrint('Tentative de connexion à : $apiUrl'); // Vérifiez que l'URL est parfaite
 
   try {
     final response = await http.get(Uri.parse(apiUrl));
-    print('Réponse reçue: ${response.statusCode}');
+    debugPrint('Réponse reçue: ${response.statusCode}');
   } catch (e) {
     // C'EST LA PARTIE LA PLUS IMPORTANTE !
-    print('ERREUR DE CONNEXION DÉTAILLÉE: $e');
+    debugPrint('ERREUR DE CONNEXION DÉTAILLÉE: $e');
   }
 }
 
 void connectToName() async {
   // Récupère l'URL compilée
   final String apiUrl = "https://www.google.com";
-  print('Tentative de connexion à : $apiUrl'); // Vérifiez que l'URL est parfaite
+  debugPrint('Tentative de connexion à : $apiUrl'); // Vérifiez que l'URL est parfaite
 
   try {
     final response = await http.get(Uri.parse(apiUrl));
-    print('Réponse reçue: ${response.statusCode}');
+    debugPrint('Réponse reçue: ${response.statusCode}');
   } catch (e) {
     // C'EST LA PARTIE LA PLUS IMPORTANTE !
-    print('ERREUR DE CONNEXION DÉTAILLÉE: $e');
+    debugPrint('ERREUR DE CONNEXION DÉTAILLÉE: $e');
   }
 }
 
 void connectToIp() async {
   // Récupère l'URL compilée
   final String apiUrl = "https://8.8.8.8";
-  print('Tentative de connexion à : $apiUrl'); // Vérifiez que l'URL est parfaite
+  debugPrint('Tentative de connexion à : $apiUrl'); // Vérifiez que l'URL est parfaite
 
   try {
     final response = await http.get(Uri.parse(apiUrl));
-    print('Réponse reçue: ${response.statusCode}');
+    debugPrint('Réponse reçue: ${response.statusCode}');
   } catch (e) {
     // C'EST LA PARTIE LA PLUS IMPORTANTE !
-    print('ERREUR DE CONNEXION DÉTAILLÉE: $e');
+    debugPrint('ERREUR DE CONNEXION DÉTAILLÉE: $e');
   }
 }
 

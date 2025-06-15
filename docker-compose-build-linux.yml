@@ -12,3 +12,4 @@ services:
 
 #  docker compose  -f docker-compose-build-linux.yml create
 #   docker compose cp compile-linux:/app ./build_output
+# docker compose cp compile-android:/app/app-release.apk ./build_output/plop-release.apk

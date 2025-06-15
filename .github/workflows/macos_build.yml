@@ -18,6 +18,10 @@ jobs:
     # IMPORTANT: Utilise la dernière machine virtuelle macOS disponible
     runs-on: macos-latest
 
+    # Ajout de ce bloc pour donner au workflow la permission de créer une Release.
+    permissions:
+      contents: write
+
     env:
       # ATTENTION: Remplacez les URLs ci-dessous par vos véritables URLs de production.
       BASE_URL: "https://ws.plop.quickcontest.com"

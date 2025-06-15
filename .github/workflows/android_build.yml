@@ -51,8 +51,8 @@ jobs:
       - name: Extract APK from Docker image
         run: |
           docker create --name extractor flutter-app-builder:latest
-          # Le Dockerfile copie l'APK dans /app/build/app/outputs/flutter-apk/release/, qui contient app-release.apk
-          docker cp extractor:/app/build/app/outputs/flutter-apk/app-release.apk ./build/apk/plop-release.apk
+          # Le Dockerfile copie l'APK dans /app, qui contient app-release.apk
+          docker cp extractor:/app/app-release.apk ./build/apk/plop-release.apk
           docker rm extractor
 
       # 5. Publication de l'APK dans une Release GitHub
