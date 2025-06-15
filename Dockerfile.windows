@@ -7,11 +7,10 @@ SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPref
 # Installation de Chocolatey (gestionnaire de paquets pour Windows).
 RUN Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
 
-# Installation des dépendances essentielles : Git, Flutter, et les outils de build C++ de Visual Studio.
+# Installation de Git et Flutter.
 RUN choco install git -y
 RUN choco install flutter -y
 
-# --- CORRECTION ---
 # Installation directe des outils de build C++ de Visual Studio pour plus de fiabilité.
 # 1. Téléchargement de l'installateur officiel.
 ADD https://aka.ms/vs/17/release/vs_BuildTools.exe C:/vs_BuildTools.exe
@@ -23,11 +22,9 @@ RUN C:/vs_BuildTools.exe --quiet --wait --norestart --nocache --add Microsoft.Vi
 # 3. Nettoyage de l'installateur.
 RUN del C:/vs_BuildTools.exe
 
-# Ajout de Flutter au PATH de l'environnement.
-ENV PATH="C:\\ProgramData\\chocolatey\\bin;C:\\ProgramData\\chocolatey\\lib\\flutter\\tools\\flutter\\bin;C:\\tools\\flutter\\bin;${env:PATH}"
-
-# On rafraîchit l'environnement et on active le support Windows dans la MÊME commande.
-RUN refreshenv && flutter config --enable-windows-desktop
+# --- CORRECTION ---
+# On appelle directement flutter via son chemin d'installation correct par Chocolatey.
+RUN C:\tools\flutter\bin\flutter.bat config --enable-windows-desktop
 
 # Création du répertoire de travail pour l'application.
 WORKDIR C:\\app
@@ -35,8 +32,8 @@ WORKDIR C:\\app
 # Copie des fichiers de configuration.
 COPY pubspec.yaml pubspec.lock ./
 
-# Installation des dépendances Flutter.
-RUN flutter pub get
+# Installation des dépendances Flutter en utilisant le chemin absolu.
+RUN C:\tools\flutter\bin\flutter.bat pub get
 
 # Copie du reste du code source de l'application.
 COPY . .
@@ -47,11 +44,11 @@ ARG BASE_URL="https://plop.quickcontest.com"
 ARG WEBSOCKET_URL="wss://wss.plop.quickcontest.com"
 
 # Copie du bon fichier d'environnement (.env) en fonction de l'argument PRODUCTION.
-RUN If ($env:PRODUCTION -eq "true" ) { Copy-Item -Path env.prod -Destination .env} Else { Copy-Item -Path env.dev -Destination .env}
+RUN If ($env:PRODUCTION -eq "true" ) { Copy-Item -Path .env.prod -Destination .env} Else { Copy-Item -Path .env.dev -Destination .env}
 
-# Nettoyage et compilation de l'application en mode release.
-RUN flutter clean
-RUN flutter build windows --release --dart-define=BASE_URL=$env:BASE_URL --dart-define=WEBSOCKET_URL=$env:WEBSOCKET_URL
+# Nettoyage et compilation de l'application en mode release en utilisant les chemins absolus.
+RUN C:\tools\flutter\bin\flutter.bat clean
+RUN C:\tools\flutter\bin\flutter.bat build windows --release --dart-define=BASE_URL=$env:BASE_URL --dart-define=WEBSOCKET_URL=$env:WEBSOCKET_URL
 
 # ---
 # Stage 2: L'image finale - Contient uniquement l'application compilée.
@@ -61,8 +58,8 @@ FROM mcr.microsoft.com/windows/servercore:ltsc2022
 WORKDIR C:\\App
 
 # Copie UNIQUEMENT du dossier de la release compilée depuis le stage "builder".
-# Cela permet de garder une image finale très légère.
 COPY --from=builder C:\\app\\build\\windows\\runner\\Release .
 
 # La commande par défaut pour simplement garder le conteneur en vie.
 CMD ["cmd"]
+
