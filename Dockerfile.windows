@@ -24,7 +24,7 @@ RUN C:/vs_BuildTools.exe --quiet --wait --norestart --nocache --add Microsoft.Vi
 RUN del C:/vs_BuildTools.exe
 
 # Ajout de Flutter au PATH de l'environnement.
-ENV PATH="C:\\ProgramData\\chocolatey\\bin;C:\\ProgramData\\chocolatey\\lib\\flutter\\tools\\flutter\\bin;${env:PATH}"
+ENV PATH="C:\\ProgramData\\chocolatey\\bin;C:\\ProgramData\\chocolatey\\lib\\flutter\\tools\\flutter\\bin;C:\\tools\\flutter\\bin;${env:PATH}"
 
 # On rafraîchit l'environnement et on active le support Windows dans la MÊME commande.
 RUN refreshenv && flutter config --enable-windows-desktop
@@ -43,11 +43,11 @@ COPY . .
 
 # Définition des arguments de build pour les URLs et le mode de production.
 ARG PRODUCTION="true"
-ARG BASE_URL="https://default.api.com"
-ARG WEBSOCKET_URL="wss://default.websocket.com"
+ARG BASE_URL="https://plop.quickcontest.com"
+ARG WEBSOCKET_URL="wss://wss.plop.quickcontest.com"
 
 # Copie du bon fichier d'environnement (.env) en fonction de l'argument PRODUCTION.
-RUN If ($env:PRODUCTION -eq "true" ) { Copy-Item -Path .env.prod -Destination .env} Else { Copy-Item -Path .env.dev -Destination .env}
+RUN If ($env:PRODUCTION -eq "true" ) { Copy-Item -Path env.prod -Destination .env} Else { Copy-Item -Path env.dev -Destination .env}
 
 # Nettoyage et compilation de l'application en mode release.
 RUN flutter clean
