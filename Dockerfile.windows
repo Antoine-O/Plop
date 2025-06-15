@@ -17,8 +17,8 @@ RUN choco install flutter -y
 ADD https://aka.ms/vs/17/release/vs_BuildTools.exe C:/vs_BuildTools.exe
 
 # 2. Exécution de l'installateur avec les composants requis pour Flutter.
-#    La condition à la fin gère le code de sortie "redémarrage nécessaire" comme un succès.
-RUN C:/vs_BuildTools.exe --quiet --wait --norestart --nocache --add Microsoft.VisualStudio.Workload.NativeDesktop --includeRecommended || IF "%ERRORLEVEL%"=="3010" EXIT 0
+#    La syntaxe est maintenant compatible avec PowerShell.
+RUN C:/vs_BuildTools.exe --quiet --wait --norestart --nocache --add Microsoft.VisualStudio.Workload.NativeDesktop --includeRecommended; if ($LastExitCode -ne 0 -and $LastExitCode -ne 3010) { exit $LastExitCode }
 
 # 3. Nettoyage de l'installateur.
 RUN del C:/vs_BuildTools.exe
