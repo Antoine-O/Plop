@@ -1,0 +1,70 @@
+# Nom du workflow qui apparaîtra dans l'onglet "Actions" de GitHub
+name: Build & Release Windows App
+
+# Déclencheurs du workflow
+on:
+  # Se lance à chaque push sur la branche "main" ou "master"
+  push:
+    branches:
+      - main
+      - master
+  # Permet de lancer manuellement le workflow depuis l'interface de GitHub
+  workflow_dispatch:
+
+jobs:
+  build-and-release-windows:
+    # Nom du job
+    name: Build and Release for Windows
+    # IMPORTANT: Utilise une machine virtuelle Windows
+    runs-on: windows-latest
+
+    env:
+      # ATTENTION: Remplacez les URLs ci-dessous par vos véritables URLs de production.
+      BASE_URL: "https://ws.plop.quickcontest.com"
+      WEBSOCKET_URL: "wss://ws.plop.quickcontest.com"
+
+    steps:
+      # 1. Récupération du code source
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Construction de l'image Docker pour Windows
+      # Utilise votre Dockerfile pour compiler l'application Flutter.
+      - name: Build Docker image for Windows
+        run: |
+          docker build . `
+            --file Dockerfile `
+            --tag flutter-app-builder-windows:latest `
+            --build-arg PRODUCTION=true `
+            --build-arg BASE_URL=${{ env.BASE_URL }} `
+            --build-arg WEBSOCKET_URL=${{ env.WEBSOCKET_URL }}
+
+      # 3. Création du dossier de destination pour l'exécutable
+      - name: Create build directory
+        run: mkdir -p build/release
+
+      # 4. Extraction des fichiers compilés depuis l'image Docker
+      # Le Dockerfile pour Windows compile dans 'C:\app\build\windows\runner\Release'
+      - name: Extract build from Docker image
+        run: |
+          docker create --name extractor flutter-app-builder-windows:latest
+          docker cp extractor:C:/app/build/windows/runner/Release/. ./build/release
+          docker rm extractor
+
+      # 5. Compression des fichiers de la release
+      # Le build Windows est un dossier complet, on le compresse en .zip pour la publication.
+      - name: Zip Release folder
+        run: powershell Compress-Archive -Path ./build/release/* -DestinationPath ./plop-windows-release.zip
+
+      # 6. Publication du .zip dans une Release GitHub
+      - name: Create GitHub Release and Upload Zip
+        uses: softprops/action-gh-release@v2
+        with:
+          # Le nom du tag pour la release
+          tag_name: latest-windows-build
+          # Le titre de la release
+          name: Latest Windows Build
+          # Permet de recréer la release à chaque fois
+          prerelease: true
+          # Le fichier .zip à joindre à la release
+          files: ./plop-windows-release.zip

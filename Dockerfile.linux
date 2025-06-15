@@ -42,7 +42,7 @@ RUN if [ "$PRODUCTION" == "true" ]; then echo "PRODUCTION" ; cat env.prod ; cp -
 
 # Nettoie les anciennes compilations et construit l'application en mode "release".
 RUN flutter clean
-RUN flutter build linux --release
+RUN flutter build linux --release --dart-define=BASE_URL=${BASE_URL} --dart-define=WEBSOCKET_URL=${WEBSOCKET_URL}
 
 
 # --- Étape 2: Création du Paquet .deb ---

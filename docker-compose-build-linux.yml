@@ -5,6 +5,8 @@ services:
       dockerfile: Dockerfile.linux
       args:
         PRODUCTION: "true"
+        BASE_URL: ${BASE_URL}
+        WEBSOCKET_URL: ${WEBSOCKET_URL}
 #    volumes:
 #      - ./build_output_linux:/app
 

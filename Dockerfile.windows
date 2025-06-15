@@ -25,7 +25,7 @@ RUN If ($PRODUCTION -eq "true" ) { Copy-Item -Path .env.prod -Destination .env} 
 # Installation des dépendances et compilation
 RUN flutter pub get
 RUN flutter clean
-RUN flutter build windows --release
+RUN flutter build windows --release --dart-define=BASE_URL=${BASE_URL} --dart-define=WEBSOCKET_URL=${WEBSOCKET_URL}
 
 # Stage 2: Création de l'image finale
 # On part d'une image Windows minimale pour l'image finale

@@ -1,0 +1,72 @@
+# Nom du workflow qui apparaîtra dans l'onglet "Actions" de GitHub
+name: Build & Release Android APK
+
+# Déclencheurs du workflow
+on:
+  # Se lance à chaque push sur la branche "main" ou "master"
+  push:
+    branches:
+      - main
+      - master
+  # Permet de lancer manuellement le workflow depuis l'interface de GitHub
+  workflow_dispatch:
+
+jobs:
+  build-and-release:
+    # Nom du job
+    name: Build and Release APK
+    # Utilise la dernière version d'Ubuntu disponible sur GitHub Actions
+    runs-on: ubuntu-latest
+
+    env:
+      # --- MODIFICATION ---
+      # ATTENTION: Remplacez l'URL ci-dessous par votre véritable URL d'API de production.
+      BASE_URL: "https://ws.plop.quickcontest.com"
+      WEBSOCKET_URL: "wss://ws.plop.quickcontest.com"
+
+    steps:
+      # 1. Récupération du code source
+      # Cette action télécharge le code de votre dépôt sur la machine virtuelle
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Construction de l'image Docker
+      # Utilise votre Dockerfile pour compiler l'application Flutter.
+      - name: Build Docker image
+        run: |
+          docker build . \
+            --file Dockerfile.android \
+            --tag flutter-app-builder:latest \
+            --build-arg PRODUCTION=true \
+            --build-arg BASE_URL=${{ secrets.API_URL }}
+            --build-arg WEBSOCKET_URL=${{ secrets.API_URL }}
+
+      # 3. Création d'un dossier pour l'APK
+      # Prépare un dossier local pour y copier l'APK depuis l'image Docker.
+      - name: Create build directory
+        run: mkdir -p build/apk
+
+      # 4. Extraction de l'APK depuis l'image Docker
+      # Crée un conteneur temporaire à partir de l'image construite et copie l'APK généré.
+      - name: Extract APK from Docker image
+        run: |
+          docker create --name extractor flutter-app-builder:latest
+          # Le Dockerfile copie l'APK dans /app/release/, qui contient app-release.apk
+          docker cp extractor:/app/release/app-release.apk ./build/apk/plop-release.apk
+          docker rm extractor
+
+      # 5. Publication de l'APK dans une Release GitHub
+      # Utilise une action populaire pour créer une "Release" sur GitHub.
+      # Si la release "Latest Build" existe, elle sera mise à jour. Sinon, elle sera créée.
+      - name: Create GitHub Release and Upload APK
+        uses: softprops/action-gh-release@v2
+        with:
+          # Le nom du tag pour la release. 'latest' est une convention pour la dernière build.
+          tag_name: latest-build
+          # Le titre de la release.
+          name: Latest Build
+          # Permet à l'action de supprimer et de recréer la release à chaque fois,
+          # pour toujours avoir la dernière version.
+          prerelease: true
+          # Les fichiers à joindre à la release.
+          files: ./build/apk/plop-release.apk

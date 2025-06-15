@@ -1,0 +1,72 @@
+# Nom du workflow qui apparaîtra dans l'onglet "Actions" de GitHub
+name: Build & Release macOS App
+
+# Déclencheurs du workflow
+on:
+  # Se lance à chaque push sur la branche "main" ou "master"
+  push:
+    branches:
+      - main
+      - master
+  # Permet de lancer manuellement le workflow depuis l'interface de GitHub
+  workflow_dispatch:
+
+jobs:
+  build-and-release-macos:
+    # Nom du job
+    name: Build and Release for macOS
+    # IMPORTANT: Utilise la dernière machine virtuelle macOS disponible
+    runs-on: macos-latest
+
+    env:
+      # ATTENTION: Remplacez les URLs ci-dessous par vos véritables URLs de production.
+      BASE_URL: "https://ws.plop.quickcontest.com"
+      WEBSOCKET_URL: "wss://ws.plop.quickcontest.com"
+
+    steps:
+      # 1. Récupération du code source de votre projet
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Installation et configuration de Flutter
+      # Utilise une action standard pour installer le SDK Flutter sur la machine virtuelle.
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable' # ou 'beta', 'dev'
+
+      # 3. Activation du support pour macOS
+      - name: Enable macOS desktop support
+        run: flutter config --enable-macos-desktop
+
+      # 4. Téléchargement des dépendances du projet
+      - name: Get Flutter dependencies
+        run: flutter pub get
+
+      # 5. Compilation de l'application pour macOS
+      # Passe les URLs via --dart-define pour la configuration.
+      - name: Build macOS application
+        run: |
+          flutter build macos --release \
+            --dart-define=BASE_URL=${{ env.BASE_URL }} \
+            --dart-define=WEBSOCKET_URL=${{ env.WEBSOCKET_URL }}
+
+      # 6. Compression de l'application (.app) en une archive .zip
+      # Le résultat du build est un dossier .app, nous le compressons pour la distribution.
+      - name: Zip the .app bundle
+        # Remplacez "plop.app" par le nom de votre application si différent.
+        # Le nom se trouve dans votre pubspec.yaml (name: plop)
+        run: |
+          ditto -c -k --sequesterRsrc --keepParent \
+            build/macos/Build/Products/Release/plop.app \
+            plop-macos-release.zip
+
+      # 7. Publication du .zip dans une Release GitHub
+      # Crée ou met à jour une release avec l'archive compressée.
+      - name: Create GitHub Release and Upload Zip
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest-macos-build
+          name: Latest macOS Build
+          prerelease: true
+          files: plop-macos-release.zip
