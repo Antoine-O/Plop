@@ -44,7 +44,7 @@ ARG BASE_URL="https://plop.quickcontest.com"
 ARG WEBSOCKET_URL="wss://wss.plop.quickcontest.com"
 
 # Copie du bon fichier d'environnement (.env) en fonction de l'argument PRODUCTION.
-RUN If ($env:PRODUCTION -eq "true" ) { Copy-Item -Path .env.prod -Destination .env} Else { Copy-Item -Path .env.dev -Destination .env}
+RUN If ($env:PRODUCTION -eq "true" ) { Copy-Item -Path env.prod -Destination .env} Else { Copy-Item -Path env.dev -Destination .env}
 
 # Nettoyage et compilation de l'application en mode release en utilisant les chemins absolus.
 RUN C:\tools\flutter\bin\flutter.bat clean
