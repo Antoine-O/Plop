@@ -12,6 +12,8 @@ RUN choco install flutter -y
 # Ajout de Flutter au PATH
 ENV PATH="C:\\ProgramData\\chocolatey\\bin;C:\\ProgramData\\chocolatey\\lib\\flutter\\tools\\flutter\\bin;%PATH%"
 
+RUN refreshenv
+
 # Activation du support pour Windows
 RUN flutter config --enable-windows-desktop
 
@@ -20,7 +22,7 @@ WORKDIR C:\\app
 
 # Copie des fichiers de l'application
 COPY . .
-RUN If ($PRODUCTION -eq "true" ) { Copy-Item -Path .env.prod -Destination .env} Else  { Copy-Item -Path .env.dev -Destination .env}
+RUN If ($PRODUCTION -eq "true" ) { Copy-Item -Path env.prod -Destination .env} Else  { Copy-Item -Path env.dev -Destination .env}
 
 # Installation des dépendances et compilation
 RUN flutter pub get

@@ -11,10 +11,10 @@ on:
   # Permet de lancer manuellement le workflow depuis l'interface de GitHub
   workflow_dispatch:
 #
-#jobs:
-#  build-and-release-ios:
-#    # Nom du job
-#    name: Build and Release for iOS
+jobs:
+  build-and-release-ios:
+    # Nom du job
+    name: Build and Release for iOS
 #    # IMPORTANT: Utilise une machine virtuelle macOS, obligatoire pour les builds iOS
 #    runs-on: macos-latest
 #

@@ -1,5 +1,5 @@
 # Nom du workflow qui apparaîtra dans l'onglet "Actions" de GitHub
-name: Build & Release Linux APK
+name: Build & Release Linux .deb
 
 # Déclencheurs du workflow
 on:
@@ -41,24 +41,19 @@ jobs:
             --build-arg BASE_URL=${{ secrets.API_URL }} \
             --build-arg WEBSOCKET_URL=${{ secrets.API_URL }} 
 
-      # 3. Création d'un dossier pour l'APK
-      # Prépare un dossier local pour y copier l'APK depuis l'image Docker.
-      - name: Create build directory
-        run: mkdir -p build/apk
-
-      # 4. Extraction de l'APK depuis l'image Docker
+      # 4. Extraction du .deb PK depuis l'image Docker
       # Crée un conteneur temporaire à partir de l'image construite et copie l'APK généré.
       - name: Extract APK from Docker image
         run: |
           docker create --name extractor flutter-app-builder:latest
-          # Le Dockerfile copie l'APK dans /app/release/, qui contient plop-1.0.0-amd64.deb
-          docker cp extractor:/app/release/plop-1.0.0-amd64.deb ./build/linux/plop-1.0.0-amd64.deb
+          # Le Dockerfile copie l'APK dans /app/build/, qui contient plop-1.0.0-amd64.deb
+          docker cp extractor:/app/build/plop-1.0.0-amd64.deb ./build/linux/plop-1.0.0-amd64.deb
           docker rm extractor
 
-      # 5. Publication de l'APK dans une Release GitHub
+      # 5. Publication du .deb dans une Release GitHub
       # Utilise une action populaire pour créer une "Release" sur GitHub.
       # Si la release "Latest Build" existe, elle sera mise à jour. Sinon, elle sera créée.
-      - name: Create GitHub Release and Upload APK
+      - name: Create GitHub Release and Upload .deb
         uses: softprops/action-gh-release@v2
         with:
           # Le nom du tag pour la release. 'latest' est une convention pour la dernière build.
@@ -69,4 +64,4 @@ jobs:
           # pour toujours avoir la dernière version.
           prerelease: true
           # Les fichiers à joindre à la release.
-          files: ./build/apk/plop-1.0.0-amd64.deb
+          files: ./build/linux/plop-1.0.0-amd64.deb
