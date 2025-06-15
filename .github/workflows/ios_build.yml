@@ -16,17 +16,17 @@ jobs:
     # Nom du job
     name: Build and Release for iOS
 #    # IMPORTANT: Utilise une machine virtuelle macOS, obligatoire pour les builds iOS
-#    runs-on: macos-latest
+    runs-on: macos-latest
 #
-#    env:
-#      # ATTENTION: Remplacez les URLs ci-dessous par vos véritables URLs de production.
-#      BASE_URL: "https://ws.plop.quickcontest.com"
-#      WEBSOCKET_URL: "wss://ws.plop.quickcontest.com"
-#
-#    steps:
+    env:
+      # ATTENTION: Remplacez les URLs ci-dessous par vos véritables URLs de production.
+      BASE_URL: "https://ws.plop.quickcontest.com"
+      WEBSOCKET_URL: "wss://ws.plop.quickcontest.com"
+
+    steps:
 #      # 1. Récupération du code source de votre projet
-#      - name: Checkout repository
-#        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 #
 #      # 2. Installation et configuration de Flutter
 #      - name: Setup Flutter
