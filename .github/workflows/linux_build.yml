@@ -1,5 +1,5 @@
 # Nom du workflow qui apparaîtra dans l'onglet "Actions" de GitHub
-name: Build & Release Android APK
+name: Build & Release Linux APK
 
 # Déclencheurs du workflow
 on:

@@ -10,58 +10,58 @@ on:
       - master
   # Permet de lancer manuellement le workflow depuis l'interface de GitHub
   workflow_dispatch:
-
-jobs:
-  build-and-release-ios:
-    # Nom du job
-    name: Build and Release for iOS
-    # IMPORTANT: Utilise une machine virtuelle macOS, obligatoire pour les builds iOS
-    runs-on: macos-latest
-
-    env:
-      # ATTENTION: Remplacez les URLs ci-dessous par vos véritables URLs de production.
-      BASE_URL: "https://ws.plop.quickcontest.com"
-      WEBSOCKET_URL: "wss://ws.plop.quickcontest.com"
-
-    steps:
-      # 1. Récupération du code source de votre projet
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      # 2. Installation et configuration de Flutter
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-
-      # 3. Installation des certificats et profils de signature
-      # C'est l'étape cruciale qui utilise les secrets que vous avez configurés.
-      - name: Import Code-Signing Certificates
-        uses: apple-actions/import-codesign-certs@v2
-        with:
-          p12-file-base64: ${{ secrets.P12_BASE64 }}
-          p12-password: ${{ secrets.KEYCHAIN_PASSWORD }}
-          mobileprovision-base64: ${{ secrets.MOBILEPROVISION_BASE64 }}
-
-      # 4. Téléchargement des dépendances du projet
-      - name: Get Flutter dependencies
-        run: flutter pub get
-
-      # 5. Compilation de l'application pour iOS (création de l'IPA)
-      # Passe les URLs via --dart-define pour la configuration.
-      - name: Build iOS application (IPA)
-        run: |
-          flutter build ipa --release \
-            --dart-define=BASE_URL=${{ env.BASE_URL }} \
-            --dart-define=WEBSOCKET_URL=${{ env.WEBSOCKET_URL }}
-
-      # 6. Publication de l'IPA dans une Release GitHub
-      # Le fichier .ipa se trouve dans le dossier build/ios/ipa/
-      - name: Create GitHub Release and Upload IPA
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: latest-ios-build
-          name: Latest iOS Build
-          prerelease: true
-          # Le chemin vers le fichier .ipa généré.
-          files: build/ios/ipa/*.ipa
+#
+#jobs:
+#  build-and-release-ios:
+#    # Nom du job
+#    name: Build and Release for iOS
+#    # IMPORTANT: Utilise une machine virtuelle macOS, obligatoire pour les builds iOS
+#    runs-on: macos-latest
+#
+#    env:
+#      # ATTENTION: Remplacez les URLs ci-dessous par vos véritables URLs de production.
+#      BASE_URL: "https://ws.plop.quickcontest.com"
+#      WEBSOCKET_URL: "wss://ws.plop.quickcontest.com"
+#
+#    steps:
+#      # 1. Récupération du code source de votre projet
+#      - name: Checkout repository
+#        uses: actions/checkout@v4
+#
+#      # 2. Installation et configuration de Flutter
+#      - name: Setup Flutter
+#        uses: subosito/flutter-action@v2
+#        with:
+#          channel: 'stable'
+#
+#      # 3. Installation des certificats et profils de signature
+#      # C'est l'étape cruciale qui utilise les secrets que vous avez configurés.
+#      - name: Import Code-Signing Certificates
+#        uses: apple-actions/import-codesign-certs@v2
+#        with:
+#          p12-file-base64: ${{ secrets.P12_BASE64 }}
+#          p12-password: ${{ secrets.KEYCHAIN_PASSWORD }}
+#          mobileprovision-base64: ${{ secrets.MOBILEPROVISION_BASE64 }}
+#
+#      # 4. Téléchargement des dépendances du projet
+#      - name: Get Flutter dependencies
+#        run: flutter pub get
+#
+#      # 5. Compilation de l'application pour iOS (création de l'IPA)
+#      # Passe les URLs via --dart-define pour la configuration.
+#      - name: Build iOS application (IPA)
+#        run: |
+#          flutter build ipa --release \
+#            --dart-define=BASE_URL=${{ env.BASE_URL }} \
+#            --dart-define=WEBSOCKET_URL=${{ env.WEBSOCKET_URL }}
+#
+#      # 6. Publication de l'IPA dans une Release GitHub
+#      # Le fichier .ipa se trouve dans le dossier build/ios/ipa/
+#      - name: Create GitHub Release and Upload IPA
+#        uses: softprops/action-gh-release@v2
+#        with:
+#          tag_name: latest-ios-build
+#          name: Latest iOS Build
+#          prerelease: true
+#          # Le chemin vers le fichier .ipa généré.
+#          files: build/ios/ipa/*.ipa

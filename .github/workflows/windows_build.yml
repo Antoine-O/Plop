@@ -33,7 +33,7 @@ jobs:
       - name: Build Docker image for Windows
         run: |
           docker build . `
-            --file Dockerfile `
+            --file Dockerfile.windows `
             --tag flutter-app-builder-windows:latest `
             --build-arg PRODUCTION=true `
             --build-arg BASE_URL=${{ env.BASE_URL }} `
