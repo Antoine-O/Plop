@@ -10,14 +10,23 @@ RUN Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointMa
 # Installation des dépendances essentielles : Git, Flutter, et les outils de build C++ de Visual Studio.
 RUN choco install git -y
 RUN choco install flutter -y
-# L'installation des outils de build C++ est INDISPENSABLE pour Flutter sur Windows.
-RUN choco install visualstudio2022-buildtools -y --package-parameters "--add Microsoft.VisualStudio.Workload.NativeDesktop --includeRecommended"
+
+# --- CORRECTION ---
+# Installation directe des outils de build C++ de Visual Studio pour plus de fiabilité.
+# 1. Téléchargement de l'installateur officiel.
+ADD https://aka.ms/vs/17/release/vs_BuildTools.exe C:/vs_BuildTools.exe
+
+# 2. Exécution de l'installateur avec les composants requis pour Flutter.
+#    La condition à la fin gère le code de sortie "redémarrage nécessaire" comme un succès.
+RUN C:/vs_BuildTools.exe --quiet --wait --norestart --nocache --add Microsoft.VisualStudio.Workload.NativeDesktop --includeRecommended || IF "%ERRORLEVEL%"=="3010" EXIT 0
+
+# 3. Nettoyage de l'installateur.
+RUN del C:/vs_BuildTools.exe
 
 # Ajout de Flutter au PATH de l'environnement.
 ENV PATH="C:\\ProgramData\\chocolatey\\bin;C:\\ProgramData\\chocolatey\\lib\\flutter\\tools\\flutter\\bin;${env:PATH}"
 
-# CORRECTION : On rafraîchit l'environnement et on active le support Windows dans la MÊME commande.
-# L'opérateur '&&' garantit que la seconde commande s'exécute dans le même contexte que la première.
+# On rafraîchit l'environnement et on active le support Windows dans la MÊME commande.
 RUN refreshenv && flutter config --enable-windows-desktop
 
 # Création du répertoire de travail pour l'application.

@@ -17,7 +17,9 @@ jobs:
     name: Build and Release for Windows
     # IMPORTANT: Utilise une machine virtuelle Windows
     runs-on: windows-latest
-
+    # Ajout de ce bloc pour donner au workflow la permission de créer une Release.
+    permissions:
+      contents: write
     env:
       # ATTENTION: Remplacez les URLs ci-dessous par vos véritables URLs de production.
       BASE_URL: "https://ws.plop.quickcontest.com"

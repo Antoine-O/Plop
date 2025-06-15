@@ -17,7 +17,9 @@ jobs:
     name: Build and Release APK
     # Utilise la dernière version d'Ubuntu disponible sur GitHub Actions
     runs-on: ubuntu-latest
-
+    # Ajout de ce bloc pour donner au workflow la permission de créer une Release.
+    permissions:
+      contents: write
     env:
       # --- MODIFICATION ---
       # ATTENTION: Remplacez l'URL ci-dessous par votre véritable URL d'API de production.
