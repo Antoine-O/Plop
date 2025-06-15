@@ -66,5 +66,5 @@ jobs:
           tag_name: latest-build
           name: Latest Windows Build
           prerelease: true
-          files: ./build/windows/runner/Release/plop.exe
+          files: ./plop-windows-release.zip
 
