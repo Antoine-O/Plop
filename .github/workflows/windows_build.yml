@@ -31,7 +31,10 @@ jobs:
       # 1. Récupération du code source
       - name: Checkout repository
         uses: actions/checkout@v4
-
+      - name: Update Version
+        run : |
+          (Get-Content -Path pubspec.yaml -Raw) -replace '^(version: 1\.0\.)0\+2$',"`$1${{ github.run_number }}" | Set-Content -Path pubspec.yaml
+        shell: pwsh
       # 2. Installation de Flutter sur la machine virtuelle
       - name: Setup Flutter
         uses: subosito/flutter-action@v2

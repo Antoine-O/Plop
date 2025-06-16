@@ -31,7 +31,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
+      - name: Update Version
+        run : |
+          sed "s/^\(version: 1\.0\.\)0+2$/\1${{ github.run_number }}/" pubspec.yaml
+        shell: bash
 
       # Build the Docker image
       - name: Build the Docker image

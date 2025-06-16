@@ -27,6 +27,11 @@ jobs:
 #      # 1. Récupération du code source de votre projet
       - name: Checkout repository
         uses: actions/checkout@v4
+      - name: Update Version
+        run : |
+          sed -i  "s/^\(version: 1\.0\.\)0+2$/\1${{ github.run_number }}/" pubspec.yaml
+        shell: bash
+
 #
 #      # 2. Installation et configuration de Flutter
 #      - name: Setup Flutter

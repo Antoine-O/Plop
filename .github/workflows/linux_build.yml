@@ -31,6 +31,10 @@ jobs:
       # Cette action télécharge le code de votre dépôt sur la machine virtuelle
       - name: Checkout repository
         uses: actions/checkout@v4
+      - name: Update Version
+        run : |
+          sed -i  "s/^\(version: 1\.0\.\)0+2$/\1${{ github.run_number }}/" pubspec.yaml
+        shell: bash
 
       # 2. Construction de l'image Docker
       # Utilise votre Dockerfile pour compiler l'application Flutter.
@@ -50,7 +54,7 @@ jobs:
           docker create --name extractor flutter-app-builder:latest
           # Le Dockerfile copie l'APK dans /app, qui contient plop-1.0.0-amd64.deb
           mkdir -p ./build/linux
-          docker cp extractor:/app/plop-1.0.0-amd64.deb ./build/linux/plop-1.0.0-amd64.deb
+          docker cp extractor:/app/plop-1.0.0-amd64.deb ./build/linux/plop-amd64.deb
           docker rm extractor
 
       # 5. Publication du .deb dans une Release GitHub
@@ -67,4 +71,4 @@ jobs:
           # pour toujours avoir la dernière version.
           prerelease: true
           # Les fichiers à joindre à la release.
-          files: ./build/linux/plop-1.0.0-amd64.deb
+          files: ./build/linux/plop-amd64.deb
