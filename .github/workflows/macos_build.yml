@@ -71,6 +71,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest-build
-          name: Latest macOS Build
+          name: Latest Build
           prerelease: true
           files: plop-macos-release.zip
