@@ -12,30 +12,75 @@ import 'package:plop/core/config/app_config.dart';
 
 class WebSocketService {
   WebSocketService._privateConstructor();
-  static final WebSocketService _instance = WebSocketService._privateConstructor();
+
+  static final WebSocketService _instance =
+      WebSocketService._privateConstructor();
+
   factory WebSocketService() => _instance;
 
   WebSocketChannel? _channel;
-  final String _baseUrl =  AppConfig.websocketUrl;
-  final _messageUpdateController = StreamController<Map<String, dynamic>>.broadcast();
+  final String _baseUrl = AppConfig.websocketUrl;
+  final _messageUpdateController =
+      StreamController<Map<String, dynamic>>.broadcast();
   final AudioPlayer _audioPlayer = AudioPlayer();
+  Timer? _pingTimer;
 
-  Stream<Map<String, dynamic>> get messageUpdates => _messageUpdateController.stream;
+  Stream<Map<String, dynamic>> get messageUpdates =>
+      _messageUpdateController.stream;
+
+  int _reconnectAttempts = 0;
+
+  void _handleDisconnect(String userId, String userPseudo) {
+    debugPrint('WebSocket déconnecté. Tentative de reconnexion...');
+    _pingTimer?.cancel();
+
+    if (_reconnectAttempts < 60) {
+      // Limite le nombre de tentatives
+      _reconnectAttempts++;
+      // Attente exponentielle (1s, 2s, 4s, 8s, ...)
+      final delay = Duration(seconds: 1 << (_reconnectAttempts - 1));
+
+      Future.delayed(delay, () {
+        debugPrint('Reconnexion (tentative $_reconnectAttempts)...');
+        connect(userId,
+            userPseudo); // Appelle votre méthode de connexion principale
+      });
+    } else {
+      debugPrint('Impossible de se reconnecter après plusieurs tentatives.');
+      // Informer l'utilisateur ou arrêter les tentatives
+    }
+  }
 
   void connect(String userId, String userPseudo) {
     if (_channel != null) return;
     try {
-      _channel = WebSocketChannel.connect(Uri.parse('$_baseUrl/connect?userId=$userId&pseudo=$userPseudo'));
-      _channel!.stream.listen(_handleMessage, onError: (error) {
-        debugPrint('[WebSocket] Erreur: $error');
-        _channel = null;
-      }, onDone: () {
-        debugPrint('[WebSocket] Déconnecté.');
-        _channel = null;
-      });
+      _channel = WebSocketChannel.connect(
+          Uri.parse('$_baseUrl/connect?userId=$userId&pseudo=$userPseudo'));
+      _channel!.stream.listen(
+        _handleMessage, onDone: () => {_handleDisconnect(userId, userPseudo)},
+        onError: (error) {
+          debugPrint('Erreur WebSocket: $error');
+          _handleDisconnect(userId, userPseudo);
+        },
+        cancelOnError:
+            true, // Important pour que onDone soit appelé après une erreur
+      );
+      // Démarrer le minuteur pour le ping
+      _startPing();
     } catch (e) {
       debugPrint('[WebSocket] Erreur de connexion: $e');
     }
+  }
+
+  void _startPing() {
+    // Annule le minuteur précédent s'il existe
+    _pingTimer?.cancel();
+
+    // Envoie un ping toutes les 25 secondes
+    _pingTimer = Timer.periodic(const Duration(seconds: 25), (timer) {
+      debugPrint('Sending ping...');
+      _channel!.sink.add('ping'); // Envoyez un message simple comme "ping"
+    });
   }
 
   void _handleMessage(dynamic message) {
@@ -68,7 +113,9 @@ class WebSocketService {
       userId: payload['userId']!,
       originalPseudo: payload['pseudo']!,
       alias: payload['pseudo']!,
-      colorValue: Colors.primaries[payload['pseudo']!.hashCode % Colors.primaries.length].value,
+      colorValue: Colors
+          .primaries[payload['pseudo']!.hashCode % Colors.primaries.length]
+          .value,
     );
     await DatabaseService().addContact(newContact);
     _messageUpdateController.add({'userId': 'new_contact_added'});
@@ -83,21 +130,25 @@ class WebSocketService {
     final contacts = await dbService.getAllContactsOrdered();
     final messages = dbService.getAllMessages();
 
-    final List<Map<String, dynamic>> contactsJson = contacts.map((c) => {
-      'userId': c.userId,
-      'originalPseudo': c.originalPseudo,
-      'alias': c.alias,
-      'colorValue': c.colorValue,
-      'isMuted': c.isMuted,
-      'isBlocked': c.isBlocked,
-      'customSoundPath': c.customSoundPath,
-      'defaultMessageOverride': c.defaultMessageOverride,
-    }).toList();
+    final List<Map<String, dynamic>> contactsJson = contacts
+        .map((c) => {
+              'userId': c.userId,
+              'originalPseudo': c.originalPseudo,
+              'alias': c.alias,
+              'colorValue': c.colorValue,
+              'isMuted': c.isMuted,
+              'isBlocked': c.isBlocked,
+              'customSoundPath': c.customSoundPath,
+              'defaultMessageOverride': c.defaultMessageOverride,
+            })
+        .toList();
 
-    final List<Map<String, dynamic>> messagesJson = messages.map((m) => {
-      'id': m.id,
-      'text': m.text,
-    }).toList();
+    final List<Map<String, dynamic>> messagesJson = messages
+        .map((m) => {
+              'id': m.id,
+              'text': m.text,
+            })
+        .toList();
 
     final syncPayload = {
       'pseudo': userService.username,
@@ -105,7 +156,8 @@ class WebSocketService {
       'messages': messagesJson,
     };
 
-    debugPrint("[WebSocket] Envoi des données de synchronisation : ${jsonEncode(syncPayload)}");
+    debugPrint(
+        "[WebSocket] Envoi des données de synchronisation : ${jsonEncode(syncPayload)}");
     sendMessage(type: 'sync_data_broadcast', payload: syncPayload);
   }
 
@@ -115,41 +167,56 @@ class WebSocketService {
     final userService = UserService();
     await userService.init();
 
-    debugPrint("[WebSocket] Traitement des données de synchro reçues: $payload");
+    debugPrint(
+        "[WebSocket] Traitement des données de synchro reçues: $payload");
 
     if (payload['pseudo'] != null) {
       await userService.updateUsername(payload['pseudo']);
       debugPrint("[WebSocket] Pseudo mis à jour avec : ${payload['pseudo']}");
     }
-
+    bool hasChanged = false;
     if (payload['contacts'] != null) {
-      final List<Contact> newContacts = (payload['contacts'] as List).map((cJson) => Contact(
-        userId: cJson['userId'],
-        originalPseudo: cJson['originalPseudo'],
-        alias: cJson['alias'],
-        colorValue: cJson['colorValue'],
-        isMuted: cJson['isMuted'],
-        isBlocked: cJson['isBlocked'],
-        customSoundPath: cJson['customSoundPath'],
-        defaultMessageOverride: cJson['defaultMessageOverride'],
-      )).toList();
-      await dbService.replaceAllContacts(newContacts);
-      debugPrint("[WebSocket] ${newContacts.length} contacts ont été remplacés.");
+      final List<Contact> newContacts = (payload['contacts'] as List)
+          .map((cJson) => Contact(
+                userId: cJson['userId'],
+                originalPseudo: cJson['originalPseudo'],
+                alias: cJson['alias'],
+                colorValue: cJson['colorValue'],
+                isMuted: cJson['isMuted'],
+                isBlocked: cJson['isBlocked'],
+                customSoundPath: cJson['customSoundPath'],
+                defaultMessageOverride: cJson['defaultMessageOverride'],
+              ))
+          .toList();
+      hasChanged = hasChanged || await dbService.mergeContacts(newContacts);
+      debugPrint(
+          "[WebSocket] ${newContacts.length} contacts ont été remplacés.");
     }
 
     if (payload['messages'] != null) {
-      final List<MessageModel> newMessages = (payload['messages'] as List).map((mJson) => MessageModel(
-        id: mJson['id'],
-        text: mJson['text'],
-      )).toList();
-      await dbService.replaceAllMessages(newMessages);
-      debugPrint("[WebSocket] ${newMessages.length} messages rapides ont été remplacés.");
+      final List<MessageModel> newMessages = (payload['messages'] as List)
+          .map((mJson) => MessageModel(
+                id: mJson['id'],
+                text: mJson['text'],
+              ))
+          .toList();
+      hasChanged = hasChanged || await dbService.mergeMessages(newMessages);
+      debugPrint(
+          "[WebSocket] ${newMessages.length} messages rapides ont été remplacés.");
     }
 
     _messageUpdateController.add({'userId': 'sync_completed'});
+
+    if (hasChanged) {
+      _handleSyncRequest();
+    }
   }
 
-  void sendMessage({required String type, dynamic payload, String? to, bool isDefault = false}) {
+  void sendMessage(
+      {required String type,
+      dynamic payload,
+      String? to,
+      bool isDefault = false}) {
     if (_channel != null) {
       final message = {
         'type': type,
@@ -161,7 +228,6 @@ class WebSocketService {
     }
   }
 
-
   void disconnect() {
     _channel?.sink.close();
     _channel = null;
@@ -171,6 +237,7 @@ class WebSocketService {
     _messageUpdateController.close();
     _audioPlayer.dispose();
   }
+
   void _handlePlop(Map<String, dynamic> data) async {
     final fromUserId = data['from'] as String;
     final messageText = data['payload'] as String;
@@ -183,7 +250,8 @@ class WebSocketService {
     if (contact == null || (contact.isBlocked ?? false)) return;
 
     // CORRECTION : La logique utilise maintenant la variable `isDefaultMessage`
-    final bool hasOverride = contact.defaultMessageOverride != null && contact.defaultMessageOverride!.isNotEmpty;
+    final bool hasOverride = contact.defaultMessageOverride != null &&
+        contact.defaultMessageOverride!.isNotEmpty;
     final String finalMessage = (hasOverride && isDefaultMessage)
         ? contact.defaultMessageOverride!
         : messageText;
@@ -196,7 +264,8 @@ class WebSocketService {
     await userService.init();
 
     if ((contact.isMuted ?? false) == false && !userService.isGlobalMute) {
-      if (contact.customSoundPath != null && contact.customSoundPath!.isNotEmpty) {
+      if (contact.customSoundPath != null &&
+          contact.customSoundPath!.isNotEmpty) {
         await _audioPlayer.play(DeviceFileSource(contact.customSoundPath!));
       } else {
         await _audioPlayer.play(AssetSource('sounds/plop.mp3'));
@@ -210,6 +279,7 @@ class WebSocketService {
 
     _messageUpdateController.add({'userId': fromUserId});
   }
+
   Future<void> stopCurrentSound() async {
     await _audioPlayer.stop();
   }
