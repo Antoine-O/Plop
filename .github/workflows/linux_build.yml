@@ -62,7 +62,7 @@ jobs:
           # Le nom du tag pour la release. 'latest' est une convention pour la dernière build.
           tag_name: latest-build
           # Le titre de la release.
-          name: Latest Build
+          name: Latest Linux Build
           # Permet à l'action de supprimer et de recréer la release à chaque fois,
           # pour toujours avoir la dernière version.
           prerelease: true
