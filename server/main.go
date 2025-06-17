@@ -303,6 +303,8 @@ func listenForMessages(conn *websocket.Conn, fromUserId string) {
 			// On exclut la source pour éviter un écho inutile.
 			debugLog("Données de synchro reçues de %s. Relais en cours...", fromUserId)
 			broadcastMessageToUser(fromUserId, msg, conn)
+		case "ping":
+            debugLog("Ping de %s", msg.userId)
 		default:
 			debugLog("Type de message inconnu: %s", msg.Type)
 		}
