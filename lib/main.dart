@@ -98,63 +98,6 @@ void connectToIp() async {
   }
 }
 
-Future<void>  initializeNotificationPlugin() async {
-  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-      FlutterLocalNotificationsPlugin();
-
-  // Initialisation pour Android
-  const AndroidInitializationSettings initializationSettingsAndroid =
-      AndroidInitializationSettings('@mipmap/ic_launcher'); // Votre icône d'app
-
-  // Initialisation pour iOS/macOS
-  final DarwinInitializationSettings initializationSettingsDarwin =
-      DarwinInitializationSettings();
-
-  // Initialisation pour Linux
-  const LinuxInitializationSettings initializationSettingsLinux =
-      LinuxInitializationSettings(defaultActionName: 'Open');
-
-  // Regrouper les initialisations
-  final InitializationSettings initializationSettings = InitializationSettings(
-    android: initializationSettingsAndroid,
-    iOS: initializationSettingsDarwin,
-    macOS: initializationSettingsDarwin,
-    linux: initializationSettingsLinux,
-  );
-
-  await flutterLocalNotificationsPlugin.initialize(
-    initializationSettings,
-    onDidReceiveNotificationResponse:
-        (NotificationResponse notificationResponse) {
-      // Action quand l'utilisateur clique sur la notification (toutes plateformes)
-      if (notificationResponse.payload != null) {
-        print('NOTIFICATION PAYLOAD: ${notificationResponse.payload}');
-        // Naviguer vers un écran spécifique
-      }
-    },
-  );
-
-  // --- DEMANDER LES PERMISSIONS (CRUCIAL) ---
-  // Pour iOS, macOS et maintenant Android 13+
-  final bool? result;
-  if (Platform.isAndroid) {
-    result = await flutterLocalNotificationsPlugin
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.requestNotificationsPermission();
-  } else if (Platform.isIOS) {
-    result = await flutterLocalNotificationsPlugin
-        .resolvePlatformSpecificImplementation<
-            IOSFlutterLocalNotificationsPlugin>()
-        ?.requestPermissions(alert: true, badge: true, sound: true);
-  } else if (Platform.isMacOS) {
-    result = await flutterLocalNotificationsPlugin
-        .resolvePlatformSpecificImplementation<
-            MacOSFlutterLocalNotificationsPlugin>()
-        ?.requestPermissions(alert: true, badge: true, sound: true);
-  }
-}
-
 Future<void> main() async {
   // On lance directement le widget de chargement
   // AVOID SSL ERROR - to debug connection issues
