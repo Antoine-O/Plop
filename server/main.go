@@ -304,7 +304,7 @@ func listenForMessages(conn *websocket.Conn, fromUserId string) {
 			debugLog("Données de synchro reçues de %s. Relais en cours...", fromUserId)
 			broadcastMessageToUser(fromUserId, msg, conn)
 		case "ping":
-            debugLog("Ping de %s", msg.userId)
+            debugLog("Ping de %s", fromUserId)
 		default:
 			debugLog("Type de message inconnu: %s", msg.Type)
 		}
