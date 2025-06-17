@@ -77,10 +77,19 @@ class WebSocketService {
     // Annule le minuteur précédent s'il existe
     _pingTimer?.cancel();
 
-    // Envoie un ping toutes les 25 secondes
-    _pingTimer = Timer.periodic(const Duration(seconds: 25), (timer) {
-      debugPrint('Sending ping...');
-      _channel!.sink.add('ping'); // Envoyez un message simple comme "ping"
+    // Envoie un ping toutes les 50 secondes
+    _pingTimer = Timer.periodic(const Duration(seconds: 50), (timer) {
+
+      final String? userId = userService.userId;
+      final Map<String, dynamic> pingData = {
+        'type': 'ping',
+        'timestamp': DateTime.now().toIso8601String(), // Optionnel : pour le débogage
+      };
+      if (userId != null) {
+        pingData.addAll({'userId': userId});
+      }
+      debugPrint('Sending ping... $userId');
+      _channel!.sink.add(pingData); // Envoyez un message simple comme "ping"
     });
   }
 
