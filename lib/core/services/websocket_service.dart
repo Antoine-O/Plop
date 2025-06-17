@@ -12,6 +12,7 @@ import 'package:plop/core/config/app_config.dart';
 
 class WebSocketService {
   WebSocketService._privateConstructor();
+
   final userService = UserService();
 
   static final WebSocketService _instance =
@@ -79,11 +80,11 @@ class WebSocketService {
 
     // Envoie un ping toutes les 50 secondes
     _pingTimer = Timer.periodic(const Duration(seconds: 50), (timer) {
-
       final String? userId = userService.userId;
       final Map<String, dynamic> pingData = {
         'type': 'ping',
-        'timestamp': DateTime.now().toIso8601String(), // Optionnel : pour le débogage
+        'timestamp': DateTime.now().toIso8601String(),
+        // Optionnel : pour le débogage
       };
       if (userId != null) {
         pingData.addAll({'userId': userId});
@@ -272,8 +273,8 @@ class WebSocketService {
 
     final userService = UserService();
     await userService.init();
-
-    if ((contact.isMuted ?? false) == false && !userService.isGlobalMute) {
+    bool isMuted = (contact.isMuted ?? false) == false;
+    if (!isMuted && !userService.isGlobalMute) {
       if (contact.customSoundPath != null &&
           contact.customSoundPath!.isNotEmpty) {
         await _audioPlayer.play(DeviceFileSource(contact.customSoundPath!));
@@ -282,9 +283,9 @@ class WebSocketService {
       }
 
       NotificationService().showNotification(
-        title: 'Nouveau Plop de ${contact.alias}',
-        body: finalMessage,
-      );
+          title: 'Nouveau Plop de ${contact.alias}',
+          body: finalMessage,
+          isMuted: isMuted);
     }
 
     _messageUpdateController.add({'userId': fromUserId});

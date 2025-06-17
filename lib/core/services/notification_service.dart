@@ -1,4 +1,5 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:plop/core/services/user_service.dart';
 
 class NotificationService {
   NotificationService._privateConstructor();
@@ -55,14 +56,19 @@ class NotificationService {
 
 
   }
+  final userService = UserService();
+  Future<void> showNotification({required String title, required String body, required bool isMuted}) async {
 
-  Future<void> showNotification({required String title, required String body}) async {
-    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+
+    final AndroidNotificationDetails androidPlatformChannelSpecifics =
     AndroidNotificationDetails(
       'plop_channel_id',
       'Plop Notifications',
       priority: Priority.high,
-      showWhen: false
+      showWhen: false,
+      sound: (userService.isGlobalMute == false && !isMuted)
+          ? const RawResourceAndroidNotificationSound('plop')
+          : null,
     );
 
     // 2. Détails spécifiques à iOS et macOS (ils partagent la même classe)
