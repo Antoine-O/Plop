@@ -80,6 +80,7 @@ flutter:
   assets:
     - .env
     - assets/sounds/plop.mp3
+    - assets/sounds/plop.aiff
 
 flutter_launcher_icons:
   # --- Configuration Générale ---
