@@ -179,7 +179,7 @@ class _ContactListScreenState extends State<ContactListScreen> {
             children: _contacts.map((contact) {
               return SizedBox(
                 width: tileWidth, // Set the calculated width for each tile
-                height: 100, // Set the calculated width for each tile
+                height: 110, // Set the calculated width for each tile
                 child: ContactTile(contact: contact),
               );
             }).toList(),
