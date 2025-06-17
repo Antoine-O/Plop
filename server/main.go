@@ -338,15 +338,15 @@ func sendDirectMessage(msg Message) {
     defer clientsMutex.Unlock()
 
     if recipientConns, found := clients[msg.To]; found {
-        debugLog("Envoi d'un message direct à l'utilisateur %s", msg.To)
+        debugLog("Envoi d'un message direct de %s à %s", msg.From, msg.To)
         for conn := range recipientConns {
             err := conn.WriteJSON(msg)
             if err != nil {
-                debugLog("Erreur d'envoi (direct) à %s: %v", msg.To, err)
+                debugLog("Erreur d'envoi (direct) de %s à %s : %v", msg.From, msg.To, err)
             }
         }
     } else {
-        debugLog("Destinataire %s non trouvé pour le message de %s", msg.To, msg.From)
+        debugLog("Envoi d'un message direct de %s à %s - Destinataire non trouvé", msg.From, msg.To)
     }
 }
 

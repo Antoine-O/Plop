@@ -90,7 +90,8 @@ class WebSocketService {
         pingData.addAll({'userId': userId});
       }
       debugPrint('Sending ping... $userId');
-      _channel!.sink.add(pingData); // Envoyez un message simple comme "ping"
+      final String jsonPing = jsonEncode(pingData);
+      _channel!.sink.add(jsonPing); // Envoyez un message simple comme "ping"
     });
   }
 

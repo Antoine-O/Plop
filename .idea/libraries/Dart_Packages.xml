@@ -110,7 +110,7 @@
         <entry key="build">
           <value>
             <list>
-              <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/build-2.4.2/lib" />
+              <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/build-2.5.1/lib" />
             </list>
           </value>
         </entry>
@@ -131,21 +131,21 @@
         <entry key="build_resolvers">
           <value>
             <list>
-              <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/build_resolvers-2.4.4/lib" />
+              <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/build_resolvers-2.5.1/lib" />
             </list>
           </value>
         </entry>
         <entry key="build_runner">
           <value>
             <list>
-              <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/build_runner-2.4.15/lib" />
+              <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/build_runner-2.5.1/lib" />
             </list>
           </value>
         </entry>
         <entry key="build_runner_core">
           <value>
             <list>
-              <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/build_runner_core-8.0.0/lib" />
+              <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/build_runner_core-9.0.1/lib" />
             </list>
           </value>
         </entry>
@@ -1076,12 +1076,12 @@
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/audioplayers_web-5.1.1/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/audioplayers_windows-4.2.1/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/boolean_selector-2.1.2/lib" />
-      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/build-2.4.2/lib" />
+      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/build-2.5.1/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/build_config-1.1.2/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/build_daemon-4.0.4/lib" />
-      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/build_resolvers-2.4.4/lib" />
-      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/build_runner-2.4.15/lib" />
-      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/build_runner_core-8.0.0/lib" />
+      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/build_resolvers-2.5.1/lib" />
+      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/build_runner-2.5.1/lib" />
+      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/build_runner_core-9.0.1/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/built_collection-5.1.1/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/built_value-8.10.1/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/characters-1.4.0/lib" />
