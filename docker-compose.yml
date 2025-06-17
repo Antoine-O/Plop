@@ -27,7 +27,5 @@ services:
       options:
         max-size: 20m
         max-file: '10'
-    env_file:
-      - server/.env
     ports:
       - "8080:8080"
