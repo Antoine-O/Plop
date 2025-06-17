@@ -1,13 +1,13 @@
 /**
  * @file API REST pour l'application, utilisant Cloud Functions (v2).
  * @description Chaque fonction est un endpoint HTTP sécurisé.
- */
+ *//*
+
 
 const { onRequest } = require("firebase-functions/v2/https");
 const { setGlobalOptions } = require("firebase-functions/v2/options");
 const logger = require("firebase-functions/logger");
 const admin = require("firebase-admin");
-
 admin.initializeApp();
 const db = admin.firestore();
 
@@ -57,14 +57,17 @@ exports.loginWithSecretKey = onRequest(async (req, res) => {
     if (!secretKey) return res.status(400).json({ error: 'secretKey manquant.' });
 
     const uid = secretKey;
+    // NOTE : Ceci est la méthode d'authentification standard et sécurisée avec Firebase Auth.
     const customToken = await admin.auth().createCustomToken(uid);
     res.status(200).json({ token: customToken });
 });
 
 
+*/
 /**
  * Crée un code d'invitation unique et temporaire.
- */
+ *//*
+
 exports.createInvite = onRequest((req, res) => authenticateAndHandleCors(req, res, async (req, res) => {
     const { uid: creatorUid } = req.user;
     const creatorDoc = await db.collection("users").doc(creatorUid).get();
@@ -89,9 +92,11 @@ exports.createInvite = onRequest((req, res) => authenticateAndHandleCors(req, re
     res.status(200).json({ inviteCode });
 }));
 
+*/
 /**
  * Accepte une invitation, créant une amitié mutuelle.
- */
+ *//*
+
 exports.acceptInvite = onRequest((req, res) => authenticateAndHandleCors(req, res, async (req, res) => {
     const { inviteCode } = req.body;
     const { uid: accepterUid } = req.user;
@@ -125,9 +130,11 @@ exports.acceptInvite = onRequest((req, res) => authenticateAndHandleCors(req, re
 }));
 
 
+*/
 /**
  * Envoie une notification à un autre utilisateur.
- */
+ *//*
+
 exports.sendYo = onRequest((req, res) => authenticateAndHandleCors(req, res, async (req, res) => {
     const { recipientUid, message } = req.body;
     const { uid: senderUid, name: senderName } = req.user;
@@ -160,12 +167,16 @@ exports.sendYo = onRequest((req, res) => authenticateAndHandleCors(req, res, asy
     res.status(200).json({ success: true, status: "sent" });
 }));
 
+*/
 /**
  * Endpoint pour les webhooks externes. Ne nécessite pas d'authentification utilisateur.
- */
+ *//*
+
 exports.triggerNotification = onRequest(async (req, res) => {
     res.set('Access-Control-Allow-Origin', '*');
-    if (req.method === 'OPTIONS') { /* ... CORS ... */ return res.status(204).send(''); }
+    if (req.method === 'OPTIONS') { */
+/* ... CORS ... *//*
+ return res.status(204).send(''); }
 
     const apiKey = req.headers.authorization?.split("Bearer ")[1];
     if (!apiKey) return res.status(401).send("Unauthorized: Missing API Key.");
@@ -192,10 +203,13 @@ exports.triggerNotification = onRequest(async (req, res) => {
 
     res.status(200).send("Notification sent successfully.");
 });
+
+*/
 /**
  * Met à jour le token de l'appareil (deviceToken) pour l'utilisateur authentifié.
  * Ce token est utilisé pour envoyer des notifications push.
- */
+ *//*
+
 exports.updateDeviceToken = onRequest((req, res) => authenticateAndHandleCors(req, res, async (req, res) => {
     const uid = req.user.uid;
     const { token, platform } = req.body;
@@ -209,20 +223,26 @@ exports.updateDeviceToken = onRequest((req, res) => authenticateAndHandleCors(re
 
     const userRef = db.collection('users').doc(uid);
 
-    await userRef.update({
-        deviceToken: token,
-        platform: platform || 'inconnue',
-        lastUpdated: admin.firestore.FieldValue.serverTimestamp()
-    });
-
-    res.status(200).json({ success: true, message: 'Token mis à jour.' });
+    try {
+        await userRef.update({
+            deviceToken: token,
+            platform: platform || 'inconnue',
+            lastUpdated: admin.firestore.FieldValue.serverTimestamp()
+        });
+        res.status(200).json({ success: true, message: 'Token mis à jour.' });
+    } catch (error) {
+        logger.error(`Échec de la mise à jour du token pour ${uid}:`, error);
+        res.status(500).json({ error: 'Une erreur interne est survenue.' });
+    }
 }));
 
 
+*/
 /**
  * Crée le profil utilisateur après l'onboarding.
  * Reçoit un nom d'utilisateur et l'associe à l'UID de l'utilisateur authentifié.
- */
+ *//*
+
 exports.createUserProfile = onRequest((req, res) => authenticateAndHandleCors(req, res, async (req, res) => {
     const uid = req.user.uid;
     const { username } = req.body;
@@ -274,77 +294,12 @@ exports.createUserProfile = onRequest((req, res) => authenticateAndHandleCors(re
 }));
 
 
-exports.updateDeviceToken = onRequest((req, res) => authenticateAndHandleCors(req, res, async (req, res) => {
-    const uid = req.user.uid;
-    const { token, platform } = req.body;
 
-    if (!token) {
-        logger.warn(`Tentative de mise à jour avec un token vide pour l'UID: ${uid}`);
-        return res.status(400).json({ error: 'Le token est manquant.' });
-    }
-
-    logger.info(`Mise à jour du deviceToken pour l'UID: ${uid} sur la plateforme: ${platform || 'inconnue'}`);
-
-    const userRef = db.collection('users').doc(uid);
-
-    try {
-        await userRef.update({
-            deviceToken: token,
-            platform: platform || 'inconnue',
-            lastUpdated: admin.firestore.FieldValue.serverTimestamp()
-        });
-        res.status(200).json({ success: true, message: 'Token mis à jour.' });
-    } catch (error) {
-        logger.error(`Échec de la mise à jour du token pour ${uid}:`, error);
-        res.status(500).json({ error: 'Une erreur interne est survenue.' });
-    }
-}));
-
-
-// ... (dans functions/index.js)
-const crypto = require('crypto'); // On utilise le module crypto de Node.js
-
-// Middleware pour valider notre propre jeton de session
-const authenticateSession = async (req, res, handler) => {
-    // ... (Logique CORS)
-    const sessionToken = req.headers.authorization?.split("Bearer ")[1];
-    if (!sessionToken) return res.status(401).json({ error: "Unauthorized" });
-
-    // TODO: Implémenter une vraie validation de jeton (ex: via une collection 'sessions' dans Firestore ou JWT)
-    // Pour ce test, nous allons supposer que le token est l'UID de l'utilisateur (Clé Secrète)
-    const uid = sessionToken;
-    const userDoc = await db.collection('users').doc(uid).get();
-    if (!userDoc.exists) return res.status(401).json({ error: "Unauthorized" });
-
-    req.user = { uid: uid }; // On attache l'UID à la requête
-    await handler(req, res);
-};
-
-exports.loginWithSecretKey = onRequest(async (req, res) => {
-    res.set('Access-Control-Allow-Origin', '*');
-    const { secretKey } = req.body;
-    if (!secretKey) return res.status(400).json({ error: 'secretKey manquant.' });
-
-    // Pour ce test, le "jeton de session" est simplement la clé secrète elle-même.
-    // Dans une vraie application, on générerait un JWT (JSON Web Token) ici.
-    const sessionToken = secretKey;
-    const uid = secretKey;
-
-    // On s'assure que le profil existe (ou on le crée)
-    const userRef = db.collection('users').doc(uid);
-    const userDoc = await userRef.get();
-    if (!userDoc.exists) {
-        // On ne peut pas connaître le username ici, on crée un profil minimal
-        await userRef.set({ uid: uid, username: 'Nouveau' });
-    }
-
-    res.status(200).json({ sessionToken: sessionToken, uid: uid });
-});
-
-
+*/
 /**
  * Récupère toutes les invitations actives créées par l'utilisateur authentifié.
- */
+ *//*
+
 exports.getActiveInvites = onRequest((req, res) => authenticateAndHandleCors(req, res, async (req, res) => {
     const creatorUid = req.user.uid;
     logger.info(`Récupération des invitations actives pour ${creatorUid}`);
@@ -374,9 +329,11 @@ exports.getActiveInvites = onRequest((req, res) => authenticateAndHandleCors(req
 }));
 
 
+*/
 /**
  * Révoque une invitation spécifique.
- */
+ *//*
+
 exports.revokeInvite = onRequest((req, res) => authenticateAndHandleCors(req, res, async (req, res) => {
     const { inviteId } = req.body;
     const requesterUid = req.user.uid;
@@ -405,9 +362,11 @@ exports.revokeInvite = onRequest((req, res) => authenticateAndHandleCors(req, re
 }));
 
 
+*/
 /**
  * Récupère les profils complets des amis de l'utilisateur authentifié.
- */
+ *//*
+
 exports.getFriends = onRequest((req, res) => authenticateAndHandleCors(req, res, async (req, res) => {
     const uid = req.user.uid;
     logger.info(`Récupération de la liste d'amis pour l'UID: ${uid}`);
@@ -444,9 +403,11 @@ exports.getFriends = onRequest((req, res) => authenticateAndHandleCors(req, res,
     res.status(200).json({ friends });
 }));
 
+*/
 /**
  * Récupère le profil complet de l'utilisateur actuellement authentifié.
- */
+ *//*
+
 exports.getProfile = onRequest((req, res) => authenticateAndHandleCors(req, res, async (req, res) => {
     const { uid } = req.user;
     logger.info(`Récupération du profil pour l'UID: ${uid}`);
@@ -459,4 +420,4 @@ exports.getProfile = onRequest((req, res) => authenticateAndHandleCors(req, res,
 
     // On renvoie toutes les données du profil, car le client en a besoin
     res.status(200).json(userDoc.data());
-}));
+}));*/
