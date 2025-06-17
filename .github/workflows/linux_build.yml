@@ -31,10 +31,6 @@ jobs:
       # Cette action télécharge le code de votre dépôt sur la machine virtuelle
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Update Version
-        run : |
-          sed -i  "s/^\(version: 1\.0\.\)0+2$/\1${{ github.run_number }}/" pubspec.yaml
-        shell: bash
 
       # 2. Construction de l'image Docker
       # Utilise votre Dockerfile pour compiler l'application Flutter.
@@ -45,7 +41,8 @@ jobs:
             --tag flutter-app-builder:latest \
             --build-arg PRODUCTION=true \
             --build-arg BASE_URL=${{ secrets.API_URL }} \
-            --build-arg WEBSOCKET_URL=${{ secrets.API_URL }} 
+            --build-arg WEBSOCKET_URL=${{ secrets.API_URL }} \
+            --build-arg SUBVERSION=${{ github.run_number }}
 
       # 4. Extraction du .deb PK depuis l'image Docker
       # Crée un conteneur temporaire à partir de l'image construite et copie l'APK généré.

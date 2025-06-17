@@ -63,6 +63,8 @@ COPY . .
 
 RUN if [ "$PRODUCTION" == "true" ]; then echo "PRODUCTION" ; cat env.prod ; cp -f env.prod .env; else echo "DEV" ; cat env.dev ; cp -f env.dev .env; fi
 
+RUN sed -i   "s/^(version: [0-9]+\.[0-9]+\.).*$/\\1$SUBVERSION/" pubspec.yaml
+
 RUN flutter clean
 # Compilation pour Android
 # Pour un Apk

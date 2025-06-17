@@ -40,6 +40,8 @@ COPY . .
 
 RUN if [ "$PRODUCTION" == "true" ]; then echo "PRODUCTION" ; cat env.prod ; cp -f env.prod .env; else echo "DEV" ; cat env.dev ; cp -f env.dev .env; fi
 
+RUN sed -i   "s/^(version: [0-9]+\.[0-9]+\.).*$/\\1$SUBVERSION/" pubspec.yaml
+
 # Nettoie les anciennes compilations et construit l'application en mode "release".
 RUN flutter clean
 RUN flutter build linux --release --dart-define=BASE_URL=${BASE_URL} --dart-define=WEBSOCKET_URL=${WEBSOCKET_URL}
