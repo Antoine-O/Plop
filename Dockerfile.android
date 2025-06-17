@@ -2,6 +2,7 @@
 # On part d'une image officielle Dart pour garantir une version à jour et stable.
 FROM dart:stable AS builder
 
+
 # 1. Installation des dépendances système
 # On installe Java (requis par Android), git, unzip, et wget.
 RUN apt-get update && apt-get install -y \
@@ -61,9 +62,13 @@ RUN flutter pub get
 
 COPY . .
 
+ARG BASE_URL
+ARG WEBSOCKET_URL
+ARG SUBVERSION
+
 RUN if [ "$PRODUCTION" == "true" ]; then echo "PRODUCTION" ; cat env.prod ; cp -f env.prod .env; else echo "DEV" ; cat env.dev ; cp -f env.dev .env; fi
 
-RUN sed -i   "s/^(version: [0-9]+\.[0-9]+\.).*$/\\1$SUBVERSION/" pubspec.yaml
+RUN sed -i  -E  "s/^(version: [0-9]+\.[0-9]+\.).*$/\\1$SUBVERSION/" pubspec.yaml
 
 RUN flutter clean
 # Compilation pour Android
