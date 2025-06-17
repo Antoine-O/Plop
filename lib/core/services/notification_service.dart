@@ -6,23 +6,27 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:plop/core/services/user_service.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:plop/core/config/app_config.dart';
+import 'package:plop/main.dart';
 
 class NotificationService {
   NotificationService._privateConstructor();
-  static final NotificationService _instance = NotificationService._privateConstructor();
+
+  static final NotificationService _instance =
+      NotificationService._privateConstructor();
+
   factory NotificationService() => _instance;
 
-  final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
 
   Future<void> init() async {
-
     // Configuration pour Android
     const AndroidInitializationSettings initializationSettingsAndroid =
-    AndroidInitializationSettings('@mipmap/ic_launcher');
+        AndroidInitializationSettings('@mipmap/ic_launcher');
 
     // Configuration pour iOS et macOS
     const DarwinInitializationSettings initializationSettingsDarwin =
-    DarwinInitializationSettings(
+        DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
       requestSoundPermission: true,
@@ -30,12 +34,13 @@ class NotificationService {
 
     // Configuration pour Linux
     const LinuxInitializationSettings initializationSettingsLinux =
-    LinuxInitializationSettings(
+        LinuxInitializationSettings(
       defaultActionName: 'Ouvrir',
     );
 
     // Regrouper toutes les configurations spécifiques à chaque plateforme
-    const InitializationSettings initializationSettings = InitializationSettings(
+    const InitializationSettings initializationSettings =
+        InitializationSettings(
       android: initializationSettingsAndroid,
       iOS: initializationSettingsDarwin,
       macOS: initializationSettingsDarwin,
@@ -44,30 +49,33 @@ class NotificationService {
 
     await _flutterLocalNotificationsPlugin.initialize(initializationSettings);
 
-
     // Définition du canal
     const AndroidNotificationChannel channel = AndroidNotificationChannel(
       'plop_channel_id', // un ID unique pour le canal
       'Plop Notifications', // Nom visible par l'utilisateur
-      description: 'Canal pour les notifications Plop avec un son personnalisé.',
+      description:
+          'Canal pour les notifications Plop avec un son personnalisé.',
       importance: Importance.max,
       playSound: true, // Très important
-      sound: RawResourceAndroidNotificationSound('plop'), // Nom du fichier SANS l'extension
+      sound: RawResourceAndroidNotificationSound(
+          'plop'), // Nom du fichier SANS l'extension
     );
 
 // Création du canal sur l'appareil
     await _flutterLocalNotificationsPlugin
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(channel);
-
-
   }
+
   final userService = UserService();
-  Future<void> showNotification({required String title, required String body, required bool isMuted}) async {
 
-
+  Future<void> showNotification(
+      {required String title,
+      required String body,
+      required bool isMuted}) async {
     final AndroidNotificationDetails androidPlatformChannelSpecifics =
-    AndroidNotificationDetails(
+        AndroidNotificationDetails(
       'plop_channel_id',
       'Plop Notifications',
       priority: Priority.high,
@@ -79,7 +87,7 @@ class NotificationService {
 
     // 2. Détails spécifiques à iOS et macOS (ils partagent la même classe)
     final DarwinNotificationDetails darwinPlatformChannelSpecifics =
-    DarwinNotificationDetails(
+        DarwinNotificationDetails(
       presentAlert: true, // Afficher une alerte
       presentBadge: true, // Mettre à jour le badge de l'icône
       presentSound: true, // Jouer un son
@@ -89,17 +97,17 @@ class NotificationService {
 
     // 3. Détails spécifiques à Linux
     const LinuxNotificationDetails linuxPlatformChannelSpecifics =
-    LinuxNotificationDetails(
+        LinuxNotificationDetails(
       defaultActionName: 'Ouvrir', // Nom de l'action par défaut
       // On peut aussi ajouter des actions personnalisées
     );
-
 
     // 4. Construire l'objet NotificationDetails avec toutes les plateformes
     final NotificationDetails platformChannelSpecifics = NotificationDetails(
       android: androidPlatformChannelSpecifics,
       iOS: darwinPlatformChannelSpecifics,
-      macOS: darwinPlatformChannelSpecifics, // On réutilise la même configuration que pour iOS
+      macOS: darwinPlatformChannelSpecifics,
+      // On réutilise la même configuration que pour iOS
       linux: linuxPlatformChannelSpecifics,
     );
 
@@ -112,8 +120,6 @@ class NotificationService {
     );
   }
 }
-
-
 
 /// Obtient le token FCM actuel et l'envoie au serveur backend.
 Future<void> sendFcmTokenToServer() async {
@@ -153,30 +159,29 @@ Future<void> sendFcmTokenToServer() async {
     if (response.statusCode == 200) {
       debugPrint("Token FCM envoyé au serveur avec succès.");
     } else {
-      debugPrint("Échec de l'envoi du token au serveur. Statut : ${response.statusCode}, Corps : ${response.body}");
+      debugPrint(
+          "Échec de l'envoi du token au serveur. Statut : ${response.statusCode}, Corps : ${response.body}");
     }
   } catch (e) {
     debugPrint("Erreur réseau lors de l'envoi du token FCM : $e");
   }
 }
 
-
-
-Future<void>  initializeNotificationPlugin() async {
+Future<void> initializeNotificationPlugin() async {
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-  FlutterLocalNotificationsPlugin();
+      FlutterLocalNotificationsPlugin();
 
   // Initialisation pour Android
   const AndroidInitializationSettings initializationSettingsAndroid =
-  AndroidInitializationSettings('@mipmap/ic_launcher'); // Votre icône d'app
+      AndroidInitializationSettings('@mipmap/ic_launcher'); // Votre icône d'app
 
   // Initialisation pour iOS/macOS
   final DarwinInitializationSettings initializationSettingsDarwin =
-  DarwinInitializationSettings();
+      DarwinInitializationSettings();
 
   // Initialisation pour Linux
   const LinuxInitializationSettings initializationSettingsLinux =
-  LinuxInitializationSettings(defaultActionName: 'Open');
+      LinuxInitializationSettings(defaultActionName: 'Open');
 
   // Regrouper les initialisations
   final InitializationSettings initializationSettings = InitializationSettings(
@@ -192,8 +197,11 @@ Future<void>  initializeNotificationPlugin() async {
         (NotificationResponse notificationResponse) {
       // Action quand l'utilisateur clique sur la notification (toutes plateformes)
       if (notificationResponse.payload != null) {
-        print('NOTIFICATION PAYLOAD: ${notificationResponse.payload}');
-        // Naviguer vers un écran spécifique
+        debugPrint('NOTIFICATION PAYLOAD: ${notificationResponse.payload}');
+        if (notificationResponse.payload != null &&
+            notificationResponse.payload!.isNotEmpty) {
+          handleNotificationPayload(notificationResponse.payload!);
+        }
       }
     },
   );
@@ -204,17 +212,17 @@ Future<void>  initializeNotificationPlugin() async {
   if (Platform.isAndroid) {
     result = await flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>()
+            AndroidFlutterLocalNotificationsPlugin>()
         ?.requestNotificationsPermission();
   } else if (Platform.isIOS) {
     result = await flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<
-        IOSFlutterLocalNotificationsPlugin>()
+            IOSFlutterLocalNotificationsPlugin>()
         ?.requestPermissions(alert: true, badge: true, sound: true);
   } else if (Platform.isMacOS) {
     result = await flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<
-        MacOSFlutterLocalNotificationsPlugin>()
+            MacOSFlutterLocalNotificationsPlugin>()
         ?.requestPermissions(alert: true, badge: true, sound: true);
   }
 

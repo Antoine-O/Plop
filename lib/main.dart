@@ -1,5 +1,5 @@
 import 'dart:io';
-
+import 'dart:convert'; // Pour jsonEncode
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -20,7 +20,9 @@ import 'features/setup/setup_screen.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
+
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 class MyHttpOverrides extends HttpOverrides {
   @override
@@ -164,6 +166,7 @@ class _AppLoaderState extends State<AppLoader> {
         // CORRECTION : On vérifie d'abord s'il y a une erreur pour l'afficher.
         if (snapshot.hasError) {
           return MaterialApp(
+            navigatorKey: navigatorKey,
             home: Scaffold(
               body: Center(
                 child: Padding(
@@ -227,5 +230,23 @@ class MyApp extends StatelessWidget {
         );
       },
     );
+  }
+}
+
+
+
+void handleNotificationPayload(String payload) {
+  try {
+    // final Map<String, dynamic> data = jsonDecode(payload);
+
+    // if (data['action'] == 'open_chat') {
+    //   final String chatId = data['chatId'];
+
+      // Utilisation de la GlobalKey pour naviguer sans BuildContext !
+      navigatorKey.currentState?.pushNamed('/');
+    // }
+    // Ajoutez d'autres 'if' pour d'autres actions
+  } catch (e) {
+    debugPrint('Erreur lors du traitement du payload de notification : $e');
   }
 }
