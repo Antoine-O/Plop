@@ -31,3 +31,5 @@ bin/
 /.dart_tool/
 /build/
 /build_output/
+/server/.env
+/server/serviceAccountKey.json
