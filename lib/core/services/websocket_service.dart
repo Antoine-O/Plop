@@ -12,6 +12,7 @@ import 'package:plop/core/config/app_config.dart';
 
 class WebSocketService {
   WebSocketService._privateConstructor();
+  final userService = UserService();
 
   static final WebSocketService _instance =
       WebSocketService._privateConstructor();

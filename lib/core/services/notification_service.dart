@@ -48,11 +48,34 @@ class NotificationService {
       showWhen: false,
     );
 
-    const NotificationDetails platformChannelSpecifics =
-    NotificationDetails(android: androidPlatformChannelSpecifics);
+    // 2. Détails spécifiques à iOS et macOS (ils partagent la même classe)
+    final DarwinNotificationDetails darwinPlatformChannelSpecifics =
+    DarwinNotificationDetails(
+      presentAlert: true, // Afficher une alerte
+      presentBadge: true, // Mettre à jour le badge de l'icône
+      presentSound: true, // Jouer un son
+      // subtitle: "plop",   // Affiche un sous-titre sous le titre principal
+      // sound: 'notification_sound.aiff', // Pour un son personnalisé
+    );
+
+    // 3. Détails spécifiques à Linux
+    const LinuxNotificationDetails linuxPlatformChannelSpecifics =
+    LinuxNotificationDetails(
+      defaultActionName: 'Ouvrir', // Nom de l'action par défaut
+      // On peut aussi ajouter des actions personnalisées
+    );
+
+
+    // 4. Construire l'objet NotificationDetails avec toutes les plateformes
+    final NotificationDetails platformChannelSpecifics = NotificationDetails(
+      android: androidPlatformChannelSpecifics,
+      iOS: darwinPlatformChannelSpecifics,
+      macOS: darwinPlatformChannelSpecifics, // On réutilise la même configuration que pour iOS
+      linux: linuxPlatformChannelSpecifics,
+    );
 
     await _flutterLocalNotificationsPlugin.show(
-      0,
+      DateTime.now().millisecondsSinceEpoch.remainder(100000),
       title,
       body,
       platformChannelSpecifics,

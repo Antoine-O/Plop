@@ -1,4 +1,3 @@
-
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -7,6 +6,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:plop/core/config/app_config.dart';
+import 'package:plop/core/services/websocket_service.dart';
 import 'package:plop/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'core/models/contact_model.dart';
@@ -18,18 +18,46 @@ import 'core/services/user_service.dart';
 import 'features/contacts/contact_list_screen.dart';
 import 'features/setup/setup_screen.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 class MyHttpOverrides extends HttpOverrides {
   @override
   HttpClient createHttpClient(SecurityContext? context) {
     return super.createHttpClient(context)
-      ..badCertificateCallback = (X509Certificate cert, String host, int port) => true;
+      ..badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
   }
 }
+
+// 1. Initialiser le plugin de notifications locales
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
+
+@pragma('vm:entry-point')
+void onStart(ServiceInstance service) {
+  final WebSocketService _webSocketService = WebSocketService();
+  final userService = UserService();
+
+  void connectWebSocket() {
+    try {
+      if (userService.userId != null && userService.username != null) {
+        _webSocketService.connect(userService.userId!, userService.username!);
+      }
+    } catch (e) {
+      debugPrint('Erreur de connexion WebSocket: $e');
+    }
+  }
+
+  connectWebSocket();
+}
+
 void connectToApi() async {
   // Récupère l'URL compilée
   final String apiUrl = "${AppConfig.baseUrl}/ping";
-  debugPrint('Tentative de connexion à : $apiUrl'); // Vérifiez que l'URL est parfaite
+  debugPrint(
+      'Tentative de connexion à : $apiUrl'); // Vérifiez que l'URL est parfaite
 
   try {
     final response = await http.get(Uri.parse(apiUrl));
@@ -43,7 +71,8 @@ void connectToApi() async {
 void connectToName() async {
   // Récupère l'URL compilée
   final String apiUrl = "https://www.google.com";
-  debugPrint('Tentative de connexion à : $apiUrl'); // Vérifiez que l'URL est parfaite
+  debugPrint(
+      'Tentative de connexion à : $apiUrl'); // Vérifiez que l'URL est parfaite
 
   try {
     final response = await http.get(Uri.parse(apiUrl));
@@ -57,7 +86,8 @@ void connectToName() async {
 void connectToIp() async {
   // Récupère l'URL compilée
   final String apiUrl = "https://8.8.8.8";
-  debugPrint('Tentative de connexion à : $apiUrl'); // Vérifiez que l'URL est parfaite
+  debugPrint(
+      'Tentative de connexion à : $apiUrl'); // Vérifiez que l'URL est parfaite
 
   try {
     final response = await http.get(Uri.parse(apiUrl));
@@ -68,11 +98,69 @@ void connectToIp() async {
   }
 }
 
-void main() {
+Future<void>  initializeNotificationPlugin() async {
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
+
+  // Initialisation pour Android
+  const AndroidInitializationSettings initializationSettingsAndroid =
+      AndroidInitializationSettings('@mipmap/ic_launcher'); // Votre icône d'app
+
+  // Initialisation pour iOS/macOS
+  final DarwinInitializationSettings initializationSettingsDarwin =
+      DarwinInitializationSettings();
+
+  // Initialisation pour Linux
+  const LinuxInitializationSettings initializationSettingsLinux =
+      LinuxInitializationSettings(defaultActionName: 'Open');
+
+  // Regrouper les initialisations
+  final InitializationSettings initializationSettings = InitializationSettings(
+    android: initializationSettingsAndroid,
+    iOS: initializationSettingsDarwin,
+    macOS: initializationSettingsDarwin,
+    linux: initializationSettingsLinux,
+  );
+
+  await flutterLocalNotificationsPlugin.initialize(
+    initializationSettings,
+    onDidReceiveNotificationResponse:
+        (NotificationResponse notificationResponse) {
+      // Action quand l'utilisateur clique sur la notification (toutes plateformes)
+      if (notificationResponse.payload != null) {
+        print('NOTIFICATION PAYLOAD: ${notificationResponse.payload}');
+        // Naviguer vers un écran spécifique
+      }
+    },
+  );
+
+  // --- DEMANDER LES PERMISSIONS (CRUCIAL) ---
+  // Pour iOS, macOS et maintenant Android 13+
+  final bool? result;
+  if (Platform.isAndroid) {
+    result = await flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.requestNotificationsPermission();
+  } else if (Platform.isIOS) {
+    result = await flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin>()
+        ?.requestPermissions(alert: true, badge: true, sound: true);
+  } else if (Platform.isMacOS) {
+    result = await flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+            MacOSFlutterLocalNotificationsPlugin>()
+        ?.requestPermissions(alert: true, badge: true, sound: true);
+  }
+}
+
+Future<void> main() async {
   // On lance directement le widget de chargement
   // AVOID SSL ERROR - to debug connection issues
-  HttpOverrides.global = MyHttpOverrides();
-
+  // HttpOverrides.global = MyHttpOverrides();
+  WidgetsFlutterBinding.ensureInitialized();
+  await initializeNotificationPlugin();
   runApp(
     ChangeNotifierProvider(
       create: (context) => LocaleProvider(),
@@ -104,11 +192,10 @@ class _AppLoaderState extends State<AppLoader> {
 
     await dotenv.load(fileName: ".env");
 
-
-
     // Initialisation des packages
     await Hive.initFlutter();
-    await initializeDateFormatting('fr_FR', null); // Initialisation de la localisation
+    await initializeDateFormatting(
+        'fr_FR', null); // Initialisation de la localisation
 
     // Enregistrement des adaptateurs Hive
     Hive.registerAdapter(ContactAdapter());
@@ -131,7 +218,6 @@ class _AppLoaderState extends State<AppLoader> {
     return FutureBuilder<UserService>(
       future: _initializationFuture,
       builder: (context, snapshot) {
-
         // CORRECTION : On vérifie d'abord s'il y a une erreur pour l'afficher.
         if (snapshot.hasError) {
           return MaterialApp(
@@ -167,10 +253,10 @@ class _AppLoaderState extends State<AppLoader> {
   }
 }
 
-
 // Le widget principal de l'application, maintenant lancé après l'initialisation
 class MyApp extends StatelessWidget {
   final UserService userService;
+
   const MyApp({super.key, required this.userService});
 
   @override
