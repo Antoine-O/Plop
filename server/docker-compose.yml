@@ -2,9 +2,20 @@
 services:
   # Nom de notre service. Vous pouvez l'appeler comme vous voulez.
   plop-server:
+    image: registry.profluens.com/plop_service
     # 'build: .' indique à Docker Compose de construire l'image
     # en utilisant le Dockerfile.android qui se trouve dans le répertoire courant (.).
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        PRODUCTION: "true"
+        PROJECT_ID: ${PROJECT_ID}
+        PRIVATE_KEY_ID: ${PRIVATE_KEY_ID}
+        PRIVATE_KEY: ${PRIVATE_KEY}
+        CLIENT_EMAIL: ${CLIENT_EMAIL}
+        CLIENT_ID: ${CLIENT_ID}
+        CLIENT_X509_CERT_URL: ${CLIENT_X509_CERT_URL}
     # Nom que l'on donne au conteneur une fois qu'il est lancé.
     container_name: plop_server_container
     # Mappage des ports. On mappe le port 8080 de la machine hôte
@@ -14,5 +25,7 @@ services:
     # 'restart: unless-stopped' redémarrera automatiquement le conteneur
     # s'il s'arrête de manière inattendue, sauf si vous l'arrêtez manuellement.
     restart: unless-stopped
+    env_file:
+      - .env
     environment:
       - DEBUG=true
