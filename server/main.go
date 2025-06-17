@@ -3,6 +3,7 @@
 package main
 
 import (
+    "context"
 	"crypto/rand"
 	"encoding/json"
 	"log"
@@ -15,7 +16,14 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/rs/cors"
+	firebase "firebase.google.com/go/v4"
+	"firebase.google.com/go/v4/messaging"
+	"google.golang.org/api/option"
 )
+
+var firebaseApp *firebase.App
+var userDeviceTokens = make(map[string][]string) // La valeur est maintenant une liste de tokens
+var userDeviceTokensMutex = &sync.Mutex{}
 
 // --- Structures ---
 
@@ -75,9 +83,21 @@ func debugLog(format string, v ...interface{}) {
 	}
 }
 
+func initializeFirebase(){
+    ctx := context.Background()
+    opt := option.WithCredentialsFile("serviceAccountKey.json") // Le fichier que vous avez téléchargé
+    var err error
+    firebaseApp, err = firebase.NewApp(ctx, nil, opt)
+    if err != nil {
+        log.Fatalf("error initializing app: %v\n", err)
+    }
+}
+
+
 // --- Main Function ---
 
 func main() {
+    initializeFirebase();
 	go cleanupExpiredInvitations()
 	go cleanupExpiredSyncCodes()
 
@@ -90,6 +110,7 @@ func main() {
 	mux.HandleFunc("/sync/create", handleCreateSyncCode)
 	mux.HandleFunc("/sync/use", handleUseSyncCode)
 	mux.HandleFunc("/ping", handlePing)
+	mux.HandleFunc("/users/update-token", handleUpdateToken)
 
 	handler := cors.New(cors.Options{
 		AllowedOrigins: []string{"*"},
@@ -271,6 +292,48 @@ func handleUseSyncCode(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// La nouvelle fonction handler
+func handleUpdateToken(w http.ResponseWriter, r *http.Request) {
+    var requestBody struct {
+        UserID string `json:"userId"`
+        Token  string `json:"token"`
+    }
+    if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
+        http.Error(w, "Corps de requête invalide", http.StatusBadRequest)
+        return
+    }
+
+    if requestBody.UserID == "" || requestBody.Token == "" {
+        http.Error(w, "userId et token sont requis", http.StatusBadRequest)
+        return
+    }
+userDeviceTokensMutex.Lock()
+    defer userDeviceTokensMutex.Unlock()
+
+    // Récupère la liste existante de tokens pour cet utilisateur
+    tokens := userDeviceTokens[requestBody.UserID]
+
+    // Vérifie si le token est déjà dans la liste pour éviter les doublons
+    tokenExists := false
+    for _, t := range tokens {
+        if t == requestBody.Token {
+            tokenExists = true
+            break
+        }
+    }
+
+    // Si le token n'existe pas, on l'ajoute
+    if !tokenExists {
+        userDeviceTokens[requestBody.UserID] = append(tokens, requestBody.Token)
+        debugLog("Nouveau token FCM ajouté pour l'utilisateur %s", requestBody.UserID)
+    } else {
+        debugLog("Token FCM déjà existant pour l'utilisateur %s", requestBody.UserID)
+    }
+
+    w.WriteHeader(http.StatusOK)
+    json.NewEncoder(w).Encode(map[string]bool{"success": true})
+}
+
 // --- WebSocket Message Logic ---
 
 // CORRECTION MAJEURE: La logique de routage est maintenant plus claire.
@@ -349,9 +412,106 @@ func sendDirectMessage(msg Message) {
         }
     } else {
         debugLog("Envoi d'un message direct de %s à %s - Destinataire non trouvé", msg.From, msg.To)
+        // L'UTILISATEUR N'EST PAS CONNECTÉ ---
+        sendDirectMessageThroughFirebase(msg)
     }
 }
 
+
+func sendDirectMessageThroughFirebase(msg Message) {
+
+    debugLog("Destinataire %s non connecté. Tentative d'envoi de notification push.", msg.To)
+
+    // Étape A: Récupérer la LISTE des tokens de l'appareil
+    userDeviceTokensMutex.Lock()
+    deviceTokens, tokenFound := userDeviceTokens[msg.To]
+    userDeviceTokensMutex.Unlock()
+
+    if !tokenFound || len(deviceTokens) == 0 {
+        debugLog("Aucun token FCM trouvé pour l'utilisateur %s", msg.To)
+        return
+    }
+
+    // Étape B: Construire le message
+    ctx := context.Background()
+    client, err := firebaseApp.Messaging(ctx)
+    if err != nil {
+        log.Printf("Erreur lors de l'obtention du client Messaging: %v", err)
+        return
+    }
+
+    // Récupérer le pseudo de l'expéditeur
+    userPseudosMutex.Lock()
+    senderPseudo := userPseudos[msg.From]
+    userPseudosMutex.Unlock()
+    if senderPseudo == "" {
+        senderPseudo = "Quelqu'un"
+    }
+
+     // Utiliser un MulticastMessage pour envoyer à plusieurs tokens
+    multicastMessage := &messaging.MulticastMessage{
+        Notification: &messaging.Notification{
+            Title: senderPseudo,
+            Body:  msg.Payload.(map[string]interface{})["text"].(string),
+        },
+        Tokens: deviceTokens, // La liste de tous les tokens de l'utilisateur
+    }
+
+    // Étape C: Envoyer via SendMulticast
+    response, err := client.SendMulticast(ctx, multicastMessage)
+    if err != nil {
+        log.Printf("Erreur lors de l'envoi multicast: %v", err)
+        return
+    }
+
+    debugLog("Rapport d'envoi multicast: %d succès, %d échecs", response.SuccessCount, response.FailureCount)
+
+    // --- Étape D: Analyser la réponse et nettoyer les tokens invalides ---
+    if response.FailureCount > 0 {
+    var tokensToRemove []string
+    for idx, resp := range response.Responses {
+        if !resp.Success {
+            // Le token à l'index `idx` a échoué. Vérifions pourquoi.
+            if messaging.IsUnregistered(resp.Error) || messaging.IsInvalidArgument(resp.Error) {
+            // Le token est invalide (app désinstallée, etc.)
+            invalidToken := deviceTokens[idx]
+            debugLog("Token invalide détecté (%v): %s. Planifié pour suppression.", resp.Error, invalidToken)
+            tokensToRemove = append(tokensToRemove, invalidToken)
+            }
+        }
+    }
+
+    if len(tokensToRemove) > 0 {
+        // Ici, vous supprimez les tokens de votre base de données.
+        // Simulons avec notre map.
+        removeInvalidTokens(msg.To, tokensToRemove)
+    }
+}
+}
+
+// Fonction utilitaire pour le nettoyage (à placer dans votre fichier)
+func removeInvalidTokens(userID string, tokensToRemove []string) {
+    userDeviceTokensMutex.Lock()
+    defer userDeviceTokensMutex.Unlock()
+
+    if currentTokens, found := userDeviceTokens[userID]; found {
+        var validTokens []string
+        for _, token := range currentTokens {
+            isInvalid := false
+            for _, tokenToRemove := range tokensToRemove {
+                if token == tokenToRemove {
+                    isInvalid = true
+                    break
+                }
+            }
+            if !isInvalid {
+                validTokens = append(validTokens, token)
+            }
+        }
+        userDeviceTokens[userID] = validTokens
+        debugLog("Nettoyage de %d token(s) invalide(s) pour l'utilisateur %s", len(tokensToRemove), userID)
+    }
+}
 
 // --- Utility Functions ---
 
