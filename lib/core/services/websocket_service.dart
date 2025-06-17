@@ -274,7 +274,7 @@ class WebSocketService {
 
     final userService = UserService();
     await userService.init();
-    bool isMuted = (contact.isMuted ?? false) == false;
+    bool isMuted = (contact.isMuted ?? false) == true;
     if (!isMuted && !userService.isGlobalMute) {
       if (contact.customSoundPath != null &&
           contact.customSoundPath!.isNotEmpty) {

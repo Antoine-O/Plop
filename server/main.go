@@ -356,7 +356,7 @@ func sendDirectMessage(msg Message) {
 // --- Utility Functions ---
 
 func generateRandomCode(length int) string {
-	const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789"
 	b := make([]byte, length)
 	if _, err := rand.Read(b); err != nil {
 		log.Fatalf("Erreur lors de la génération du code aléatoire: %v", err)
