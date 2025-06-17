@@ -8,6 +8,7 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
   Future<void> init() async {
+
     // Configuration pour Android
     const AndroidInitializationSettings initializationSettingsAndroid =
     AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -35,6 +36,24 @@ class NotificationService {
     );
 
     await _flutterLocalNotificationsPlugin.initialize(initializationSettings);
+
+
+    // Définition du canal
+    const AndroidNotificationChannel channel = AndroidNotificationChannel(
+      'plop_channel_id', // un ID unique pour le canal
+      'Plop Notifications', // Nom visible par l'utilisateur
+      description: 'Canal pour les notifications Plop avec un son personnalisé.',
+      importance: Importance.max,
+      playSound: true, // Très important
+      sound: RawResourceAndroidNotificationSound('plop'), // Nom du fichier SANS l'extension
+    );
+
+// Création du canal sur l'appareil
+    await _flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(channel);
+
+
   }
 
   Future<void> showNotification({required String title, required String body}) async {
@@ -42,10 +61,8 @@ class NotificationService {
     AndroidNotificationDetails(
       'plop_channel_id',
       'Plop Notifications',
-      channelDescription: 'Channel for Plop notifications',
-      importance: Importance.max,
       priority: Priority.high,
-      showWhen: false,
+      showWhen: false
     );
 
     // 2. Détails spécifiques à iOS et macOS (ils partagent la même classe)
@@ -55,7 +72,7 @@ class NotificationService {
       presentBadge: true, // Mettre à jour le badge de l'icône
       presentSound: true, // Jouer un son
       // subtitle: "plop",   // Affiche un sous-titre sous le titre principal
-      // sound: 'notification_sound.aiff', // Pour un son personnalisé
+      sound: 'plop.aiff', // Pour un son personnalisé
     );
 
     // 3. Détails spécifiques à Linux
