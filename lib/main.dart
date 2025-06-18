@@ -7,6 +7,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:plop/core/config/app_config.dart';
 import 'package:plop/core/services/websocket_service.dart';
+import 'package:plop/firebase_options.dart';
 import 'package:plop/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'core/models/contact_model.dart';
@@ -20,7 +21,7 @@ import 'features/setup/setup_screen.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
-
+import 'package:firebase_core/firebase_core.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -105,6 +106,10 @@ Future<void> main() async {
   // AVOID SSL ERROR - to debug connection issues
   // HttpOverrides.global = MyHttpOverrides();
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   await initializeNotificationPlugin();
   runApp(
     ChangeNotifierProvider(
@@ -135,7 +140,6 @@ class _AppLoaderState extends State<AppLoader> {
     // Garantit que les bindings Flutter sont prêts
     WidgetsFlutterBinding.ensureInitialized();
 
-    await dotenv.load(fileName: ".env");
 
     // Initialisation des packages
     await Hive.initFlutter();
