@@ -33,3 +33,5 @@ bin/
 /build_output/
 /server/.env
 /server/serviceAccountKey.json
+/.secret.env
+/firebase.json
