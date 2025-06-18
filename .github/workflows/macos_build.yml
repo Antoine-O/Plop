@@ -59,6 +59,14 @@ jobs:
 
       # 3. Activation du support pour macOS
       - name: Enable macOS desktop support
+        run: flutter clean
+
+      - name: Enable macOS desktop support
+        run: flutter create --platforms=macos .
+
+
+      # 3. Activation du support pour macOS
+      - name: Enable macOS desktop support
         run: flutter config --enable-macos-desktop
 
       # 4. Téléchargement des dépendances du projet
