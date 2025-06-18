@@ -79,7 +79,8 @@ class WebSocketService {
     _pingTimer?.cancel();
 
     // Envoie un ping toutes les 50 secondes
-    _pingTimer = Timer.periodic(const Duration(seconds: 50), (timer) {
+    _pingTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+      if (userService.userId == null) userService.init();
       final String? userId = userService.userId;
       final Map<String, dynamic> pingData = {
         'type': 'ping',
@@ -102,7 +103,7 @@ class WebSocketService {
 
     switch (type) {
       case 'plop':
-        _handlePlop(decoded);
+        handlePlop(decoded);
         break;
       case 'new_contact':
         _handleNewContact(decoded['payload']);
@@ -250,7 +251,7 @@ class WebSocketService {
     _audioPlayer.dispose();
   }
 
-  void _handlePlop(Map<String, dynamic> data) async {
+  void handlePlop(Map<String, dynamic> data) async {
     final fromUserId = data['from'] as String;
     final messageText = data['payload'] as String;
     // On récupère le flag pour savoir si c'est un message par défaut

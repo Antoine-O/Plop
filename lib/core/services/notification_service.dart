@@ -6,6 +6,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:plop/core/services/user_service.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:plop/core/config/app_config.dart';
+import 'package:plop/core/services/websocket_service.dart';
 import 'package:plop/main.dart';
 
 class NotificationService {
@@ -68,18 +69,20 @@ class NotificationService {
         ?.createNotificationChannel(channel);
   }
 
-  final userService = UserService();
-
   Future<void> showNotification(
       {required String title,
       required String body,
       required bool isMuted}) async {
+    final userService = UserService();
+    userService.init();
     final AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
       'plop_channel_id',
       'Plop Notifications',
       priority: Priority.high,
       showWhen: false,
+      color: Colors.transparent,
+      icon:  "icon",
       sound: (userService.isGlobalMute == false && !isMuted)
           ? const RawResourceAndroidNotificationSound('plop')
           : null,
@@ -125,6 +128,7 @@ class NotificationService {
 Future<void> sendFcmTokenToServer() async {
   // Récupérer une instance de vos services. Adaptez selon votre architecture.
   final userService = UserService();
+  await userService.init();
   if (!userService.hasUser()) {
     debugPrint("Envoi du token annulé : aucun utilisateur n'est connecté.");
     return;
@@ -225,7 +229,35 @@ Future<void> initializeNotificationPlugin() async {
             MacOSFlutterLocalNotificationsPlugin>()
         ?.requestPermissions(alert: true, badge: true, sound: true);
   }
+  await sendToken();
 
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    debugPrint('Message received while app is in foreground!');
+    if (message != null) {
+      debugPrint('Message data: ${message.data}');
+      WebSocketService webSocketService = WebSocketService();
+      webSocketService.handlePlop(message.data);
+    }
+  });
+
+  FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+    if (message != null) {
+      debugPrint(
+          'User tapped on the notification to open the app from background.');
+      WebSocketService webSocketService = WebSocketService();
+      webSocketService.handlePlop(message.data);
+    }
+  });
+  RemoteMessage? initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+  if (initialMessage != null) {
+    debugPrint("Application lancée depuis l'état 'terminated' par une notification.");
+    // Il n'y a pas besoin de délai, on peut appeler la fonction directement.
+    // La navigation se fera après que le premier écran soit construit.
+    handleNotificationTap(initialMessage);
+  }
+}
+
+Future<void> sendToken() async {
   // --- GESTION DU TOKEN FCM ---
   debugPrint("Configuration de la gestion du token FCM...");
 
