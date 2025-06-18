@@ -1,0 +1,36 @@
+# Copyright 2014 The Flutter Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+# __LOCALE__
+# The Podfile is read by the `pod` command, which is part of the CocoaPods
+# dependency manager. This file is not read by the `flutter` command.
+#
+# This file is used to specify the dependencies for the macOS build of your
+# Flutter application.
+#
+# For more information, see: https://guides.cocoapods.org/syntax/podfile.html.
+
+# Set the deployment target for macOS. This is required by your Firebase dependencies.
+platform :osx, '10.15'
+
+# Add the Flutter pod helper to the load path.
+ENV['FLUTTER_TARGET_PLATFORM'] ||= 'macos'
+flutter_root = File.expand_path('..', __dir__)
+require File.join(flutter_root, '.flutter', 'podhelper')
+
+target 'Runner' do
+  # You can add other dependencies here if you have them.
+  use_frameworks!
+  use_modular_headers!
+
+  # This is the most important line. It reads your pubspec.yaml and adds the
+  # necessary macOS pods for your Flutter plugins.
+  flutter_install_all_macos_pods File.dirname(File.realpath(__FILE__))
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    flutter_additional_macos_build_settings(target)
+  end
+end
