@@ -35,3 +35,5 @@ bin/
 /server/serviceAccountKey.json
 /.secret.env
 /firebase.json
+/android/app/google-services.json
+/lib/firebase_options.dart
