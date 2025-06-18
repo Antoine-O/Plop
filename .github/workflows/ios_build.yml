@@ -31,6 +31,20 @@ jobs:
         run : |
           sed -i '' -E "s/^(version: [0-9]+\.[0-9]+\.).*$/\\1${{ github.run_number }}/" pubspec.yaml
         shell: bash
+      - name: Set Firebase Settings
+        run : |
+          mv /lib/firebase_options.template.dart  /lib/firebase_options.dart
+          sed -i '' -E "s/___FIREBASE_API_KEY_WEB___/${{ secrets.FIREBASE_API_KEY_WEB }}/g" /lib/firebase_options.template.dart
+          sed -i '' -E "s/___FIREBASE_APP_ID_WEB___/${{ secrets.FIREBASE_APP_ID_WEB }}/g" /lib/firebase_options.dart
+          sed -i '' -E "s/___FIREBASE_API_KEY_ANDROID___/${{ secrets.FIREBASE_API_KEY_ANDROID }}|g" /lib/firebase_options.dart
+          sed -i '' -E "s/___FIREBASE_APP_ID_ANDROID___/${{ secrets.FIREBASE_APP_ID_ANDROID }}/g" /lib/firebase_options.dart
+          sed -i '' -E "s/___FIREBASE_API_KEY_IOS___/${{ secrets.FIREBASE_API_KEY_IOS }}/g" /lib/firebase_options.dart
+          sed -i '' -E "s/___FIREBASE_APP_ID_IOS___/${{ secrets.FIREBASE_APP_ID_IOS }}/g" /lib/firebase_options.dart
+          sed -i '' -E "s/___FIREBASE_API_KEY_WINDOWS___/${{ secrets.FIREBASE_API_KEY_WINDOWS }}/g" /lib/firebase_options.dart
+          sed -i '' -E "s/___FIREBASE_APP_ID_WINDOWS___/${{ secrets.FIREBASE_APP_ID_WINDOWS }}/g" /lib/firebase_options.dart
+          sed -i '' -E "s/___FIREBASE_PROJECT_ID___/${{ secrets.FIREBASE_PROJECT_ID }}/g" /lib/firebase_options.dart
+          sed -i '' -E "s/___FIREBASE_MESSAGING_SENDER_ID___/${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}/g" /lib/firebase_options.dart
+        shell: bash
 
 #
 #      # 2. Installation et configuration de Flutter

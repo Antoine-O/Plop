@@ -35,6 +35,33 @@ jobs:
         run : |
           (Get-Content -Path pubspec.yaml -Raw) -replace  '^(version: [0-9]+\.[0-9]+\.).*', "`$1${{ github.run_number }}" | Set-Content -Path pubspec.yaml
         shell: pwsh
+      - name: Set Firebase Settings (PowerShell)
+        run: |
+          # 1. Renommer le fichier template
+          $templatePath = "lib\firebase_options.template.dart"
+          $targetPath = "lib\firebase_options.dart"
+          Move-Item -Path $templatePath -Destination $targetPath
+          
+          # 2. Lire le contenu du fichier une seule fois
+          $fileContent = Get-Content -Path $targetPath -Raw
+          
+          # 3. Effectuer tous les remplacements en mémoire
+          $fileContent = $fileContent -replace '___FIREBASE_API_KEY_WEB___', '${{ secrets.FIREBASE_API_KEY_WEB }}'
+          $fileContent = $fileContent -replace '___FIREBASE_APP_ID_WEB___', '${{ secrets.FIREBASE_APP_ID_WEB }}'
+          # Note : Correction de la coquille de votre sed original ici (le | a été retiré)
+          $fileContent = $fileContent -replace '___FIREBASE_API_KEY_ANDROID___', '${{ secrets.FIREBASE_API_KEY_ANDROID }}'
+          $fileContent = $fileContent -replace '___FIREBASE_APP_ID_ANDROID___', '${{ secrets.FIREBASE_APP_ID_ANDROID }}'
+          $fileContent = $fileContent -replace '___FIREBASE_API_KEY_IOS___', '${{ secrets.FIREBASE_API_KEY_IOS }}'
+          $fileContent = $fileContent -replace '___FIREBASE_APP_ID_IOS___', '${{ secrets.FIREBASE_APP_ID_IOS }}'
+          $fileContent = $fileContent -replace '___FIREBASE_API_KEY_WINDOWS___', '${{ secrets.FIREBASE_API_KEY_WINDOWS }}'
+          $fileContent = $fileContent -replace '___FIREBASE_APP_ID_WINDOWS___', '${{ secrets.FIREBASE_APP_ID_WINDOWS }}'
+          $fileContent = $fileContent -replace '___FIREBASE_PROJECT_ID___', '${{ secrets.FIREBASE_PROJECT_ID }}'
+          $fileContent = $fileContent -replace '___FIREBASE_MESSAGING_SENDER_ID___', '${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}'
+          
+          
+          # 4. Écrire le contenu final dans le fichier une seule fois
+          $fileContent | Set-Content -Path $targetPath
+        shell: pwsh
       # 2. Installation de Flutter sur la machine virtuelle
       - name: Setup Flutter
         uses: subosito/flutter-action@v2

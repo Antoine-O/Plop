@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "___FIREBASE_MESSAGING_SENDER_ID___",
+    "project_id": "___FIREBASE_PROJECT_ID___",
+    "storage_bucket": "___FIREBASE_PROJECT_ID___.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "___FIREBASE_APP_ID_ANDROID___",
+        "android_client_info": {
+          "package_name": "com.quickcontest.plop"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "___FIREBASE_API_KEY_ANDROID___"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
