@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:plop/core/config/app_config.dart';
 import 'package:flutter/foundation.dart';
 
-class UserService {
+class UserService extends ChangeNotifier {
   late SharedPreferences _prefs;
   final String _baseUrl = AppConfig.baseUrl;
   static const String _globalMuteKey = 'globalMute';
@@ -34,6 +34,7 @@ class UserService {
         username = newUsername;
         await _prefs.setString('userId', userId!);
         await _prefs.setString('username', username!);
+        notifyListeners();
         return true;
       }
     } catch (e) {
@@ -45,11 +46,13 @@ class UserService {
   Future<void> updateUsername(String newUsername) async {
     username = newUsername;
     await _prefs.setString('username', username!);
+    notifyListeners();
   }
 
   Future<void> toggleGlobalMute() async {
     isGlobalMute = !isGlobalMute;
     await _prefs.setBool(_globalMuteKey, isGlobalMute);
+    notifyListeners();
   }
 
   Future<bool> syncContactsPseudos(List<Contact> localContacts) async {

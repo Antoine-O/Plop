@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -139,7 +140,6 @@ class _AppLoaderState extends State<AppLoader> {
     // Garantit que les bindings Flutter sont prêts
     WidgetsFlutterBinding.ensureInitialized();
 
-
     // Initialisation des packages
     await Hive.initFlutter();
     await initializeDateFormatting(
@@ -158,6 +158,9 @@ class _AppLoaderState extends State<AppLoader> {
     connectToName();
     connectToApi();
     // Retourne le service utilisateur pour le passer à l'application
+    if (userService.hasUser()) {
+      await sendFcmTokenToServer();
+    }
     return userService;
   }
 
@@ -213,30 +216,38 @@ class MyApp extends StatelessWidget {
     connectToIp();
     connectToName();
     connectToApi();
-    return Consumer<LocaleProvider>(
-      builder: (context, localeProvider, child) {
-        return MaterialApp(
-          title: 'Plop',
-          locale: localeProvider.locale,
-          localizationsDelegates: const [
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: AppLocalizations.supportedLocales,
-          theme: ThemeData(
-            primarySwatch: Colors.blue,
-            visualDensity: VisualDensity.adaptivePlatformDensity,
-          ),
-          home: userService.hasUser() ? ContactListScreen() : SetupScreen(),
-        );
-      },
+    return MultiProvider(
+        providers: [
+          // On fournit l'instance de UserService qui a été initialisée dans AppLoader
+          ChangeNotifierProvider<UserService>.value(value: userService),
+
+          // On fournit aussi le LocaleProvider comme vous le faisiez déjà
+          ChangeNotifierProvider<LocaleProvider>(
+              create: (_) => LocaleProvider()),
+        ],
+        child: Consumer<LocaleProvider>(
+          builder: (context, localeProvider, child) {
+            return MaterialApp(
+              title: 'Plop',
+              locale: localeProvider.locale,
+              localizationsDelegates: const [
+                AppLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              supportedLocales: AppLocalizations.supportedLocales,
+              theme: ThemeData(
+                primarySwatch: Colors.blue,
+                visualDensity: VisualDensity.adaptivePlatformDensity,
+              ),
+              home: userService.hasUser() ? ContactListScreen() : SetupScreen(),
+            );
+          },
+        )
     );
   }
 }
-
-
 
 void handleNotificationPayload(String payload) {
   try {
@@ -245,11 +256,27 @@ void handleNotificationPayload(String payload) {
     // if (data['action'] == 'open_chat') {
     //   final String chatId = data['chatId'];
 
-      // Utilisation de la GlobalKey pour naviguer sans BuildContext !
-      navigatorKey.currentState?.pushNamed('/');
+    // Utilisation de la GlobalKey pour naviguer sans BuildContext !
+    navigatorKey.currentState?.pushNamed('/');
     // }
     // Ajoutez d'autres 'if' pour d'autres actions
   } catch (e) {
     debugPrint('Erreur lors du traitement du payload de notification : $e');
   }
 }
+
+/// Gère la navigation quand une notification est cliquée.
+void handleNotificationTap(RemoteMessage message) {
+  debugPrint("Gestion du clic sur la notification ! Payload de données : ${message.data}");
+
+
+    debugPrint('App launched from terminated state via notification!');
+    // Handle navigation here, similar to onMessageOpenedApp
+    debugPrint(
+        'User tapped on the notification to open the app from background.');
+    WebSocketService webSocketService = WebSocketService();
+    webSocketService.handlePlop(message.data);
+
+  // Vous pouvez ajouter d'autres 'if' pour d'autres types de notifications
+}
+

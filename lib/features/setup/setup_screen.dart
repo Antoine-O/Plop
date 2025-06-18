@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:plop/core/services/notification_service.dart';
 import 'package:plop/core/services/user_service.dart';
 import 'package:plop/features/contacts/contact_list_screen.dart';
 import 'package:plop/features/setup/import_account_screen.dart';
@@ -26,6 +27,10 @@ class _SetupScreenState extends State<SetupScreen> {
     setState(() => _isLoading = true);
     await _userService.init();
     final bool success = await _userService.createUser(_usernameController.text);
+    if (_userService.hasUser()) {
+      await sendFcmTokenToServer();
+    }
+
 
     if (!mounted) return;
     setState(() => _isLoading = false);
