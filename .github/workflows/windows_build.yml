@@ -48,7 +48,6 @@ jobs:
           # 3. Effectuer tous les remplacements en mémoire
           $fileContent = $fileContent -replace '___FIREBASE_API_KEY_WEB___', '${{ secrets.FIREBASE_API_KEY_WEB }}'
           $fileContent = $fileContent -replace '___FIREBASE_APP_ID_WEB___', '${{ secrets.FIREBASE_APP_ID_WEB }}'
-          # Note : Correction de la coquille de votre sed original ici (le | a été retiré)
           $fileContent = $fileContent -replace '___FIREBASE_API_KEY_ANDROID___', '${{ secrets.FIREBASE_API_KEY_ANDROID }}'
           $fileContent = $fileContent -replace '___FIREBASE_APP_ID_ANDROID___', '${{ secrets.FIREBASE_APP_ID_ANDROID }}'
           $fileContent = $fileContent -replace '___FIREBASE_API_KEY_IOS___', '${{ secrets.FIREBASE_API_KEY_IOS }}'

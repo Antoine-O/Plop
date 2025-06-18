@@ -38,7 +38,7 @@ jobs:
       - name: Set Firebase Settings
         run : |
           mv lib/firebase_options.template.dart  lib/firebase_options.dart
-          sed -i '' -E "s/___FIREBASE_API_KEY_WEB___/${{ secrets.FIREBASE_API_KEY_WEB }}/g" lib/firebase_options.template.dart
+          sed -i '' -E "s/___FIREBASE_API_KEY_WEB___/${{ secrets.FIREBASE_API_KEY_WEB }}/g" lib/firebase_options.dart
           sed -i '' -E "s/___FIREBASE_APP_ID_WEB___/${{ secrets.FIREBASE_APP_ID_WEB }}/g" lib/firebase_options.dart
           sed -i '' -E "s/___FIREBASE_API_KEY_ANDROID___/${{ secrets.FIREBASE_API_KEY_ANDROID }}|g" lib/firebase_options.dart
           sed -i '' -E "s/___FIREBASE_APP_ID_ANDROID___/${{ secrets.FIREBASE_APP_ID_ANDROID }}/g" lib/firebase_options.dart
