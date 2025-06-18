@@ -51,9 +51,9 @@ type SyncCode struct {
 
 // --- Global Variables & Constants ---
 
-const invitationValidityMinutes = 5
+const invitationValidityMinutes = 10
 
-const messageCooldown = 5 * time.Second // NOUVEAU: Temps de rechargement de 5 secondes
+const messageCooldown = 0 * time.Second // NOUVEAU: Temps de rechargement de 5 secondes
 
 
 var upgrader = websocket.Upgrader{
@@ -294,6 +294,7 @@ func handleUseSyncCode(w http.ResponseWriter, r *http.Request) {
 
 // La nouvelle fonction handler
 func handleUpdateToken(w http.ResponseWriter, r *http.Request) {
+    debugLog("handleUpdateToken")
     var requestBody struct {
         UserID string `json:"userId"`
         Token  string `json:"token"`
@@ -307,7 +308,9 @@ func handleUpdateToken(w http.ResponseWriter, r *http.Request) {
         http.Error(w, "userId et token sont requis", http.StatusBadRequest)
         return
     }
-userDeviceTokensMutex.Lock()
+    debugLog("handleUpdateToken  %s %s", requestBody.UserID, requestBody.Token)
+
+    userDeviceTokensMutex.Lock()
     defer userDeviceTokensMutex.Unlock()
 
     // Récupère la liste existante de tokens pour cet utilisateur
@@ -447,18 +450,96 @@ func sendDirectMessageThroughFirebase(msg Message) {
     if senderPseudo == "" {
         senderPseudo = "Quelqu'un"
     }
+    var notificationBody string
+    switch p := msg.Payload.(type) {
+    case map[string]interface{}:
+        // CAS 1 : Le payload est bien un objet JSON (une map)
+        // On cherche la clé "text" à l'intérieur.
+        if text, ok := p["text"].(string); ok {
+            notificationBody = text
+        } else {
+            notificationBody = "Vous avez reçu un plop !" // Message par défaut si la clé "text" manque
+        }
+    case string:
+        // CAS 2 : Le payload est une simple chaîne de caractères
+        notificationBody = p
+    default:
+        // CAS 3 : Pour tous les autres types de payload, on met un message par défaut.
+        notificationBody = "Vous avez reçu une notification."
+        debugLog("Type de payload inattendu: %T", p)
+    }
 
+// Étape C: Envoyer via Send
+  var tokensToRemove []string
+
+    // On parcourt chaque token individuellement
+    for _, token := range deviceTokens {
+
+        // On crée un message pour un seul token
+        message := &messaging.Message{
+            Notification: &messaging.Notification{
+                Title: senderPseudo,
+                Body:  notificationBody,
+            },
+
+            // --- L'AJOUT IMPORTANT EST ICI ---
+            Android: &messaging.AndroidConfig{
+                Notification: &messaging.AndroidNotification{
+                    // On spécifie le canal pour chaque message individuel
+                    ChannelID: "plop_channel_id",
+                    Icon: "icon",
+                },
+            },
+
+            // --- NOUVEAU : Configuration pour iOS et macOS ---
+            APNS: &messaging.APNSConfig{
+                Payload: &messaging.APNSPayload{
+                    Aps: &messaging.Aps{
+                        // Le contenu de l'alerte
+                        Alert: &messaging.ApsAlert{
+                            Title: senderPseudo,
+                            Body:  notificationBody,
+                        },
+                        // Pour mettre à jour le badge sur l'icône de l'app
+                        Badge: intPtr(1),
+                        // Pour spécifier le son personnalisé !
+                        Sound: "plop.aiff", // Doit correspondre au nom du fichier dans vos assets Flutter
+                    },
+                },
+            },
+            Token: token, // On assigne le token de l'itération actuelle
+        }
+
+        // On envoie le message avec client.Send()
+        _, err := client.Send(ctx, message)
+
+        // On gère l'erreur pour cet envoi spécifique
+        if err != nil {
+            log.Printf("Échec de l'envoi au token %s: %v", token, err)
+            // On vérifie si l'erreur est due à un token invalide
+            if messaging.IsUnregistered(err) || messaging.IsInvalidArgument(err) {
+                debugLog("Token invalide détecté: %s. Planifié pour suppression.", token)
+                tokensToRemove = append(tokensToRemove, token)
+            }
+        }
+    }
+
+    // On nettoie les tokens invalides après la boucle
+    if len(tokensToRemove) > 0 {
+        removeInvalidTokens(msg.To, tokensToRemove)
+    }
+
+    // Étape C: Envoyer via SendMulticast
+    /*
      // Utiliser un MulticastMessage pour envoyer à plusieurs tokens
     multicastMessage := &messaging.MulticastMessage{
         Notification: &messaging.Notification{
             Title: senderPseudo,
-            Body:  msg.Payload.(map[string]interface{})["text"].(string),
+            Body:  notificationBody,
         },
         Tokens: deviceTokens, // La liste de tous les tokens de l'utilisateur
-    }
-
-    // Étape C: Envoyer via SendMulticast
-    response, err := client.SendMulticast(ctx, multicastMessage)
+    } */
+    /* response, err := client.SendMulticast(ctx, multicastMessage)
     if err != nil {
         log.Printf("Erreur lors de l'envoi multicast: %v", err)
         return
@@ -479,7 +560,7 @@ func sendDirectMessageThroughFirebase(msg Message) {
             tokensToRemove = append(tokensToRemove, invalidToken)
             }
         }
-    }
+    } */
 
     if len(tokensToRemove) > 0 {
         // Ici, vous supprimez les tokens de votre base de données.
@@ -487,7 +568,7 @@ func sendDirectMessageThroughFirebase(msg Message) {
         removeInvalidTokens(msg.To, tokensToRemove)
     }
 }
-}
+
 
 // Fonction utilitaire pour le nettoyage (à placer dans votre fichier)
 func removeInvalidTokens(userID string, tokensToRemove []string) {
@@ -567,4 +648,8 @@ func handlePing(w http.ResponseWriter, r *http.Request) {
 	// Écrit la réponse "ping" dans le corps de la réponse HTTP.
 	// Fprintf est une manière simple d'écrire du texte dans la réponse.
 	fmt.Fprintf(w, "pong")
+}
+
+func intPtr(i int) *int {
+     return &i
 }
