@@ -43,7 +43,7 @@ class _ContactListScreenState extends State<ContactListScreen> {
   @override
   void dispose() {
     _messageUpdateSubscription?.cancel();
-    _webSocketService.disconnect();
+    // _webSocketService.disconnect();
     super.dispose();
   }
 

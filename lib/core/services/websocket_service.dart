@@ -14,6 +14,9 @@ class WebSocketService {
   WebSocketService._privateConstructor();
 
   final userService = UserService();
+  String? _currentUserId; // NOUVEAU
+  String? _currentUserPseudo; // NOUVEAU
+  final String _baseUrl = AppConfig.websocketUrl;
 
   static final WebSocketService _instance =
       WebSocketService._privateConstructor();
@@ -21,7 +24,6 @@ class WebSocketService {
   factory WebSocketService() => _instance;
 
   WebSocketChannel? _channel;
-  final String _baseUrl = AppConfig.websocketUrl;
   final _messageUpdateController =
       StreamController<Map<String, dynamic>>.broadcast();
   final AudioPlayer _audioPlayer = AudioPlayer();
@@ -32,8 +34,9 @@ class WebSocketService {
 
   int _reconnectAttempts = 0;
 
-  void _handleDisconnect(String userId, String userPseudo) {
-    debugPrint('WebSocket déconnecté. Tentative de reconnexion...');
+  void _handleDisconnect() {
+    debugPrint(
+        '[WebSocket] WebSocket déconnecté...');
     _pingTimer?.cancel();
 
     if (_reconnectAttempts < 60) {
@@ -46,9 +49,11 @@ class WebSocketService {
       final delay = Duration(seconds: reconnectAttempts);
 
       Future.delayed(delay, () {
-        debugPrint('Reconnexion (tentative $reconnectAttempts)...');
-        connect(userId,
-            userPseudo); // Appelle votre méthode de connexion principale
+        debugPrint('Reconnexion (tentative $_reconnectAttempts)...');
+        // On utilise les informations mémorisées
+        if (_currentUserId != null && _currentUserPseudo != null) {
+          connect(_currentUserId!, _currentUserPseudo!);
+        }
       });
     } else {
       debugPrint('Impossible de se reconnecter après plusieurs tentatives.');
@@ -59,13 +64,17 @@ class WebSocketService {
   void connect(String userId, String userPseudo) {
     if (_channel != null) return;
     try {
+      _currentUserId = userId;
+      _currentUserPseudo = userPseudo;
+      debugPrint(
+          '[WebSocket] Tentative de connexion pour $userId ($userPseudo)...');
       _channel = WebSocketChannel.connect(
           Uri.parse('$_baseUrl/connect?userId=$userId&pseudo=$userPseudo'));
       _channel!.stream.listen(
-        _handleMessage, onDone: () => {_handleDisconnect(userId, userPseudo)},
+        _handleMessage, onDone: _handleDisconnect,
         onError: (error) {
           debugPrint('Erreur WebSocket: $error');
-          _handleDisconnect(userId, userPseudo);
+          _handleDisconnect();
         },
         cancelOnError:
             true, // Important pour que onDone soit appelé après une erreur
@@ -256,9 +265,10 @@ class WebSocketService {
     _audioPlayer.dispose();
   }
 
-  void handlePlop(Map<String, dynamic> data,{bool fromExternalNotification = false}) async {
+  void handlePlop(Map<String, dynamic> data,
+      {bool fromExternalNotification = false}) async {
     final fromUserId = data['senderId'] ?? data['from'];
-    if (fromUserId  == null ) {
+    if (fromUserId == null) {
       debugPrint("[handlePlop] fromUserId is null");
       return;
     }
@@ -281,7 +291,8 @@ class WebSocketService {
 
     contact.lastMessage = finalMessage;
 
-    contact.lastMessageTimestamp = data['sendDate']?.toLocal() ?? DateTime.now();
+    contact.lastMessageTimestamp =
+        data['sendDate']?.toLocal() ?? DateTime.now();
     await db.updateContact(contact);
 
     final userService = UserService();
@@ -296,9 +307,7 @@ class WebSocketService {
       }
 
       NotificationService().showNotification(
-          title: '${contact.alias}',
-          body: finalMessage,
-          isMuted: isMuted);
+          title: '${contact.alias}', body: finalMessage, isMuted: isMuted);
     }
 
     _messageUpdateController.add({'userId': fromUserId});
@@ -306,5 +315,19 @@ class WebSocketService {
 
   Future<void> stopCurrentSound() async {
     await _audioPlayer.stop();
+  }
+
+  void ensureConnected() {
+    if (_channel == null || _channel!.closeCode != null) {
+      debugPrint("[WebSocket] La connexion est coupée. Tentative de rétablissement...");
+      _reconnectAttempts = 0; // Réinitialise les tentatives pour une reconnexion manuelle
+      if (_currentUserId != null && _currentUserPseudo != null) {
+        connect(_currentUserId!, _currentUserPseudo!);
+      } else {
+        debugPrint("[WebSocket] Impossible de se reconnecter : informations utilisateur manquantes.");
+      }
+    } else {
+      debugPrint("[WebSocket] La connexion est déjà active.");
+    }
   }
 }

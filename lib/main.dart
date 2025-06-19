@@ -39,21 +39,32 @@ final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 
 @pragma('vm:entry-point')
-void onStart(ServiceInstance service) {
-  final WebSocketService _webSocketService = WebSocketService();
+void onStart(ServiceInstance service)async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
+  if (!Hive.isAdapterRegistered(ContactAdapter().typeId)) {
+    Hive.registerAdapter(ContactAdapter());
+  }
+  if (!Hive.isAdapterRegistered(MessageModelAdapter().typeId)) {
+    Hive.registerAdapter(MessageModelAdapter());
+  }
+  debugPrint("[Background Service] Démarré et initialisé.");
+
+  final WebSocketService webSocketService = WebSocketService();
   final userService = UserService();
 
-  void connectWebSocket() {
-    try {
-      if (userService.userId != null && userService.username != null) {
-        _webSocketService.connect(userService.userId!, userService.username!);
-      }
-    } catch (e) {
-      debugPrint('Erreur de connexion WebSocket: $e');
-    }
+// Maintenant, les données sont disponibles dans cette instance de userService
+  if (userService.hasUser()) {
+    debugPrint("[Background Service] Utilisateur trouvé (${userService.userId}). Connexion WebSocket...");
+
+    // On appelle la méthode connect du WebSocketService
+    // La méthode ensureConnected est mieux car elle contient la logique de vérification
+    webSocketService.ensureConnected();
+
+  } else {
+    debugPrint("[Background Service] Aucun utilisateur trouvé, pas de connexion WebSocket.");
   }
 
-  connectWebSocket();
 }
 
 void connectToApi() async {
@@ -161,7 +172,6 @@ class _AppLoaderState extends State<AppLoader> {
     if (userService.hasUser()) {
       await checkNotificationFromTerminatedState();
       await sendFcmTokenToServer();
-
     }
     return userService;
   }
@@ -226,6 +236,11 @@ class MyApp extends StatelessWidget {
           // On fournit aussi le LocaleProvider comme vous le faisiez déjà
           ChangeNotifierProvider<LocaleProvider>(
               create: (_) => LocaleProvider()),
+          Provider<WebSocketService>(
+            create: (_) => WebSocketService(),
+            // La méthode `dispose` du Provider appellera la méthode `dispose` de votre service.
+            dispose: (_, service) => service.dispose(),
+          ),
         ],
         child: Consumer<LocaleProvider>(
           builder: (context, localeProvider, child) {
@@ -246,8 +261,7 @@ class MyApp extends StatelessWidget {
               home: userService.hasUser() ? ContactListScreen() : SetupScreen(),
             );
           },
-        )
-    );
+        ));
   }
 }
 
@@ -269,14 +283,17 @@ void handleNotificationPayload(String payload) {
 
 /// Gère la navigation quand une notification est cliquée.
 void handleNotificationTap(RemoteMessage message) {
-  debugPrint("Gestion du clic sur la notification ! Payload de données : ${message.data}");
 
+  WidgetsFlutterBinding.ensureInitialized();
 
-    WebSocketService webSocketService = WebSocketService();
-    final DateTime? sentTimestamp = message.sentTime;
-    message.data['sendDate'] = sentTimestamp;
-    webSocketService.handlePlop(message.data,fromExternalNotification:true);
+  debugPrint(
+      "Gestion du clic sur la notification ! Payload de données : ${message.data}");
+
+  WebSocketService webSocketService = WebSocketService();
+  webSocketService.ensureConnected();
+  final DateTime? sentTimestamp = message.sentTime;
+  message.data['sendDate'] = sentTimestamp;
+  webSocketService.handlePlop(message.data, fromExternalNotification: true);
 
   // Vous pouvez ajouter d'autres 'if' pour d'autres types de notifications
 }
-
