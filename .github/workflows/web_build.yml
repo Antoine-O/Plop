@@ -58,6 +58,27 @@ jobs:
       - name: Build the Docker image
         run: docker compose  -f docker-compose.yml build
 
+      - name: Create build directory
+        run: mkdir -p build/web
+
+      - name: Extract WEB from Docker image
+        run: |
+          docker create --name extractor_site registry.profluens.com/plop_site:latest
+          docker cp extractor_site:/usr/share/nginx/html ./build/web
+          docker rm extractor_site
+          tar czf ./build/web/site.tar.gz ./build/web/html
+          rm -rf ./build/web/html
+
+      - name: Create build directory
+        run: mkdir -p build/service
+
+      - name: Extract Server from Docker image
+        run: |
+          docker create --name extractor_service registry.profluens.com/plop_service:latest
+          docker cp extractor_service:/root/server_binary ./build/service/server_binary
+          docker rm extractor_service
+           
+
       - name: Login to registry
         run: echo $DOCKER_PASSWORD | docker login https://$DOCKER_REGISTRY_URL/v2/ -u $DOCKER_USERNAME --password-stdin
         continue-on-error: true
