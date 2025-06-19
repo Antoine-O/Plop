@@ -160,7 +160,7 @@ class _SetupScreenState extends State<SetupScreen> {
                 TextField(
                   controller: _usernameController,
                   decoration: InputDecoration(
-                    labelText: 'Choisissez votre pseudo',
+                    labelText: AppLocalizations.of(context)!.chooseYourUsername,
                     border: OutlineInputBorder(),
                   ),maxLength: 20,
                   onSubmitted: (_) => _createUser(),

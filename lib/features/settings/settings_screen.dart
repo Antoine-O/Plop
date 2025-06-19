@@ -338,7 +338,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   if (_messages.isEmpty)
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 20.0),
-                      child: Center(child: Text('Aucun message configuré.')),
+                      child: Center(child: Text(AppLocalizations.of(context)!.noMessagesConfigured)),
                     ),
 
                   Divider(height: 40),

@@ -144,7 +144,7 @@ class _ContactListScreenState extends State<ContactListScreen> {
             onSelected: _onMenuSelection,
             itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
               PopupMenuItem<String>(
-                value: 'settings',
+                value: AppLocalizations.of(context)!.settings,
                 child: ListTile(leading: Icon(Icons.settings), title: Text(AppLocalizations.of(context)!.settings)),
 
               ),

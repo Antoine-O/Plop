@@ -61,20 +61,20 @@ class _ImportAccountScreenState extends State<ImportAccountScreen> {
                 Icon(Icons.download_for_offline_outlined, size: 80, color: Theme.of(context).primaryColor),
                 SizedBox(height: 24),
                 Text(
-                  'Synchronisez votre compte',
+                  AppLocalizations.of(context)!.syncYourAccount,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
                 SizedBox(height: 16),
                 Text(
-                  'Entrez le code de synchronisation obtenu sur votre ancien appareil pour récupérer votre compte et vos contacts.',
+                  AppLocalizations.of(context)!.importAccountBody,
                   textAlign: TextAlign.center,
                 ),
                 SizedBox(height: 32),
                 TextField(
                   controller: _codeController,
                   decoration: InputDecoration(
-                    labelText: 'Code de synchronisation',
+                    labelText: AppLocalizations.of(context)!.syncCode,
                     border: OutlineInputBorder(),
                   ),maxLength: 20,
                 ),
