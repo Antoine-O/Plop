@@ -27,6 +27,14 @@ class _AdvancedContactSettingsScreenState
     super.initState();
     _loadContact();
   }
+  final List<Color> _availableColors = [
+    Colors.red,
+    Colors.green,
+    Colors.blue,
+    Colors.orange,
+    Colors.purple,
+    Colors.teal,
+  ];
 
   Future<void> _loadContact() async {
     setState(() => _isLoading = true);
@@ -78,10 +86,42 @@ class _AdvancedContactSettingsScreenState
                 TextField(
                   controller: _aliasController,
                   decoration: InputDecoration(
-                      labelText: 'Nom du contact (alias)',
+                      labelText: AppLocalizations.of(context)!.contactNameAlias,
                       border: OutlineInputBorder()),
                   maxLength: 20,
                 ),
+
+                SizedBox(height: 20),
+
+                // NOUVEAU : Le sélecteur de couleur
+                Text(
+                  AppLocalizations.of(context)!.chooseAColor,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: _availableColors.map((color) {
+                    return GestureDetector(
+                      onTap: () {
+                        // On met à jour la couleur directement dans l'objet _contact
+                        // et on rafraîchit l'interface pour afficher la coche.
+                        setState(() => _contact.colorValue = color.value);
+                      },
+                      child: CircleAvatar(
+                        backgroundColor: color,
+                        radius: 20,
+                        // On affiche la coche si la couleur du contact correspond
+                        child: _contact.colorValue == color.value
+                            ? Icon(Icons.check, color: Colors.white)
+                            : null,
+                      ),
+                    );
+                  }).toList(),
+                ),
+
+
+
                 SizedBox(height: 20),
                 SwitchListTile(
                   title: Text(AppLocalizations.of(context)!.ignoreNotifications),
