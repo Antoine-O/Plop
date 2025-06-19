@@ -235,26 +235,19 @@ Future<void> initializeNotificationPlugin() async {
     debugPrint('Message received while app is in foreground!');
     if (message != null) {
       debugPrint('Message data: ${message.data}');
-      WebSocketService webSocketService = WebSocketService();
-      webSocketService.handlePlop(message.data);
+      handleNotificationTap(message);
     }
   });
 
   FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+    debugPrint(
+        'User tapped on the notification to open the app from background.');
     if (message != null) {
-      debugPrint(
-          'User tapped on the notification to open the app from background.');
-      WebSocketService webSocketService = WebSocketService();
-      webSocketService.handlePlop(message.data);
+      debugPrint('Message data: ${message.data}');
+      handleNotificationTap(message);
     }
   });
-  RemoteMessage? initialMessage = await FirebaseMessaging.instance.getInitialMessage();
-  if (initialMessage != null) {
-    debugPrint("Application lancée depuis l'état 'terminated' par une notification.");
-    // Il n'y a pas besoin de délai, on peut appeler la fonction directement.
-    // La navigation se fera après que le premier écran soit construit.
-    handleNotificationTap(initialMessage);
-  }
+
 }
 
 Future<void> sendToken() async {
@@ -271,4 +264,17 @@ Future<void> sendToken() async {
     // Notre fonction se charge de récupérer le nouveau token et de l'envoyer.
     sendFcmTokenToServer();
   });
+}
+
+Future<void> checkNotificationFromTerminatedState() async {
+  debugPrint("checkNotificationFromTerminatedState");
+  RemoteMessage? initialMessage = await FirebaseMessaging.instance
+      .getInitialMessage();
+  if (initialMessage != null) {
+    debugPrint(
+        "Application lancée depuis l'état 'terminated' par une notification.");
+// Il n'y a pas besoin de délai, on peut appeler la fonction directement.
+// La navigation se fera après que le premier écran soit construit.
+    handleNotificationTap(initialMessage);
+  }
 }

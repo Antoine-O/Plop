@@ -3,6 +3,7 @@
 package main
 
 import (
+    "strconv"
     "context"
 	"crypto/rand"
 	"encoding/json"
@@ -140,6 +141,7 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "userId manquant", http.StatusBadRequest)
 		return
 	}
+
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Printf("Erreur WebSocket: %v", err)
@@ -147,6 +149,7 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	}
 	defer conn.Close()
 
+    debugLog("Utilisateur connection: %s (%s)", userId, pseudo)
 	if pseudo != "" {
 		userPseudosMutex.Lock()
 		userPseudos[userId] = pseudo
@@ -402,6 +405,13 @@ func broadcastMessageToUser(userID string, msg Message, excludeConn *websocket.C
 
 // CORRECTION: Nouvelle fonction pour envoyer un message direct à un utilisateur.
 func sendDirectMessage(msg Message) {
+  if msg.To == "" {
+        // On log l'erreur pour savoir pourquoi le message n'a pas été envoyé.
+        // Inclure msg.From est utile pour le débogage.
+        debugLog("Arrêt de sendDirectMessage: msg.To est vide. Message de 'from': %s", msg.From)
+        // 'return' arrête l'exécution de la fonction ici.
+        return
+    }
     clientsMutex.Lock()
     defer clientsMutex.Unlock()
 
@@ -481,7 +491,11 @@ func sendDirectMessageThroughFirebase(msg Message) {
                 Title: senderPseudo,
                 Body:  notificationBody,
             },
-
+            Data: map[string]string{
+                "senderId": msg.From,
+                "payload": notificationBody,
+                "isDefault": strconv.FormatBool(msg.IsDefault),
+            },
             // --- L'AJOUT IMPORTANT EST ICI ---
             Android: &messaging.AndroidConfig{
                 Notification: &messaging.AndroidNotification{
@@ -521,6 +535,8 @@ func sendDirectMessageThroughFirebase(msg Message) {
                 debugLog("Token invalide détecté: %s. Planifié pour suppression.", token)
                 tokensToRemove = append(tokensToRemove, token)
             }
+        }else{
+            debugLog("Message envoyé avec succès à %s", token);
         }
     }
 

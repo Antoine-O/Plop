@@ -39,11 +39,14 @@ class WebSocketService {
     if (_reconnectAttempts < 60) {
       // Limite le nombre de tentatives
       _reconnectAttempts++;
+      int reconnectAttempts = _reconnectAttempts - 1;
+      if (reconnectAttempts > 8) reconnectAttempts = 8;
+
       // Attente exponentielle (1s, 2s, 4s, 8s, ...)
-      final delay = Duration(seconds: 1 << (_reconnectAttempts - 1));
+      final delay = Duration(seconds: reconnectAttempts);
 
       Future.delayed(delay, () {
-        debugPrint('Reconnexion (tentative $_reconnectAttempts)...');
+        debugPrint('Reconnexion (tentative $reconnectAttempts)...');
         connect(userId,
             userPseudo); // Appelle votre méthode de connexion principale
       });
@@ -82,6 +85,7 @@ class WebSocketService {
     _pingTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
       if (userService.userId == null) userService.init();
       final String? userId = userService.userId;
+      final String? username = userService.username;
       final Map<String, dynamic> pingData = {
         'type': 'ping',
         'timestamp': DateTime.now().toIso8601String(),
@@ -89,8 +93,9 @@ class WebSocketService {
       };
       if (userId != null) {
         pingData.addAll({'userId': userId});
+        pingData.addAll({'pseudo': username});
       }
-      debugPrint('Sending ping... $userId');
+      debugPrint('Sending ping... $userId $username');
       final String jsonPing = jsonEncode(pingData);
       _channel!.sink.add(jsonPing); // Envoyez un message simple comme "ping"
     });
@@ -251,11 +256,16 @@ class WebSocketService {
     _audioPlayer.dispose();
   }
 
-  void handlePlop(Map<String, dynamic> data) async {
-    final fromUserId = data['from'] as String;
+  void handlePlop(Map<String, dynamic> data,{bool fromExternalNotification = false}) async {
+    final fromUserId = data['senderId'] ?? data['from'];
+    if (fromUserId  == null ) {
+      debugPrint("[handlePlop] fromUserId is null");
+      return;
+    }
+
     final messageText = data['payload'] as String;
     // On récupère le flag pour savoir si c'est un message par défaut
-    final bool isDefaultMessage = data['isDefault'] as bool? ?? false;
+    final bool isDefaultMessage = (data['isDefault'] == 'true');
 
     final db = DatabaseService();
     final contact = db.getContact(fromUserId);
@@ -270,13 +280,14 @@ class WebSocketService {
         : messageText;
 
     contact.lastMessage = finalMessage;
-    contact.lastMessageTimestamp = DateTime.now();
+
+    contact.lastMessageTimestamp = data['sendDate']?.toLocal() ?? DateTime.now();
     await db.updateContact(contact);
 
     final userService = UserService();
     await userService.init();
     bool isMuted = (contact.isMuted ?? false) == true;
-    if (!isMuted && !userService.isGlobalMute) {
+    if (!isMuted && !userService.isGlobalMute && !fromExternalNotification) {
       if (contact.customSoundPath != null &&
           contact.customSoundPath!.isNotEmpty) {
         await _audioPlayer.play(DeviceFileSource(contact.customSoundPath!));

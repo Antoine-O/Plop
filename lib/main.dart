@@ -159,7 +159,9 @@ class _AppLoaderState extends State<AppLoader> {
     connectToApi();
     // Retourne le service utilisateur pour le passer à l'application
     if (userService.hasUser()) {
+      await checkNotificationFromTerminatedState();
       await sendFcmTokenToServer();
+
     }
     return userService;
   }
@@ -270,12 +272,10 @@ void handleNotificationTap(RemoteMessage message) {
   debugPrint("Gestion du clic sur la notification ! Payload de données : ${message.data}");
 
 
-    debugPrint('App launched from terminated state via notification!');
-    // Handle navigation here, similar to onMessageOpenedApp
-    debugPrint(
-        'User tapped on the notification to open the app from background.');
     WebSocketService webSocketService = WebSocketService();
-    webSocketService.handlePlop(message.data);
+    final DateTime? sentTimestamp = message.sentTime;
+    message.data['sendDate'] = sentTimestamp;
+    webSocketService.handlePlop(message.data,fromExternalNotification:true);
 
   // Vous pouvez ajouter d'autres 'if' pour d'autres types de notifications
 }
