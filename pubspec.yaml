@@ -84,7 +84,7 @@ flutter:
 flutter_launcher_icons:
   # --- Configuration Générale ---
   # Chemin vers votre image source
-  image_path: "assets/icon/icon.png"
+  image_path: "assets/icon/app.png"
 
   # --- Configuration par Plateforme ---
   # Active la génération pour Android
@@ -98,9 +98,9 @@ flutter_launcher_icons:
   windows:
     generate: true
     # Chemin vers votre image source (peut être le même)
-    image_path: "assets/icon/icon.png"
+    image_path: "assets/icon/app.png"
   # Active la génération pour macOS
   macos:
     generate: true
     # Chemin vers votre image source (peut être le même)
-    image_path: "assets/icon/icon.png"
+    image_path: "assets/icon/app.png"
