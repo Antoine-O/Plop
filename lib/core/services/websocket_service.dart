@@ -296,7 +296,7 @@ class WebSocketService {
       }
 
       NotificationService().showNotification(
-          title: 'Nouveau Plop de ${contact.alias}',
+          title: '${contact.alias}',
           body: finalMessage,
           isMuted: isMuted);
     }
