@@ -6,7 +6,6 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:plop/core/services/user_service.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:plop/core/config/app_config.dart';
-import 'package:plop/core/services/websocket_service.dart';
 import 'package:plop/main.dart';
 
 class NotificationService {
@@ -233,20 +232,16 @@ Future<void> initializeNotificationPlugin() async {
 
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
     debugPrint('Message received while app is in foreground!');
-    if (message != null) {
-      debugPrint('Message data: ${message.data}');
-      handleNotificationTap(message);
-    }
-  });
+    debugPrint('Message data: ${message.data}');
+    handleNotificationTap(message);
+    });
 
   FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
     debugPrint(
         'User tapped on the notification to open the app from background.');
-    if (message != null) {
-      debugPrint('Message data: ${message.data}');
-      handleNotificationTap(message);
-    }
-  });
+    debugPrint('Message data: ${message.data}');
+    handleNotificationTap(message);
+    });
 
 }
 

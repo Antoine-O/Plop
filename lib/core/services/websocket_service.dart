@@ -307,7 +307,7 @@ class WebSocketService {
       }
 
       NotificationService().showNotification(
-          title: '${contact.alias}', body: finalMessage, isMuted: isMuted);
+          title: contact.alias, body: finalMessage, isMuted: isMuted);
     }
 
     _messageUpdateController.add({'userId': fromUserId});
