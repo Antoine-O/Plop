@@ -56,7 +56,11 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable' # ou 'beta', 'dev'
-
+      
+      # 2. Téléchargement des dépendances du projet
+      - name: Get Flutter dependencies
+        run: flutter pub get
+        
       # 3. Activation du support pour macOS
       - name: Enable macOS desktop support
         run: flutter clean
