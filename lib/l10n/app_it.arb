@@ -172,5 +172,21 @@
   "noBackupFileFound": "Nessun file di backup trovato.",
   "@noBackupFileFound": {
     "description": "Messaggio visualizzato se il file di backup predefinito non esiste"
+  },
+  "restoreYourAccount": "Ripristina il tuo account",
+  "@restoreYourAccount": {
+    "description": "Titolo per la schermata di ripristino dell'account"
+  },
+  "restoreFromBackup": "Ripristina da backup",
+  "@restoreFromBackup": {
+    "description": "Titolo della barra dell'app e testo del pulsante per avviare un ripristino da un file locale"
+  },
+  "restoreBackupBody": "Seleziona un file di backup salvato in precedenza per ripristinare i dati del tuo account. Questo sovrascriverà tutti i dati attuali su questo dispositivo.",
+  "@restoreBackupBody": {
+    "description": "Testo esplicativo nella schermata di ripristino"
+  },
+  "selectBackupFile": "Seleziona file di backup",
+  "@selectBackupFile": {
+    "description": "Etichetta per il pulsante che apre il selettore di file per scegliere un backup"
   }
 }

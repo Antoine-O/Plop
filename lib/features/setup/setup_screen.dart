@@ -6,6 +6,7 @@ import 'package:plop/features/setup/import_account_screen.dart';
 import 'package:plop/l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:plop/features/setup/restore_backup_screen.dart';
 
 class SetupScreen extends StatefulWidget {
   const SetupScreen({super.key});
@@ -186,6 +187,12 @@ class _SetupScreenState extends State<SetupScreen> {
                     Navigator.of(context).push(MaterialPageRoute(builder: (context) => const ImportAccountScreen()));
                   },
                   child:  Text(AppLocalizations.of(context)!.importAccountTitle),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => const RestoreBackupScreen()));
+                  },
+                  child: Text(AppLocalizations.of(context)!.restoreFromBackup),
                 ),
               ],
             ),

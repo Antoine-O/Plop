@@ -1,12 +1,22 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:plop/core/models/contact_model.dart';
+import 'package:plop/core/models/message_model.dart';
+import 'package:plop/core/services/backup_service.dart';
 import 'package:plop/core/services/database_service.dart';
 import 'package:plop/core/services/sync_service.dart';
 import 'package:plop/core/services/user_service.dart';
+import 'package:plop/features/contacts/contact_list_screen.dart';
 import 'package:plop/features/setup/import_account_screen.dart';
 import 'package:plop/l10n/app_localizations.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:path/path.dart' as p; // NEW: Import the path package
 
 class SyncAccountScreen extends StatefulWidget {
   const SyncAccountScreen({super.key});
@@ -18,8 +28,13 @@ class SyncAccountScreen extends StatefulWidget {
 class _SyncAccountScreenState extends State<SyncAccountScreen> {
   final SyncService _syncService = SyncService();
   final UserService _userService = UserService();
+  final DatabaseService _databaseService = DatabaseService();
+  final TextEditingController _messageController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
+  final BackupService _backupService = BackupService(); // AJOUT
   String? _generatedCode;
   bool _isLoadingExport = false;
+  final String _backupFileName = 'plop_config_backup.json';
 
   @override
   void initState() {
@@ -76,6 +91,78 @@ class _SyncAccountScreenState extends State<SyncAccountScreen> {
     );
   }
 
+  // NOUVELLE MÉTHODE DE CONTRÔLE POUR LA SAUVEGARDE
+  Future<void> _handleSaveBackup() async {
+    final result = await _backupService.saveBackup(
+      userService: _userService,
+      databaseService: _databaseService,
+      saveToUserSelectedLocation: true,
+    );
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result ?? AppLocalizations.of(context)!.configurationSavedSuccessfully)),
+      );
+    }
+  }
+
+  // NOUVELLE MÉTHODE DE CONTRÔLE POUR LA RESTAURATION
+  Future<void> _handleRestoreBackup() async {
+    final bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(AppLocalizations.of(context)!.loadConfiguration),
+        content: Text(AppLocalizations.of(context)!.loadConfigurationWarning),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(AppLocalizations.of(context)!.cancel)),
+          TextButton(onPressed: () => Navigator.of(context).pop(true), child: Text(AppLocalizations.of(context)!.load, style: const TextStyle(color: Colors.orange))),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    final String? errorMessage = await _backupService.restoreFromBackup();
+
+
+    // La logique de l'interface réagit au résultat
+    if (mounted) {
+      if (errorMessage == null) {
+        await _loadAllData();
+        // Succès : naviguer vers l'écran principal
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const ContactListScreen()),
+              (route) => false,
+        );
+      } else {
+        // Échec : afficher le message d'erreur
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMessage)),
+        );
+      }
+    }
+
+    // S'assurer que l'indicateur de chargement est toujours enlevé
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
+
+  }
+
+
+  late List<MessageModel> _messages;
+  // List<Contact> _contacts = [];
+  String? _userId;
+  bool _isLoading = true;
+  Future<void> _loadAllData() async {
+    setState(() => _isLoading = true);
+    await _userService.init();
+    _messages = _databaseService.getAllMessages();
+    // _contacts = await _databaseService.getAllContactsOrdered();
+    _usernameController.text = _userService.username ?? '';
+    _userId = _userService.userId;
+    setState(() => _isLoading = false);
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -139,6 +226,24 @@ class _SyncAccountScreenState extends State<SyncAccountScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),
             ),
+            Divider(height: 40),
+            // CHANGED: UI texts updated to reflect new behavior
+            Text(AppLocalizations.of(context)!.backupAndRestore, style: Theme.of(context).textTheme.titleLarge),
+            SizedBox(height: 10),
+            ListTile(
+              leading: Icon(Icons.save_alt),
+              title: Text(AppLocalizations.of(context)!.saveConfiguration),
+              subtitle: Text(AppLocalizations.of(context)!.saveConfigurationDescriptionLocal), // e.g., "Saves a local backup. Overwrites previous backup."
+              onTap: _handleSaveBackup,
+            ),
+            ListTile(
+              leading: Icon(Icons.settings_backup_restore),
+              title: Text(AppLocalizations.of(context)!.loadConfiguration),
+              subtitle: Text(AppLocalizations.of(context)!.loadConfigurationDescriptionLocal), // e.g., "Restores configuration from the local backup."
+              onTap: _handleRestoreBackup,
+            ),
+
+            Divider(height: 40),
           ],
         ),
       ),

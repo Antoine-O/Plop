@@ -172,5 +172,20 @@
   "noBackupFileFound": "Keine Sicherungsdatei gefunden.",
   "@noBackupFileFound": {
     "description": "Meldung, wenn die Standard-Sicherungsdatei nicht existiert"
+  },  "restoreYourAccount": "Stelle dein Konto wieder her",
+  "@restoreYourAccount": {
+    "description": "Titel für den Bildschirm zur Kontowiederherstellung"
+  },
+  "restoreFromBackup": "Aus Backup wiederherstellen",
+  "@restoreFromBackup": {
+    "description": "Titel der App-Leiste und Schaltflächentext zum Starten einer Wiederherstellung aus einer lokalen Datei"
+  },
+  "restoreBackupBody": "Wähle eine zuvor gespeicherte Sicherungsdatei aus, um deine Kontodaten wiederherzustellen. Dadurch werden alle aktuellen Daten auf diesem Gerät überschrieben.",
+  "@restoreBackupBody": {
+    "description": "Erklärender Text auf dem Wiederherstellungsbildschirm"
+  },
+  "selectBackupFile": "Sicherungsdatei auswählen",
+  "@selectBackupFile": {
+    "description": "Beschriftung für die Schaltfläche, die die Dateiauswahl öffnet, um eine Sicherung auszuwählen"
   }
 }

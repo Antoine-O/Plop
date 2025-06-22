@@ -176,5 +176,20 @@
   "noBackupFileFound": "Aucun fichier de sauvegarde trouvé.",
   "@noBackupFileFound": {
     "description": "Message affiché si le fichier de sauvegarde par défaut n'existe pas"
+  },  "restoreYourAccount": "Restaurez votre compte",
+  "@restoreYourAccount": {
+    "description": "Titre pour l'écran de restauration de compte"
+  },
+  "restoreFromBackup": "Restaurer depuis une sauvegarde",
+  "@restoreFromBackup": {
+    "description": "Titre de l'app bar et texte du bouton pour lancer une restauration depuis un fichier local"
+  },
+  "restoreBackupBody": "Sélectionnez un fichier de sauvegarde précédemment enregistré pour restaurer les données de votre compte. Cela écrasera toutes les données actuelles sur cet appareil.",
+  "@restoreBackupBody": {
+    "description": "Texte explicatif sur l'écran de restauration"
+  },
+  "selectBackupFile": "Sélectionner le fichier de sauvegarde",
+  "@selectBackupFile": {
+    "description": "Label pour le bouton qui ouvre le sélecteur de fichier pour choisir une sauvegarde"
   }
 }

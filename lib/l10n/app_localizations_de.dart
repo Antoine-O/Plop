@@ -415,4 +415,17 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get noBackupFileFound => 'Keine Sicherungsdatei gefunden.';
+
+  @override
+  String get restoreYourAccount => 'Stelle dein Konto wieder her';
+
+  @override
+  String get restoreFromBackup => 'Aus Backup wiederherstellen';
+
+  @override
+  String get restoreBackupBody =>
+      'Wähle eine zuvor gespeicherte Sicherungsdatei aus, um deine Kontodaten wiederherzustellen. Dadurch werden alle aktuellen Daten auf diesem Gerät überschrieben.';
+
+  @override
+  String get selectBackupFile => 'Sicherungsdatei auswählen';
 }

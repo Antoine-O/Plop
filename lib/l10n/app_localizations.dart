@@ -847,6 +847,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No backup file found.'**
   String get noBackupFileFound;
+
+  /// Title for the account restoration screen
+  ///
+  /// In en, this message translates to:
+  /// **'Restore your account'**
+  String get restoreYourAccount;
+
+  /// App bar title and button text for initiating a restore from a local file
+  ///
+  /// In en, this message translates to:
+  /// **'Restore from backup'**
+  String get restoreFromBackup;
+
+  /// Explanatory text on the restore screen
+  ///
+  /// In en, this message translates to:
+  /// **'Select a previously saved backup file to restore your account data. This will overwrite any current data on this device.'**
+  String get restoreBackupBody;
+
+  /// Label for the button that opens the file picker to select a backup
+  ///
+  /// In en, this message translates to:
+  /// **'Select backup file'**
+  String get selectBackupFile;
 }
 
 class _AppLocalizationsDelegate

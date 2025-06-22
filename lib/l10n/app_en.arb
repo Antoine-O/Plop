@@ -174,5 +174,21 @@
   "noBackupFileFound": "No backup file found.",
   "@noBackupFileFound": {
     "description": "Message shown if the default backup file does not exist"
+  },
+  "restoreYourAccount": "Restore your account",
+  "@restoreYourAccount": {
+    "description": "Title for the account restoration screen"
+  },
+  "restoreFromBackup": "Restore from backup",
+  "@restoreFromBackup": {
+    "description": "App bar title and button text for initiating a restore from a local file"
+  },
+  "restoreBackupBody": "Select a previously saved backup file to restore your account data. This will overwrite any current data on this device.",
+  "@restoreBackupBody": {
+    "description": "Explanatory text on the restore screen"
+  },
+  "selectBackupFile": "Select backup file",
+  "@selectBackupFile": {
+    "description": "Label for the button that opens the file picker to select a backup"
   }
 }

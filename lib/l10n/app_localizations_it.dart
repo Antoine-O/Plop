@@ -412,4 +412,17 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get noBackupFileFound => 'Nessun file di backup trovato.';
+
+  @override
+  String get restoreYourAccount => 'Ripristina il tuo account';
+
+  @override
+  String get restoreFromBackup => 'Ripristina da backup';
+
+  @override
+  String get restoreBackupBody =>
+      'Seleziona un file di backup salvato in precedenza per ripristinare i dati del tuo account. Questo sovrascriverà tutti i dati attuali su questo dispositivo.';
+
+  @override
+  String get selectBackupFile => 'Seleziona file di backup';
 }

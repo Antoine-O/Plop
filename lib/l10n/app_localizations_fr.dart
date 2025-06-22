@@ -413,4 +413,17 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get noBackupFileFound => 'Aucun fichier de sauvegarde trouvé.';
+
+  @override
+  String get restoreYourAccount => 'Restaurez votre compte';
+
+  @override
+  String get restoreFromBackup => 'Restaurer depuis une sauvegarde';
+
+  @override
+  String get restoreBackupBody =>
+      'Sélectionnez un fichier de sauvegarde précédemment enregistré pour restaurer les données de votre compte. Cela écrasera toutes les données actuelles sur cet appareil.';
+
+  @override
+  String get selectBackupFile => 'Sélectionner le fichier de sauvegarde';
 }

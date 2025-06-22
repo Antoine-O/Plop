@@ -172,5 +172,21 @@
   "noBackupFileFound": "No se encontró ningún archivo de copia de seguridad.",
   "@noBackupFileFound": {
     "description": "Mensaje que se muestra si el archivo de copia de seguridad predeterminado no existe"
+  },
+  "restoreYourAccount": "Restaura tu cuenta",
+  "@restoreYourAccount": {
+    "description": "Título para la pantalla de restauración de cuenta"
+  },
+  "restoreFromBackup": "Restaurar desde copia de seguridad",
+  "@restoreFromBackup": {
+    "description": "Título de la barra de aplicaciones y texto del botón para iniciar una restauración desde un archivo local"
+  },
+  "restoreBackupBody": "Selecciona un archivo de copia de seguridad guardado previamente para restaurar los datos de tu cuenta. Esto sobrescribirá todos los datos actuales en este dispositivo.",
+  "@restoreBackupBody": {
+    "description": "Texto explicativo en la pantalla de restauración"
+  },
+  "selectBackupFile": "Seleccionar archivo de copia",
+  "@selectBackupFile": {
+    "description": "Etiqueta para el botón que abre el selector de archivos para elegir una copia de seguridad"
   }
 }
