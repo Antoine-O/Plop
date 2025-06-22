@@ -364,4 +364,52 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get languageUpdated => 'Lingua aggiornata!';
+
+  @override
+  String get backupAndRestore => 'Backup e Ripristino';
+
+  @override
+  String get saveConfiguration => 'Salva configurazione';
+
+  @override
+  String get saveConfigurationDescriptionLocal =>
+      'Salva la configurazione corrente in un file di backup locale. Qualsiasi backup precedente verrà sovrascritto.';
+
+  @override
+  String get loadConfiguration => 'Carica configurazione';
+
+  @override
+  String get loadConfigurationDescriptionLocal =>
+      'Ripristina la configurazione dal file di backup locale.';
+
+  @override
+  String get loadConfigurationWarningTitle => 'Caricare la configurazione?';
+
+  @override
+  String get loadConfigurationWarning =>
+      'Attenzione: Questo sostituirà tutte le impostazioni e i contatti attuali con i dati del backup. Questa azione è irreversibile.';
+
+  @override
+  String get load => 'Carica';
+
+  @override
+  String get configurationSavedSuccessfully =>
+      'Configurazione salvata con successo.';
+
+  @override
+  String get configurationLoadedSuccessfully =>
+      'Configurazione caricata con successo.';
+
+  @override
+  String errorDuringSave(String error) {
+    return 'Errore durante il salvataggio: $error';
+  }
+
+  @override
+  String errorDuringLoad(String error) {
+    return 'Errore durante il caricamento: $error';
+  }
+
+  @override
+  String get noBackupFileFound => 'Nessun file di backup trovato.';
 }

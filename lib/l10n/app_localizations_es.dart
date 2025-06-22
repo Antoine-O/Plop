@@ -362,4 +362,53 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get languageUpdated => '¡Idioma actualizado!';
+
+  @override
+  String get backupAndRestore => 'Copia de seguridad y Restauración';
+
+  @override
+  String get saveConfiguration => 'Guardar configuración';
+
+  @override
+  String get saveConfigurationDescriptionLocal =>
+      'Guarda la configuración actual en un archivo de copia de seguridad local. Cualquier copia anterior será sobrescrita.';
+
+  @override
+  String get loadConfiguration => 'Cargar configuración';
+
+  @override
+  String get loadConfigurationDescriptionLocal =>
+      'Restaura la configuración desde el archivo de copia de seguridad local.';
+
+  @override
+  String get loadConfigurationWarningTitle => '¿Cargar la configuración?';
+
+  @override
+  String get loadConfigurationWarning =>
+      'Atención: Esto reemplazará todos sus ajustes y contactos actuales con los datos de la copia de seguridad. Esta acción no se puede deshacer.';
+
+  @override
+  String get load => 'Cargar';
+
+  @override
+  String get configurationSavedSuccessfully =>
+      'Configuración guardada correctamente.';
+
+  @override
+  String get configurationLoadedSuccessfully =>
+      'Configuración cargada correctamente.';
+
+  @override
+  String errorDuringSave(String error) {
+    return 'Error al guardar: $error';
+  }
+
+  @override
+  String errorDuringLoad(String error) {
+    return 'Error al cargar: $error';
+  }
+
+  @override
+  String get noBackupFileFound =>
+      'No se encontró ningún archivo de copia de seguridad.';
 }

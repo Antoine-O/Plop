@@ -49,6 +49,12 @@ class UserService extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> updateUserId(String newUserId) async {
+    userId = newUserId;
+    await _prefs.setString('userId', userId!);
+    notifyListeners();
+  }
+
   Future<void> toggleGlobalMute() async {
     isGlobalMute = !isGlobalMute;
     await _prefs.setBool(_globalMuteKey, isGlobalMute);

@@ -769,6 +769,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Language updated!'**
   String get languageUpdated;
+
+  /// Title for the backup and restore section
+  ///
+  /// In en, this message translates to:
+  /// **'Backup & Restore'**
+  String get backupAndRestore;
+
+  /// Title for the save option
+  ///
+  /// In en, this message translates to:
+  /// **'Save Configuration'**
+  String get saveConfiguration;
+
+  /// Description for the save option
+  ///
+  /// In en, this message translates to:
+  /// **'Saves the current configuration to a local backup file. Any previous backup will be overwritten.'**
+  String get saveConfigurationDescriptionLocal;
+
+  /// Title for the load option
+  ///
+  /// In en, this message translates to:
+  /// **'Load Configuration'**
+  String get loadConfiguration;
+
+  /// Description for the load option
+  ///
+  /// In en, this message translates to:
+  /// **'Restores the configuration from the local backup file.'**
+  String get loadConfigurationDescriptionLocal;
+
+  /// Title of the warning dialog before loading a backup
+  ///
+  /// In en, this message translates to:
+  /// **'Load Configuration?'**
+  String get loadConfigurationWarningTitle;
+
+  /// Content of the warning dialog before loading a backup
+  ///
+  /// In en, this message translates to:
+  /// **'Warning: This will replace all your current settings and contacts with the data from the backup. This action cannot be undone.'**
+  String get loadConfigurationWarning;
+
+  /// Text for the button to confirm loading
+  ///
+  /// In en, this message translates to:
+  /// **'Load'**
+  String get load;
+
+  /// Confirmation message shown after a successful save
+  ///
+  /// In en, this message translates to:
+  /// **'Configuration saved successfully.'**
+  String get configurationSavedSuccessfully;
+
+  /// Confirmation message shown after a successful load
+  ///
+  /// In en, this message translates to:
+  /// **'Configuration loaded successfully.'**
+  String get configurationLoadedSuccessfully;
+
+  /// Error message shown on a failed save
+  ///
+  /// In en, this message translates to:
+  /// **'Error during save: {error}'**
+  String errorDuringSave(String error);
+
+  /// Error message shown on a failed load
+  ///
+  /// In en, this message translates to:
+  /// **'Error during load: {error}'**
+  String errorDuringLoad(String error);
+
+  /// Message shown if the default backup file does not exist
+  ///
+  /// In en, this message translates to:
+  /// **'No backup file found.'**
+  String get noBackupFileFound;
 }
 
 class _AppLocalizationsDelegate

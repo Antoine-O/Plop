@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:plop/core/models/contact_model.dart';
 // import 'package:plop/core/models/contact_model.dart';
 import 'package:plop/core/models/message_model.dart';
 import 'package:plop/core/services/database_service.dart';
@@ -11,6 +12,10 @@ import 'package:plop/l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'package:provider/provider.dart';
+import 'dart:convert';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p; // NEW: Import the path package
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -34,6 +39,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   // List<Contact> _contacts = [];
   String? _userId;
   bool _isLoading = true;
+
+
+  final String _backupFileName = 'plop_config_backup.json';
 
   @override
   void initState() {
@@ -176,6 +184,132 @@ class _SettingsScreenState extends State<SettingsScreen> {
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => SetupScreen()),
             (Route<dynamic> route) => false,
+      );
+    }
+  }
+
+
+  Future<void> _saveConfigurationToFile() async {
+    try {
+      // 1. Gather all data (same as before)
+      final username = _userService.username;
+      final userId = _userService.userId;
+      if (username == null || userId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("User data is not available to save.")),
+        );
+        return;
+      }
+      final messages = _databaseService.getAllMessages();
+      final contacts = await _databaseService.getAllContactsOrdered();
+      final contactsOrder = _databaseService.getContactsOrder();
+
+      final Map<String, dynamic> configData = {
+        'userId': userId,
+        'username': username,
+        'messages': messages.map((m) => m.toJson()).toList(),
+        'contacts': contacts.map((c) => c.toJson()).toList(),
+        'contactsOrder': contactsOrder,
+      };
+
+      final jsonString = jsonEncode(configData);
+
+      // 2. Get the default directory and create the file path
+      final directory = await getApplicationDocumentsDirectory();
+      final filePath = p.join(directory.path, _backupFileName);
+      final file = File(filePath);
+
+      // 3. Write the file, overwriting if it exists
+      await file.writeAsString(jsonString);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context)!.configurationSavedSuccessfully)),
+      );
+
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${AppLocalizations.of(context)!.errorDuringSave}: $e')),
+      );
+    }
+  }
+
+  // CHANGED: This method now loads from the default file path
+  Future<void> _loadConfigurationFromFile() async {
+    final bool? confirm = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(AppLocalizations.of(context)!.loadConfiguration),
+          content: Text(AppLocalizations.of(context)!.loadConfigurationWarning),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: Text(AppLocalizations.of(context)!.cancel)),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(AppLocalizations.of(context)!.load, style: TextStyle(color: Colors.orange)),
+            ),
+          ],
+        ));
+
+    if (confirm != true) return;
+
+    try {
+      // 1. Get the path to the default backup file
+      final directory = await getApplicationDocumentsDirectory();
+      final filePath = p.join(directory.path, _backupFileName);
+      final file = File(filePath);
+
+      // 2. Check if the backup file exists
+      if (!await file.exists()) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context)!.noBackupFileFound)),
+        );
+        return;
+      }
+
+      // 3. Read and decode the file (same as before)
+      final jsonString = await file.readAsString();
+      final configData = jsonDecode(jsonString) as Map<String, dynamic>;
+
+      if (!configData.containsKey('userId') || !configData.containsKey('contacts')) {
+        throw Exception('Invalid configuration file.');
+      }
+
+      // 4. Clear existing data (same as before)
+      await _databaseService.contactsBox.clear();
+      await _databaseService.messagesBox.clear();
+
+      // 5. Restore data from the file (same as before)
+      await _userService.updateUsername(configData['username']);
+      await _userService.updateUserId(configData['userId']);
+
+      final messages = (configData['messages'] as List)
+          .map((item) => MessageModel.fromJson(item))
+          .toList();
+      for (var msg in messages) {
+        await _databaseService.addMessage(msg);
+      }
+
+      final contacts = (configData['contacts'] as List)
+          .map((item) => Contact.fromJson(item))
+          .toList();
+      for (var contact in contacts) {
+        await _databaseService.addContact(contact);
+      }
+
+      final contactOrder = (configData['contactOrder'] as List).cast<String>();
+      await _databaseService.saveContactOrder(contactOrder);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context)!.configurationLoadedSuccessfully)),
+      );
+
+      // 6. Reload data into the UI (same as before)
+      await _loadAllData();
+
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${AppLocalizations.of(context)!.errorDuringLoad}: $e')),
       );
     }
   }
@@ -342,7 +476,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
 
                   Divider(height: 40),
+                  // CHANGED: UI texts updated to reflect new behavior
+                  Text(AppLocalizations.of(context)!.backupAndRestore, style: Theme.of(context).textTheme.titleLarge),
+                  SizedBox(height: 10),
+                  ListTile(
+                    leading: Icon(Icons.save_alt),
+                    title: Text(AppLocalizations.of(context)!.saveConfiguration),
+                    subtitle: Text(AppLocalizations.of(context)!.saveConfigurationDescriptionLocal), // e.g., "Saves a local backup. Overwrites previous backup."
+                    onTap: _saveConfigurationToFile,
+                  ),
+                  ListTile(
+                    leading: Icon(Icons.settings_backup_restore),
+                    title: Text(AppLocalizations.of(context)!.loadConfiguration),
+                    subtitle: Text(AppLocalizations.of(context)!.loadConfigurationDescriptionLocal), // e.g., "Restores configuration from the local backup."
+                    onTap: _loadConfigurationFromFile,
+                  ),
 
+                  Divider(height: 40),
                   // --- Section Réinitialisation ---
                   TextButton(
                     onPressed: _resetApp,

@@ -44,4 +44,40 @@ class Contact extends HiveObject {
     this.defaultMessageOverride,
     this.isHidden = false, // NOUVEAU
   });
+
+  factory Contact.fromJson(Map<String, dynamic> json) {
+    return Contact(
+      userId: json['userId'],
+      originalPseudo: json['originalPseudo'],
+      alias: json['alias'],
+      colorValue: json['colorValue'],
+      isMuted: json['isMuted'] ?? false,
+      type: json['type'] ?? 'user',
+      lastMessage: json['lastMessage'],
+      lastMessageTimestamp: json['lastMessageTimestamp'] != null
+          ? DateTime.parse(json['lastMessageTimestamp'])
+          : null,
+      isBlocked: json['isBlocked'] ?? false,
+      customSoundPath: json['customSoundPath'],
+      defaultMessageOverride: json['defaultMessageOverride'],
+      isHidden: json['isHidden'] ?? false,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'userId': userId,
+      'originalPseudo': originalPseudo,
+      'alias': alias,
+      'colorValue': colorValue,
+      'isMuted': isMuted,
+      'type': type,
+      'lastMessage': lastMessage,
+      'lastMessageTimestamp': lastMessageTimestamp?.toIso8601String(),
+      'isBlocked': isBlocked,
+      'customSoundPath': customSoundPath,
+      'defaultMessageOverride': defaultMessageOverride,
+      'isHidden': isHidden,
+    };
+  }
 }

@@ -46,10 +46,10 @@ class DatabaseService {
     // Assurer la cohérence entre la liste d'ordre et les contacts existants
     final contactMap = {for (var c in allContacts) c.userId: c};
     final consistentOrder =
-        order.where((id) => contactMap.containsKey(id)).toList();
+    order.where((id) => contactMap.containsKey(id)).toList();
 
     final orderedContacts =
-        consistentOrder.map((id) => contactMap[id]!).toList();
+    consistentOrder.map((id) => contactMap[id]!).toList();
 
     // Ajouter les contacts qui n'étaient pas dans la liste d'ordre (nouveaux ajouts)
     for (var contact in allContacts) {
@@ -58,6 +58,12 @@ class DatabaseService {
       }
     }
     return orderedContacts;
+  }
+
+  Future<List<String>> getContactsOrder() async {
+    final prefs = await SharedPreferences.getInstance();
+    final order = prefs.getStringList(_contactOrderKey) ?? [];
+    return order;
   }
 
   Future<void> updateContact(Contact contact) async => await contact.save();
