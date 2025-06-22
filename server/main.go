@@ -663,8 +663,10 @@ func cleanupExpiredInvitations() {
 	for range ticker.C {
 		now := time.Now()
 		invitationsMutex.Lock()
+		deleted := false
 		for code, inv := range invitations {
 			if now.After(inv.ExpiresAt) {
+			    deleted = true
 				delete(invitations, code)
 				debugLog("Code d'invitation expiré supprimé: %s", code)
 			}
