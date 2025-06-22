@@ -202,7 +202,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       }
       final messages = _databaseService.getAllMessages();
       final contacts = await _databaseService.getAllContactsOrdered();
-      final contactsOrder = _databaseService.getContactsOrder();
+      final contactsOrder = await _databaseService.getContactsOrder();
 
       final Map<String, dynamic> configData = {
         'userId': userId,
