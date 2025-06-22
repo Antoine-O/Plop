@@ -57,6 +57,10 @@ const invitationValidityMinutes = 10
 const messageCooldown = 0 * time.Second // NOUVEAU: Temps de rechargement de 5 secondes
 
 
+const pendingMessagesFile = "pending_messages.json"
+const userDeviceTokensFile = "user_device_tokens.json"
+const invitationsFile = "invitations.json"
+
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true },
 }
@@ -75,6 +79,9 @@ var userPseudosMutex = &sync.Mutex{}
 
 var syncCodes = make(map[string]SyncCode)
 var syncCodesMutex = &sync.Mutex{}
+
+var pendingMessages = make(map[string]map[string]Message) // map[recipientId][senderId]Message
+var pendingMessagesMutex = &sync.Mutex{}
 
 // --- Logger ---
 
@@ -99,6 +106,9 @@ func initializeFirebase(){
 
 func main() {
     initializeFirebase();
+    loadPendingMessagesFromFile()
+	loadUserDeviceTokensFromFile()
+	loadInvitationsFromFile()
 	go cleanupExpiredInvitations()
 	go cleanupExpiredSyncCodes()
 
@@ -165,6 +175,8 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	clients[userId][conn] = true
 	clientsMutex.Unlock()
 
+    go sendPendingMessages(userId, conn)
+
     // Si d'autres appareils sont déjà connectés, on leur demande la dernière version des données.
 	if hasOtherDevices {
 		debugLog("Nouvel appareil détecté pour %s. Demande de synchronisation...", userId)
@@ -197,6 +209,7 @@ func handleCreateInvitation(w http.ResponseWriter, r *http.Request) {
 	invitationsMutex.Lock()
 	invitations[code] = invitation
 	invitationsMutex.Unlock()
+	saveInvitationsToFile()
 	debugLog("Code '%s' créé pour %s (%s)", code, creatorID, creatorPseudo)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{"code": code, "validityMinutes": invitationValidityMinutes})
@@ -215,6 +228,9 @@ func handleUseInvitation(w http.ResponseWriter, r *http.Request) {
 		delete(invitations, code)
 	}
 	invitationsMutex.Unlock()
+		if found {
+    		saveInvitationsToFile()
+    	}
 	if !found || time.Now().After(invitation.ExpiresAt) {
 		http.Error(w, "Code invalide ou expiré", http.StatusNotFound)
 		return
@@ -313,10 +329,9 @@ func handleUpdateToken(w http.ResponseWriter, r *http.Request) {
     }
     debugLog("handleUpdateToken  %s %s", requestBody.UserID, requestBody.Token)
 
-    userDeviceTokensMutex.Lock()
-    defer userDeviceTokensMutex.Unlock()
 
     // Récupère la liste existante de tokens pour cet utilisateur
+    userDeviceTokensMutex.Lock()
     tokens := userDeviceTokens[requestBody.UserID]
 
     // Vérifie si le token est déjà dans la liste pour éviter les doublons
@@ -332,7 +347,10 @@ func handleUpdateToken(w http.ResponseWriter, r *http.Request) {
     if !tokenExists {
         userDeviceTokens[requestBody.UserID] = append(tokens, requestBody.Token)
         debugLog("Nouveau token FCM ajouté pour l'utilisateur %s", requestBody.UserID)
+		userDeviceTokensMutex.Unlock()
+		saveUserDeviceTokensToFile()
     } else {
+		userDeviceTokensMutex.Unlock()
         debugLog("Token FCM déjà existant pour l'utilisateur %s", requestBody.UserID)
     }
 
@@ -413,18 +431,32 @@ func sendDirectMessage(msg Message) {
         return
     }
     clientsMutex.Lock()
-    defer clientsMutex.Unlock()
+    recipientConns, found := clients[msg.To]
+    clientsMutex.Unlock() // Libérer le mutex plus tôt
 
-    if recipientConns, found := clients[msg.To]; found {
+    if found && len(recipientConns) > 0 {
         debugLog("Envoi d'un message direct de %s à %s", msg.From, msg.To)
+        clientsMutex.Lock() // Re-verrouiller pour accéder à la map
         for conn := range recipientConns {
             err := conn.WriteJSON(msg)
             if err != nil {
                 debugLog("Erreur d'envoi (direct) de %s à %s : %v", msg.From, msg.To, err)
             }
         }
+        clientsMutex.Unlock()
     } else {
         debugLog("Envoi d'un message direct de %s à %s - Destinataire non trouvé", msg.From, msg.To)
+        pendingMessagesMutex.Lock()
+        if _, ok := pendingMessages[msg.To]; !ok {
+            pendingMessages[msg.To] = make(map[string]Message)
+        }
+        // Écrase le message précédent du même expéditeur
+        pendingMessages[msg.To][msg.From] = msg
+        debugLog("Message de %s pour %s stocké pour livraison ultérieure.", msg.From, msg.To)
+        pendingMessagesMutex.Unlock()
+
+        // Sauvegarde la mise à jour dans le fichier
+        savePendingMessagesToFile()
         // L'UTILISATEUR N'EST PAS CONNECTÉ ---
         sendDirectMessageThroughFirebase(msg)
     }
@@ -607,6 +639,7 @@ func removeInvalidTokens(userID string, tokensToRemove []string) {
         }
         userDeviceTokens[userID] = validTokens
         debugLog("Nettoyage de %d token(s) invalide(s) pour l'utilisateur %s", len(tokensToRemove), userID)
+        saveUserDeviceTokensToFile()
     }
 }
 
@@ -637,6 +670,9 @@ func cleanupExpiredInvitations() {
 			}
 		}
 		invitationsMutex.Unlock()
+        if deleted {
+            saveInvitationsToFile()
+        }
 	}
 }
 
@@ -668,4 +704,148 @@ func handlePing(w http.ResponseWriter, r *http.Request) {
 
 func intPtr(i int) *int {
      return &i
+}
+
+
+// --- Utility Functions --- (Ajoutez ces fonctions à la fin du fichier)
+
+// NOUVEAU: Charge les messages en attente depuis le fichier JSON au démarrage.
+func loadPendingMessagesFromFile() {
+	pendingMessagesMutex.Lock()
+	defer pendingMessagesMutex.Unlock()
+
+	data, err := os.ReadFile(pendingMessagesFile)
+	if err != nil {
+		if os.IsNotExist(err) {
+			debugLog("Aucun fichier de messages en attente ('%s') trouvé. Démarrage avec une liste vide.", pendingMessagesFile)
+			return // Le fichier n'existe pas encore, c'est normal au premier lancement.
+		}
+		log.Printf("Erreur lors de la lecture du fichier de messages en attente : %v", err)
+		return
+	}
+
+	if err := json.Unmarshal(data, &pendingMessages); err != nil {
+		log.Printf("Erreur lors du démarshalling des messages en attente : %v", err)
+	} else {
+		debugLog("%d utilisateur(s) avec des messages en attente chargés depuis le fichier.", len(pendingMessages))
+	}
+}
+
+// NOUVEAU: Sauvegarde la map des messages en attente dans le fichier JSON.
+func savePendingMessagesToFile() {
+	pendingMessagesMutex.Lock()
+	defer pendingMessagesMutex.Unlock()
+
+	data, err := json.MarshalIndent(pendingMessages, "", "  ")
+	if err != nil {
+		log.Printf("Erreur lors du marshalling des messages en attente : %v", err)
+		return
+	}
+
+	if err := os.WriteFile(pendingMessagesFile, data, 0644); err != nil {
+		log.Printf("Erreur lors de l'écriture dans le fichier de messages en attente : %v", err)
+	}
+}
+
+// NOUVEAU: Vérifie et envoie les messages stockés à un utilisateur qui vient de se connecter.
+func sendPendingMessages(userID string, conn *websocket.Conn) {
+    pendingMessagesMutex.Lock()
+
+    messagesForUser, found := pendingMessages[userID]
+    if !found || len(messagesForUser) == 0 {
+        pendingMessagesMutex.Unlock()
+        return // Aucun message en attente pour cet utilisateur
+    }
+
+    debugLog("Envoi de %d message(s) en attente à l'utilisateur %s", len(messagesForUser), userID)
+
+    // On envoie chaque message stocké
+    for senderID, msg := range messagesForUser {
+        if err := conn.WriteJSON(msg); err != nil {
+            debugLog("Erreur lors de l'envoi du message en attente de %s à %s: %v", senderID, userID, err)
+            // Si l'envoi échoue, on arrête et on ne supprime pas les messages pour réessayer plus tard.
+            pendingMessagesMutex.Unlock()
+            return
+        }
+    }
+
+    // Tous les messages ont été envoyés avec succès, on peut nettoyer la map.
+    delete(pendingMessages, userID)
+    debugLog("Messages en attente pour %s envoyés et supprimés de la file d'attente.", userID)
+
+    pendingMessagesMutex.Unlock()
+
+    // On met à jour le fichier pour refléter que les messages ont été livrés.
+    savePendingMessagesToFile()
+}
+
+// NOUVEAU: Charge les invitations depuis le fichier JSON.
+func loadInvitationsFromFile() {
+	invitationsMutex.Lock()
+	defer invitationsMutex.Unlock()
+	data, err := os.ReadFile(invitationsFile)
+	if err != nil {
+		if os.IsNotExist(err) {
+			debugLog("Aucun fichier d'invitations ('%s') trouvé.", invitationsFile)
+			return
+		}
+		log.Printf("Erreur lecture fichier invitations : %v", err)
+		return
+	}
+	if err := json.Unmarshal(data, &invitations); err != nil {
+		log.Printf("Erreur démarshalling invitations : %v", err)
+	} else {
+		debugLog("%d invitation(s) chargée(s) depuis le fichier.", len(invitations))
+	}
+}
+
+// NOUVEAU: Sauvegarde les invitations dans le fichier JSON.
+func saveInvitationsToFile() {
+	invitationsMutex.Lock()
+	defer invitationsMutex.Unlock()
+	data, err := json.MarshalIndent(invitations, "", "  ")
+	if err != nil {
+		log.Printf("Erreur marshalling invitations : %v", err)
+		return
+	}
+	if err := os.WriteFile(invitationsFile, data, 0644); err != nil {
+		log.Printf("Erreur écriture fichier invitations : %v", err)
+	}
+}
+
+
+// --- PERSISTANCE DES TOKENS FCM ---
+
+// NOUVEAU: Charge les tokens FCM des utilisateurs depuis le fichier JSON.
+func loadUserDeviceTokensFromFile() {
+	userDeviceTokensMutex.Lock()
+	defer userDeviceTokensMutex.Unlock()
+	data, err := os.ReadFile(userDeviceTokensFile)
+	if err != nil {
+		if os.IsNotExist(err) {
+			debugLog("Aucun fichier de tokens FCM ('%s') trouvé.", userDeviceTokensFile)
+			return
+		}
+		log.Printf("Erreur lecture fichier tokens : %v", err)
+		return
+	}
+	if err := json.Unmarshal(data, &userDeviceTokens); err != nil {
+		log.Printf("Erreur démarshalling tokens : %v", err)
+	} else {
+		debugLog("%d utilisateur(s) avec tokens chargés depuis le fichier.", len(userDeviceTokens))
+	}
+}
+
+// NOUVEAU: Sauvegarde les tokens FCM des utilisateurs dans le fichier JSON.
+func saveUserDeviceTokensToFile() {
+	userDeviceTokensMutex.Lock()
+	defer userDeviceTokensMutex.Unlock()
+	data, err := json.MarshalIndent(userDeviceTokens, "", "  ")
+	if err != nil {
+		log.Printf("Erreur marshalling tokens : %v", err)
+		return
+	}
+	if err := os.WriteFile(userDeviceTokensFile, data, 0644); err != nil {
+		log.Printf("Erreur écriture fichier tokens : %v", err)
+	}
 }
