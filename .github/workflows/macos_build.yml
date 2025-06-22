@@ -72,7 +72,9 @@ jobs:
       - name: List files for debugging
         run: ls -laR
         shell: bash
-
+      - name: Update macOS Deployment Target in Podfile
+        run: sed -i '' "s/platform :osx, '10.14'/platform :osx, '10.15'/" macos/Podfile
+        shell: bash
       # 4. Compilation de l'application pour macOS
       - name: Build macOS application
         run: |
