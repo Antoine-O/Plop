@@ -57,33 +57,18 @@ jobs:
         with:
           channel: 'stable' # ou 'beta', 'dev'
       
-      # 2. Téléchargement des dépendances du projet
-      - name: Get Flutter dependencies
-        run: flutter pub get
-        
-      # 3. Activation du support pour macOS
-      - name: Enable macOS desktop support
-        run: flutter clean
-
-      - name: Enable macOS desktop support
-        run: flutter create --platforms=macos .
-
-
-      # 3. Activation du support pour macOS
-      - name: Enable macOS desktop support
-        run: flutter config --enable-macos-desktop
-
-      # 4. Téléchargement des dépendances du projet
+      # 3. Installation des dépendances (UNE SEULE FOIS)
+      # Cette étape génère tous les fichiers nécessaires pour les plateformes natives.
       - name: Get Flutter dependencies
         run: flutter pub get
 
-      # 5. Compilation de l'application pour macOS
-      # Passe les URLs via --dart-define pour la configuration.
+      # 4. Compilation de l'application pour macOS
       - name: Build macOS application
         run: |
           flutter build macos --release \
             --dart-define=BASE_URL=${{ env.BASE_URL }} \
             --dart-define=WEBSOCKET_URL=${{ env.WEBSOCKET_URL }}
+
 
       # 6. Compression de l'application (.app) en une archive .zip
       # Le résultat du build est un dossier .app, nous le compressons pour la distribution.
