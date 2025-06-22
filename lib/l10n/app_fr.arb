@@ -191,5 +191,24 @@
   "selectBackupFile": "Sélectionner le fichier de sauvegarde",
   "@selectBackupFile": {
     "description": "Label pour le bouton qui ouvre le sélecteur de fichier pour choisir une sauvegarde"
+  },"deleteContact": "Supprimer le contact",
+  "@deleteContact": {
+    "description": "Texte du bouton pour supprimer un contact"
+  },
+  "confirmDeletionTitle": "Confirmer la suppression",
+  "@confirmDeletionTitle": {
+    "description": "Titre de la boîte de dialogue demandant à l'utilisateur de confirmer la suppression du contact"
+  },
+  "confirmDeletionBody": "Êtes-vous sûr de vouloir supprimer définitivement ce contact ? Cette action est irréversible.",
+  "@confirmDeletionBody": {
+    "description": "Corps du texte de la boîte de dialogue de confirmation pour la suppression d'un contact"
+  },
+  "delete": "Supprimer",
+  "@delete": {
+    "description": "Texte du bouton de confirmation pour une action destructive comme la suppression"
+  },
+  "contactDeletedSuccessfully": "Contact supprimé avec succès",
+  "@contactDeletedSuccessfully": {
+    "description": "Message de confirmation affiché après qu'un contact a été supprimé avec succès"
   }
 }

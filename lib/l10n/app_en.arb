@@ -190,5 +190,25 @@
   "selectBackupFile": "Select backup file",
   "@selectBackupFile": {
     "description": "Label for the button that opens the file picker to select a backup"
+  },
+  "deleteContact": "Delete Contact",
+  "@deleteContact": {
+    "description": "Button text for deleting a contact"
+  },
+  "confirmDeletionTitle": "Confirm Deletion",
+  "@confirmDeletionTitle": {
+    "description": "Title of the dialog box asking the user to confirm contact deletion"
+  },
+  "confirmDeletionBody": "Are you sure you want to permanently delete this contact? This action cannot be undone.",
+  "@confirmDeletionBody": {
+    "description": "Body text of the confirmation dialog for deleting a contact"
+  },
+  "delete": "Delete",
+  "@delete": {
+    "description": "Confirmation button text for a destructive action like deletion"
+  },
+  "contactDeletedSuccessfully": "Contact deleted successfully",
+  "@contactDeletedSuccessfully": {
+    "description": "Snackbar message shown after a contact has been successfully deleted"
   }
 }

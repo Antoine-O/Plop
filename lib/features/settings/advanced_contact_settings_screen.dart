@@ -65,6 +65,54 @@ class _AdvancedContactSettingsScreenState
     }
   }
 
+
+  // NOUVELLE FONCTION : Pour supprimer le contact avec confirmation
+  Future<void> _deleteContact() async {
+    // Affiche une boîte de dialogue de confirmation
+    final bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(AppLocalizations.of(context)!.confirmDeletionTitle),
+        content: Text(AppLocalizations.of(context)!.confirmDeletionBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(AppLocalizations.of(context)!.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(
+              AppLocalizations.of(context)!.delete,
+              style: const TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    // Si l'utilisateur n'a pas confirmé, on ne fait rien.
+    if (confirm != true) return;
+
+    try {
+      // Supprime le contact de la base de données
+      await _contact.delete();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context)!.contactDeletedSuccessfully)),
+        );
+        // Après la suppression, on revient à l'écran précédent (la liste de contacts)
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Erreur lors de la suppression : $e")),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -164,6 +212,18 @@ class _AdvancedContactSettingsScreenState
                     border: OutlineInputBorder(),
                   ),
                   maxLength: 20,
+                ), // AJOUT : Section pour la suppression
+                const Divider(height: 40, thickness: 1),
+                Center(
+                  child: OutlinedButton.icon(
+                    onPressed: _deleteContact,
+                    icon: const Icon(Icons.delete_forever),
+                    label: Text(AppLocalizations.of(context)!.deleteContact),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red,
+                      side: const BorderSide(color: Colors.red),
+                    ),
+                  ),
                 ),
               ],
             ),

@@ -188,5 +188,24 @@
   "selectBackupFile": "Seleccionar archivo de copia",
   "@selectBackupFile": {
     "description": "Etiqueta para el botón que abre el selector de archivos para elegir una copia de seguridad"
+  },"deleteContact": "Eliminar Contacto",
+  "@deleteContact": {
+    "description": "Texto del botón para eliminar un contacto"
+  },
+  "confirmDeletionTitle": "Confirmar Eliminación",
+  "@confirmDeletionTitle": {
+    "description": "Título del cuadro de diálogo que pide al usuario que confirme la eliminación del contacto"
+  },
+  "confirmDeletionBody": "¿Estás seguro de que quieres eliminar este contacto de forma permanente? Esta acción no se puede deshacer.",
+  "@confirmDeletionBody": {
+    "description": "Cuerpo del texto del cuadro de diálogo de confirmación para eliminar un contacto"
+  },
+  "delete": "Eliminar",
+  "@delete": {
+    "description": "Texto del botón de confirmación para una acción destructiva como la eliminación"
+  },
+  "contactDeletedSuccessfully": "Contacto eliminado con éxito",
+  "@contactDeletedSuccessfully": {
+    "description": "Mensaje que se muestra después de que un contacto se ha eliminado con éxito"
   }
 }

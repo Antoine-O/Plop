@@ -188,5 +188,24 @@
   "selectBackupFile": "Seleziona file di backup",
   "@selectBackupFile": {
     "description": "Etichetta per il pulsante che apre il selettore di file per scegliere un backup"
+  },"deleteContact": "Elimina Contatto",
+  "@deleteContact": {
+    "description": "Testo del pulsante per eliminare un contatto"
+  },
+  "confirmDeletionTitle": "Conferma Eliminazione",
+  "@confirmDeletionTitle": {
+    "description": "Titolo della finestra di dialogo che chiede all'utente di confermare l'eliminazione del contatto"
+  },
+  "confirmDeletionBody": "Sei sicuro di voler eliminare definitivamente questo contatto? Questa azione non può essere annullata.",
+  "@confirmDeletionBody": {
+    "description": "Testo del corpo della finestra di dialogo di conferma per l'eliminazione di un contatto"
+  },
+  "delete": "Elimina",
+  "@delete": {
+    "description": "Testo del pulsante di conferma per un'azione distruttiva come l'eliminazione"
+  },
+  "contactDeletedSuccessfully": "Contatto eliminato con successo",
+  "@contactDeletedSuccessfully": {
+    "description": "Messaggio visualizzato dopo che un contatto è stato eliminato con successo"
   }
 }

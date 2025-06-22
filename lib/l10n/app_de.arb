@@ -187,5 +187,24 @@
   "selectBackupFile": "Sicherungsdatei auswählen",
   "@selectBackupFile": {
     "description": "Beschriftung für die Schaltfläche, die die Dateiauswahl öffnet, um eine Sicherung auszuwählen"
+  }, "deleteContact": "Kontakt löschen",
+  "@deleteContact": {
+    "description": "Schaltflächentext zum Löschen eines Kontakts"
+  },
+  "confirmDeletionTitle": "Löschen bestätigen",
+  "@confirmDeletionTitle": {
+    "description": "Titel des Dialogfelds, in dem der Benutzer das Löschen des Kontakts bestätigen soll"
+  },
+  "confirmDeletionBody": "Möchtest du diesen Kontakt wirklich endgültig löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+  "@confirmDeletionBody": {
+    "description": "Text des Bestätigungsdialogs zum Löschen eines Kontakts"
+  },
+  "delete": "Löschen",
+  "@delete": {
+    "description": "Bestätigungsschaltflächentext für eine destruktive Aktion wie das Löschen"
+  },
+  "contactDeletedSuccessfully": "Kontakt erfolgreich gelöscht",
+  "@contactDeletedSuccessfully": {
+    "description": "Snackbar-Nachricht, die angezeigt wird, nachdem ein Kontakt erfolgreich gelöscht wurde"
   }
 }
