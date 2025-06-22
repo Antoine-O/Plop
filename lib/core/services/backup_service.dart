@@ -6,8 +6,6 @@ import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:plop/core/models/contact_model.dart';
-import 'package:plop/core/models/message_model.dart';
 import 'package:plop/core/services/database_service.dart';
 import 'package:plop/core/services/user_service.dart';
 import 'package:path/path.dart' as p;

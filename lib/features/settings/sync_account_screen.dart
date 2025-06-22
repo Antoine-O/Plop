@@ -1,11 +1,6 @@
-import 'dart:convert';
-import 'dart:io';
 
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:plop/core/models/contact_model.dart';
 import 'package:plop/core/models/message_model.dart';
 import 'package:plop/core/services/backup_service.dart';
 import 'package:plop/core/services/database_service.dart';
@@ -16,7 +11,7 @@ import 'package:plop/features/setup/import_account_screen.dart';
 import 'package:plop/l10n/app_localizations.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:path/path.dart' as p; // NEW: Import the path package
+// NEW: Import the path package
 
 class SyncAccountScreen extends StatefulWidget {
   const SyncAccountScreen({super.key});
