@@ -428,4 +428,17 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get selectBackupFile => 'Sicherungsdatei auswählen';
+
+  @override
+  String get deleteContact => 'Kontakt löschen';
+
+  @override
+  String get confirmDeletionTitle => 'Löschen bestätigen';
+
+  @override
+  String get confirmDeletionBody =>
+      'Möchtest du diesen Kontakt wirklich endgültig löschen? Diese Aktion kann nicht rückgängig gemacht werden.';
+
+  @override
+  String get contactDeletedSuccessfully => 'Kontakt erfolgreich gelöscht';
 }

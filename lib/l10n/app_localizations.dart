@@ -236,7 +236,7 @@ abstract class AppLocalizations {
   /// **'No messages configured.'**
   String get noMessagesConfigured;
 
-  /// No description provided for @delete.
+  /// Confirmation button text for a destructive action like deletion
   ///
   /// In en, this message translates to:
   /// **'Delete'**
@@ -871,6 +871,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select backup file'**
   String get selectBackupFile;
+
+  /// Button text for deleting a contact
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Contact'**
+  String get deleteContact;
+
+  /// Title of the dialog box asking the user to confirm contact deletion
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Deletion'**
+  String get confirmDeletionTitle;
+
+  /// Body text of the confirmation dialog for deleting a contact
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to permanently delete this contact? This action cannot be undone.'**
+  String get confirmDeletionBody;
+
+  /// Snackbar message shown after a contact has been successfully deleted
+  ///
+  /// In en, this message translates to:
+  /// **'Contact deleted successfully'**
+  String get contactDeletedSuccessfully;
 }
 
 class _AppLocalizationsDelegate

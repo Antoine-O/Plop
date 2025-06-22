@@ -421,4 +421,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get selectBackupFile => 'Select backup file';
+
+  @override
+  String get deleteContact => 'Delete Contact';
+
+  @override
+  String get confirmDeletionTitle => 'Confirm Deletion';
+
+  @override
+  String get confirmDeletionBody =>
+      'Are you sure you want to permanently delete this contact? This action cannot be undone.';
+
+  @override
+  String get contactDeletedSuccessfully => 'Contact deleted successfully';
 }
