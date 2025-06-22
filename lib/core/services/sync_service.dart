@@ -2,12 +2,15 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:plop/core/config/app_config.dart';
+import 'package:plop/core/services/websocket_service.dart';
 
 class SyncService {
   final String _baseUrl = AppConfig.baseUrl;
+  final WebSocketService _webSocketService = WebSocketService();
 
   Future<String?> createSyncCode(String userId) async {
     try {
+      _webSocketService.ensureConnected();
       final url = Uri.parse('$_baseUrl/sync/create?userId=$userId');
       debugPrint("[SyncService] Création du code via: $url");
       final response = await http.get(url);
@@ -26,6 +29,7 @@ class SyncService {
 
   Future<Map<String, String>?> useSyncCode(String code) async {
     try {
+      _webSocketService.ensureConnected();
       final url = Uri.parse('$_baseUrl/sync/use');
       final body = jsonEncode({'code': code});
       debugPrint("[SyncService] Utilisation du code via: $url avec body: $body");
