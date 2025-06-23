@@ -64,6 +64,7 @@ jobs:
           rm -rf macos
           # Demande à Flutter de le recréer proprement à partir du code source
           flutter create --platforms=macos .
+          cat Podfile macos/Podfile
           mv Podfile macos/Podfile
         shell: bash
       # 3. Installation des dépendances (UNE SEULE FOIS)
