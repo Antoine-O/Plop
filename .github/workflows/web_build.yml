@@ -93,15 +93,15 @@ jobs:
 
       # Push the images to the registry
       - name: Push the Docker image with version number
-        run: docker compose  -f docker-compose.yml --env-file push
+        run: docker compose  -f docker-compose.yml push
         continue-on-error: true
 
       - name: Push the Docker image with version number
-        run: docker compose  -f docker-compose.yml --env-file push
+        run: docker compose  -f docker-compose.yml push
         continue-on-error: true
 
       - name: Push the Docker image with version number
-        run: docker compose -f docker-compose.yml --env-file push
+        run: docker compose -f docker-compose.yml push
         continue-on-error: true
 
       # Remove the local images
