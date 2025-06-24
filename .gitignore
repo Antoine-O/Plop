@@ -48,3 +48,4 @@ lib/firebase_options.dart
 **/linux/flutter/ephemeral/
 .idea/caches/**
 Plop.iml
+.flutter-plugins-dependencies
