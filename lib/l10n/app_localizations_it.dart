@@ -78,9 +78,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get noMessagesConfigured => 'Nessun messaggio configurato.';
 
   @override
-  String get delete => 'Elimina';
-
-  @override
   String get resetApp => 'Reimposta applicazione';
 
   @override
@@ -437,5 +434,29 @@ class AppLocalizationsIt extends AppLocalizations {
       'Sei sicuro di voler eliminare definitivamente questo contatto? Questa azione non può essere annullata.';
 
   @override
+  String get delete => 'Elimina';
+
+  @override
   String get contactDeletedSuccessfully => 'Contatto eliminato con successo';
+
+  @override
+  String get muteTooltip => 'Silenzia';
+
+  @override
+  String get unmuteTooltip => 'Riattiva audio';
+
+  @override
+  String get statusSending => 'Invio in corso...';
+
+  @override
+  String get statusSent => 'Inviato';
+
+  @override
+  String get statusAcknowledged => 'Ricevuto';
+
+  @override
+  String get statusFailed => 'Fallito';
+
+  @override
+  String get statusDistributed => 'Distribuito';
 }

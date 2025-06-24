@@ -22,7 +22,6 @@
   "addNewQuickMessage": "Nuevo mensaje rápido",
   "yourMessages": "Tus mensajes ({count}/10)",
   "noMessagesConfigured": "No hay mensajes configurados.",
-  "delete": "Eliminar",
   "resetApp": "Restablecer aplicación",
   "inviteContact": "Invitar a un contacto",
   "addByCode": "Añadir por código",
@@ -188,7 +187,8 @@
   "selectBackupFile": "Seleccionar archivo de copia",
   "@selectBackupFile": {
     "description": "Etiqueta para el botón que abre el selector de archivos para elegir una copia de seguridad"
-  },"deleteContact": "Eliminar Contacto",
+  },
+  "deleteContact": "Eliminar Contacto",
   "@deleteContact": {
     "description": "Texto del botón para eliminar un contacto"
   },
@@ -207,5 +207,12 @@
   "contactDeletedSuccessfully": "Contacto eliminado con éxito",
   "@contactDeletedSuccessfully": {
     "description": "Mensaje que se muestra después de que un contacto se ha eliminado con éxito"
-  }
+  },
+  "muteTooltip": "Silenciar",
+  "unmuteTooltip": "Reactivar sonido",
+  "statusSending": "Enviando...",
+  "statusSent": "Enviado",
+  "statusAcknowledged": "Recibido",
+  "statusFailed": "Error",
+  "statusDistributed": "Distribuido"
 }

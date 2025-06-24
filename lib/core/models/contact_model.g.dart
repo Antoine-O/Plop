@@ -29,13 +29,18 @@ class ContactAdapter extends TypeAdapter<Contact> {
       customSoundPath: fields[9] as String?,
       defaultMessageOverride: fields[10] as String?,
       isHidden: fields[11] as bool?,
+      lastMessageSentTimestamp: fields[12] as DateTime?,
+      lastMessageSent: fields[13] as String?,
+      lastMessageSentDefault: fields[14] as bool?,
+      lastMessageSentStatus: fields[15] as MessageStatus?,
+      lastMessageSentError: fields[16] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Contact obj) {
     writer
-      ..writeByte(12)
+      ..writeByte(17)
       ..writeByte(0)
       ..write(obj.userId)
       ..writeByte(1)
@@ -59,7 +64,17 @@ class ContactAdapter extends TypeAdapter<Contact> {
       ..writeByte(10)
       ..write(obj.defaultMessageOverride)
       ..writeByte(11)
-      ..write(obj.isHidden);
+      ..write(obj.isHidden)
+      ..writeByte(12)
+      ..write(obj.lastMessageSentTimestamp)
+      ..writeByte(13)
+      ..write(obj.lastMessageSent)
+      ..writeByte(14)
+      ..write(obj.lastMessageSentDefault)
+      ..writeByte(15)
+      ..write(obj.lastMessageSentStatus)
+      ..writeByte(16)
+      ..write(obj.lastMessageSentError);
   }
 
   @override
@@ -69,6 +84,60 @@ class ContactAdapter extends TypeAdapter<Contact> {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is ContactAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
+class MessageStatusAdapter extends TypeAdapter<MessageStatus> {
+  @override
+  final int typeId = 2;
+
+  @override
+  MessageStatus read(BinaryReader reader) {
+    switch (reader.readByte()) {
+      case 0:
+        return MessageStatus.sending;
+      case 1:
+        return MessageStatus.sent;
+      case 2:
+        return MessageStatus.distributed;
+      case 3:
+        return MessageStatus.acknowledged;
+      case 4:
+        return MessageStatus.failed;
+      default:
+        return MessageStatus.sending;
+    }
+  }
+
+  @override
+  void write(BinaryWriter writer, MessageStatus obj) {
+    switch (obj) {
+      case MessageStatus.sending:
+        writer.writeByte(0);
+        break;
+      case MessageStatus.sent:
+        writer.writeByte(1);
+        break;
+      case MessageStatus.distributed:
+        writer.writeByte(2);
+        break;
+      case MessageStatus.acknowledged:
+        writer.writeByte(3);
+        break;
+      case MessageStatus.failed:
+        writer.writeByte(4);
+        break;
+    }
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is MessageStatusAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

@@ -236,12 +236,6 @@ abstract class AppLocalizations {
   /// **'No messages configured.'**
   String get noMessagesConfigured;
 
-  /// Confirmation button text for a destructive action like deletion
-  ///
-  /// In en, this message translates to:
-  /// **'Delete'**
-  String get delete;
-
   /// No description provided for @resetApp.
   ///
   /// In en, this message translates to:
@@ -890,11 +884,59 @@ abstract class AppLocalizations {
   /// **'Are you sure you want to permanently delete this contact? This action cannot be undone.'**
   String get confirmDeletionBody;
 
+  /// Confirmation button text for a destructive action like deletion
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get delete;
+
   /// Snackbar message shown after a contact has been successfully deleted
   ///
   /// In en, this message translates to:
   /// **'Contact deleted successfully'**
   String get contactDeletedSuccessfully;
+
+  /// No description provided for @muteTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute'**
+  String get muteTooltip;
+
+  /// No description provided for @unmuteTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmute'**
+  String get unmuteTooltip;
+
+  /// No description provided for @statusSending.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending...'**
+  String get statusSending;
+
+  /// No description provided for @statusSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent'**
+  String get statusSent;
+
+  /// No description provided for @statusAcknowledged.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered'**
+  String get statusAcknowledged;
+
+  /// No description provided for @statusFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get statusFailed;
+
+  /// No description provided for @statusDistributed.
+  ///
+  /// In en, this message translates to:
+  /// **'Distributed'**
+  String get statusDistributed;
 }
 
 class _AppLocalizationsDelegate

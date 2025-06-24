@@ -6,6 +6,7 @@ import 'package:plop/core/models/contact_model.dart';
 import 'package:plop/core/models/message_model.dart';
 import 'package:plop/core/services/database_service.dart';
 import 'package:plop/core/services/websocket_service.dart';
+import 'package:plop/l10n/app_localizations.dart'; // IMPORTANT: Importez la classe de localisation
 
 class ContactTile extends StatefulWidget {
   final Contact contact;
@@ -23,6 +24,7 @@ class _ContactTileState extends State<ContactTile>
   final WebSocketService _webSocketService = WebSocketService();
   final DatabaseService _databaseService = DatabaseService();
   StreamSubscription? _messageSubscription;
+  late Contact _contact;
   bool _isMuted = false;
 
   bool _inCooldown = false;
@@ -32,7 +34,9 @@ class _ContactTileState extends State<ContactTile>
   @override
   void initState() {
     super.initState();
-    _isMuted = widget.contact.isMuted ?? false;
+    _contact = widget.contact;
+    _isMuted = _contact.isMuted ?? false;
+
     _animationController = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 150));
     _scaleAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
@@ -43,9 +47,16 @@ class _ContactTileState extends State<ContactTile>
       duration: const Duration(seconds: 5),
     );
 
+    // This listener now correctly reloads state to show incoming messages
     _messageSubscription = _webSocketService.messageUpdates.listen((update) {
       if (!mounted) return;
-      if (update['userId'] == widget.contact.userId) {
+      if (update['userId'] == _contact.userId) {
+        final freshContact = _databaseService.getContact(_contact.userId);
+        if (freshContact != null) {
+          setState(() {
+            _contact = freshContact;
+          });
+        }
         _animationController
             .forward()
             .then((_) => _animationController.reverse());
@@ -73,15 +84,46 @@ class _ContactTileState extends State<ContactTile>
     });
   }
 
-  void _sendDefaultMessage() {
+  // This function now correctly updates state to show sent messages
+  void _sendDefaultMessage() async {
     if (_inCooldown) return;
     final String defaultMessage = AppConfig.getDefaultPlopMessage(context);
-    _webSocketService.sendMessage(
-        type: 'plop',
-        to: widget.contact.userId,
-        payload: defaultMessage,
-        isDefault: true);
-    _startCooldown();
+
+    setState(() {
+      _contact.lastMessageSent = defaultMessage;
+      _contact.lastMessageSentStatus = MessageStatus.sending;
+      _contact.lastMessageSentTimestamp = DateTime.now();
+      _contact.lastMessageSentError = null; // Réinitialise l'erreur précédente
+    });
+
+    await _contact.save();
+    try {
+      _webSocketService.sendMessage(
+          type: 'plop',
+          to: _contact.userId,
+          payload: defaultMessage,
+          isDefault: true);
+
+      _startCooldown();
+
+      await Future.delayed(const Duration(seconds: 1));
+      if (mounted) {
+        setState(() {
+          _contact.lastMessageSentStatus = MessageStatus.sent;
+        });
+        await _contact.save();
+      }
+    } catch (e) {
+      // Si l'envoi échoue, on met à jour l'UI avec le statut "échec"
+      if (mounted) {
+        setState(() {
+          _contact.lastMessageSentStatus = MessageStatus.failed;
+          _contact.lastMessageSentError =
+              e.toString(); // On stocke l'erreur pour le tooltip
+        });
+        await _contact.save();
+      }
+    }
   }
 
   void _handleLongPress() {
@@ -105,9 +147,7 @@ class _ContactTileState extends State<ContactTile>
               title: Text(message.text),
               onTap: () {
                 _webSocketService.sendMessage(
-                    type: 'plop',
-                    to: widget.contact.userId,
-                    payload: message.text);
+                    type: 'plop', to: _contact.userId, payload: message.text);
                 Navigator.pop(context);
                 _startCooldown();
               },
@@ -122,23 +162,26 @@ class _ContactTileState extends State<ContactTile>
     setState(() {
       _isMuted = !_isMuted;
     });
-    widget.contact.isMuted = _isMuted;
-    await _databaseService.updateContact(widget.contact);
+    _contact.isMuted = _isMuted;
+    await _contact.save();
   }
 
   String _formatTimestamp(DateTime? timestamp) {
     if (timestamp == null) return '';
-    return DateFormat.Hm('fr_FR').format(timestamp);
+    // Use the current locale for date formatting
+    final locale = Localizations.localeOf(context).toString();
+    return DateFormat.Hm(locale).format(timestamp);
   }
 
   @override
   Widget build(BuildContext context) {
-    final bool hasCustomAlias = widget.contact.alias.isNotEmpty &&
-        widget.contact.alias != widget.contact.originalPseudo;
+    final l10n = AppLocalizations.of(context)!; // Get the localization instance
+    final bool hasCustomAlias =
+        _contact.alias.isNotEmpty && _contact.alias != _contact.originalPseudo;
     final String primaryName =
-        hasCustomAlias ? widget.contact.alias : widget.contact.originalPseudo;
+        hasCustomAlias ? _contact.alias : _contact.originalPseudo;
     final String? secondaryName =
-        hasCustomAlias ? widget.contact.originalPseudo : null;
+        hasCustomAlias ? _contact.originalPseudo : null;
 
     return AbsorbPointer(
       absorbing: _inCooldown,
@@ -147,24 +190,19 @@ class _ContactTileState extends State<ContactTile>
         child: ScaleTransition(
           scale: _scaleAnimation,
           child: Card(
-            color: Color(widget.contact.colorValue),
+            color: Color(_contact.colorValue),
             margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
             elevation: 2,
             child: InkWell(
-              // Use InkWell for onTap and onLongPress on the whole card
               onTap: _sendDefaultMessage,
               onLongPress: _handleLongPress,
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
-                // Padding for the content inside the card
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  // Align content to the left
                   children: [
                     Row(
-                      // First line with CircleAvatar, Names, and Mute Button
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      // Align children to the top
                       children: [
                         Stack(
                           alignment: Alignment.topCenter,
@@ -189,13 +227,10 @@ class _ContactTileState extends State<ContactTile>
                           ],
                         ),
                         const SizedBox(width: 8.0),
-                        // Space between avatar and names
                         Expanded(
-                          // Take remaining space for names
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisSize: MainAxisSize.min,
-                            // Essential to prevent column from taking full height
                             children: [
                               Text(primaryName,
                                   style: const TextStyle(
@@ -213,7 +248,6 @@ class _ContactTileState extends State<ContactTile>
                         ),
                         Align(
                           alignment: Alignment.topRight,
-                          // Ensure the icon stays top-right
                           child: IconButton(
                             icon: Icon(
                                 _isMuted ? Icons.volume_off : Icons.volume_up,
@@ -222,26 +256,28 @@ class _ContactTileState extends State<ContactTile>
                                     ? Colors.red
                                     : Colors.grey.shade900),
                             onPressed: _toggleMute,
+                            // Using keys from .arb files
                             tooltip: _isMuted
-                                ? 'Réactiver le son'
-                                : 'Mettre en sourdine',
+                                ? l10n.unmuteTooltip
+                                : l10n.muteTooltip,
                             padding: EdgeInsets.zero,
-                            // Remove default padding from IconButton
-                            constraints:
-                                const BoxConstraints(), // Remove default constraints
+                            constraints: const BoxConstraints(),
                           ),
                         ),
                       ],
                     ),
-                    if (widget.contact.lastMessage !=
-                        null) // Second line for message bubble
+                    if (_contact.lastMessageSent != null ||
+                        _contact.lastMessage != null)
                       Padding(
                         padding: const EdgeInsets.only(top: 8.0),
-                        // Padding between first line and message bubble
-                        child: Align(
-                          // *** NEW: Align the message bubble to centerRight ***
-                          alignment: Alignment.centerRight,
-                          child: _buildMessageBubble(context),
+                        child: Row(
+                          children: [
+                            if (_contact.lastMessageSent != null)
+                              _buildMessageSentBubble(context),
+                            const Spacer(),
+                            if (_contact.lastMessage != null)
+                              _buildMessageBubble(context),
+                          ],
                         ),
                       ),
                   ],
@@ -256,10 +292,9 @@ class _ContactTileState extends State<ContactTile>
 
   Widget _buildMessageBubble(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(right: 4),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.blue.shade50,
+        color: Colors.white70,
         borderRadius: const BorderRadius.all(Radius.circular(12)),
       ),
       child: Row(
@@ -269,18 +304,110 @@ class _ContactTileState extends State<ContactTile>
         children: [
           Flexible(
             child: Text(
-              widget.contact.lastMessage!,
+              _contact.lastMessage!,
               style: const TextStyle(color: Colors.black87),
               overflow: TextOverflow.ellipsis,
             ),
           ),
           const SizedBox(width: 8),
           Text(
-            _formatTimestamp(widget.contact.lastMessageTimestamp),
+            _formatTimestamp(_contact.lastMessageTimestamp),
             style: TextStyle(color: Colors.grey.shade700, fontSize: 11),
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildMessageSentBubble(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.lightGreen.shade100,
+        borderRadius: const BorderRadius.all(Radius.circular(12)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: TextBaseline.alphabetic,
+        children: [
+          if (_contact.lastMessageSentStatus != null)
+            _buildStatusIndicator(context, _contact.lastMessageSentStatus!),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              _contact.lastMessageSent!,
+              style: const TextStyle(color: Colors.black87),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusIndicator(BuildContext context, MessageStatus status) {
+    final l10n = AppLocalizations.of(context)!; // Get the localization instance
+    IconData icon;
+    String text; // Text now comes from l10n
+    Color color;
+
+    Widget statusWidget;
+    switch (status) {
+      case MessageStatus.sending:
+        icon = Icons.schedule;
+        text = l10n.statusSending;
+        color = Colors.grey.shade600;
+        break;
+      case MessageStatus.sent:
+        icon = Icons.check;
+        text = l10n.statusSent;
+        color = Colors.grey.shade600;
+        break;
+      case MessageStatus.distributed:
+        icon = Icons.check_circle;
+        text = l10n.statusDistributed;
+        color = Colors.blue.shade600;
+        break;
+      case MessageStatus.acknowledged:
+        icon = Icons.check_circle;
+        text = l10n.statusAcknowledged;
+        color = Colors.green.shade600;
+        break;
+      case MessageStatus.failed:
+        icon = Icons.error_outline;
+        text = l10n.statusFailed;
+        color = Colors.red.shade600;
+        break;
+    }
+
+    // Le widget de base (icône + timestamp)
+    statusWidget = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 14.0, color: color),
+        const SizedBox(width: 4.0),
+        Text(
+          _formatTimestamp(_contact.lastMessageSentTimestamp),
+          style: TextStyle(color: Colors.grey.shade700, fontSize: 11),
+        ),
+      ],
+    );
+
+    // Si le statut est "échec" et qu'il y a un message d'erreur, on l'englobe dans un Tooltip
+    if (status == MessageStatus.failed && _contact.lastMessageSentError != null) {
+      return Tooltip(
+        message: _contact.lastMessageSentError!,
+        child: statusWidget,
+      );
+    }else{
+      return Tooltip(
+        message: text,
+        child: statusWidget,
+      );
+
+    }
+
+    // return statusWidget; // Sinon, on retourne le widget de base
   }
 }

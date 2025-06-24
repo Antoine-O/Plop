@@ -22,7 +22,6 @@
   "addNewQuickMessage": "Nouveau message rapide",
   "yourMessages": "Vos messages ({count}/10)",
   "noMessagesConfigured": "Aucun message configuré.",
-  "delete": "Supprimer",
   "resetApp": "Réinitialiser l'application",
   "inviteContact": "Inviter un contact",
   "addByCode": "Ajouter via un code",
@@ -210,5 +209,11 @@
   "contactDeletedSuccessfully": "Contact supprimé avec succès",
   "@contactDeletedSuccessfully": {
     "description": "Message de confirmation affiché après qu'un contact a été supprimé avec succès"
-  }
+  },    "muteTooltip": "Mettre en sourdine",
+  "unmuteTooltip": "Réactiver le son",
+  "statusSending": "Envoi...",
+  "statusSent": "Envoyé",
+  "statusAcknowledged": "Lu",
+  "statusDistributed": "Distribué",
+  "statusFailed": "Échec"
 }

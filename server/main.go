@@ -380,6 +380,10 @@ func listenForMessages(conn *websocket.Conn, fromUserId string) {
 			if !found || time.Since(lastTime) > messageCooldown {
 				userLastMessageTime[fromUserId] = time.Now()
 				userLastMessageMutex.Unlock()
+				ackMessage := Message{Type: "message_ack", From: "server"}
+                				if err := conn.WriteJSON(ackMessage); err != nil {
+                					debugLog("Impossible d'envoyer l'ack à %s: %v", fromUserId, err)
+                				}
 				sendDirectMessage(msg)
 			} else {
 				userLastMessageMutex.Unlock()

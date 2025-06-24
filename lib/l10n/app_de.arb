@@ -22,7 +22,6 @@
   "addNewQuickMessage": "Neue Schnellnachricht",
   "yourMessages": "Ihre Nachrichten ({count}/10)",
   "noMessagesConfigured": "Keine Nachrichten konfiguriert.",
-  "delete": "Löschen",
   "resetApp": "Anwendung zurücksetzen",
   "inviteContact": "Kontakt einladen",
   "addByCode": "Per Code hinzufügen",
@@ -172,7 +171,8 @@
   "noBackupFileFound": "Keine Sicherungsdatei gefunden.",
   "@noBackupFileFound": {
     "description": "Meldung, wenn die Standard-Sicherungsdatei nicht existiert"
-  },  "restoreYourAccount": "Stelle dein Konto wieder her",
+  },
+  "restoreYourAccount": "Stelle dein Konto wieder her",
   "@restoreYourAccount": {
     "description": "Titel für den Bildschirm zur Kontowiederherstellung"
   },
@@ -187,7 +187,8 @@
   "selectBackupFile": "Sicherungsdatei auswählen",
   "@selectBackupFile": {
     "description": "Beschriftung für die Schaltfläche, die die Dateiauswahl öffnet, um eine Sicherung auszuwählen"
-  }, "deleteContact": "Kontakt löschen",
+  },
+  "deleteContact": "Kontakt löschen",
   "@deleteContact": {
     "description": "Schaltflächentext zum Löschen eines Kontakts"
   },
@@ -206,5 +207,12 @@
   "contactDeletedSuccessfully": "Kontakt erfolgreich gelöscht",
   "@contactDeletedSuccessfully": {
     "description": "Snackbar-Nachricht, die angezeigt wird, nachdem ein Kontakt erfolgreich gelöscht wurde"
-  }
+  },
+  "muteTooltip": "Stummschalten",
+  "unmuteTooltip": "Stummschaltung aufheben",
+  "statusSending": "Wird gesendet...",
+  "statusSent": "Gesendet",
+  "statusAcknowledged": "Bestätigt",
+  "statusFailed": "Fehlgeschlagen",
+  "statusDistributed": "Verteilt"
 }

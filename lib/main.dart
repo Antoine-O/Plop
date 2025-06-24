@@ -38,8 +38,7 @@ class MyHttpOverrides extends HttpOverrides {
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 
-@pragma('vm:entry-point')
-void onStart(ServiceInstance service)async {
+Future<void> initializationHive() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
   if (!Hive.isAdapterRegistered(ContactAdapter().typeId)) {
@@ -48,6 +47,16 @@ void onStart(ServiceInstance service)async {
   if (!Hive.isAdapterRegistered(MessageModelAdapter().typeId)) {
     Hive.registerAdapter(MessageModelAdapter());
   }
+  if (!Hive.isAdapterRegistered(MessageStatusAdapter().typeId)) {
+    Hive.registerAdapter(MessageStatusAdapter());
+  }
+}
+
+@pragma('vm:entry-point')
+void onStart(ServiceInstance service) async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await initializationHive();
+
   debugPrint("[Background Service] Démarré et initialisé.");
 
   final WebSocketService webSocketService = WebSocketService();
@@ -55,16 +64,16 @@ void onStart(ServiceInstance service)async {
 
 // Maintenant, les données sont disponibles dans cette instance de userService
   if (userService.hasUser()) {
-    debugPrint("[Background Service] Utilisateur trouvé (${userService.userId}). Connexion WebSocket...");
+    debugPrint(
+        "[Background Service] Utilisateur trouvé (${userService.userId}). Connexion WebSocket...");
 
     // On appelle la méthode connect du WebSocketService
     // La méthode ensureConnected est mieux car elle contient la logique de vérification
     webSocketService.ensureConnected();
-
   } else {
-    debugPrint("[Background Service] Aucun utilisateur trouvé, pas de connexion WebSocket.");
+    debugPrint(
+        "[Background Service] Aucun utilisateur trouvé, pas de connexion WebSocket.");
   }
-
 }
 
 void connectToApi() async {
@@ -152,13 +161,14 @@ class _AppLoaderState extends State<AppLoader> {
     WidgetsFlutterBinding.ensureInitialized();
 
     // Initialisation des packages
-    await Hive.initFlutter();
+    await initializationHive();
     await initializeDateFormatting(
         'fr_FR', null); // Initialisation de la localisation
 
     // Enregistrement des adaptateurs Hive
-    Hive.registerAdapter(ContactAdapter());
-    Hive.registerAdapter(MessageModelAdapter());
+    // Hive.registerAdapter(ContactAdapter());
+    // Hive.registerAdapter(MessageModelAdapter());
+    // Hive.registerAdapter(MessageStatusAdapter());
 
     // Initialisation des services
     await DatabaseService().init();
@@ -283,7 +293,6 @@ void handleNotificationPayload(String payload) {
 
 /// Gère la navigation quand une notification est cliquée.
 void handleNotificationTap(RemoteMessage message) {
-
   WidgetsFlutterBinding.ensureInitialized();
 
   debugPrint(

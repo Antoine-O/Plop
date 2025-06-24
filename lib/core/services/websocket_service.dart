@@ -35,8 +35,7 @@ class WebSocketService {
   int _reconnectAttempts = 0;
 
   void _handleDisconnect() {
-    debugPrint(
-        '[WebSocket] WebSocket déconnecté...');
+    debugPrint('[WebSocket] WebSocket déconnecté...');
     _pingTimer?.cancel();
 
     if (_reconnectAttempts < 60) {
@@ -119,6 +118,9 @@ class WebSocketService {
       case 'plop':
         handlePlop(decoded);
         break;
+      case 'message_ack':
+        _handleMessageAck(decoded['payload']);
+        break;
       case 'new_contact':
         _handleNewContact(decoded['payload']);
         break;
@@ -135,6 +137,26 @@ class WebSocketService {
     }
   }
 
+  // --- AJOUT : NOUVELLE FONCTION POUR TRAITER L'ACK ---
+  void _handleMessageAck(Map<String, dynamic> payload) {
+    final String? recipientId = payload['recipientId'];
+    if (recipientId == null) return;
+
+    debugPrint('[WebSocket] Accusé de réception reçu pour le message envoyé à $recipientId');
+
+    final db = DatabaseService();
+    final contact = db.getContact(recipientId);
+
+    if (contact != null) {
+      // On met à jour le statut du dernier message envoyé à ce contact
+      contact.lastMessageSentStatus = MessageStatus.acknowledged;
+      contact.save(); // Sauvegarde la modification dans la base de données
+
+      // On notifie l'interface utilisateur qu'une mise à jour est nécessaire pour ce contact
+      _messageUpdateController.add({'userId': recipientId});
+    }
+  }
+
   void _handleNewContact(Map<String, dynamic> payload) async {
     final newContact = Contact(
       userId: payload['userId']!,
@@ -142,7 +164,7 @@ class WebSocketService {
       alias: payload['pseudo']!,
       colorValue: Colors
           .primaries[payload['pseudo']!.hashCode % Colors.primaries.length]
-          .value,
+          .toARGB32(),
     );
     await DatabaseService().addContact(newContact);
     _messageUpdateController.add({'userId': 'new_contact_added'});
@@ -244,6 +266,7 @@ class WebSocketService {
       dynamic payload,
       String? to,
       bool isDefault = false}) {
+    ensureConnected();
     if (_channel != null) {
       final message = {
         'type': type,
@@ -251,7 +274,25 @@ class WebSocketService {
         'payload': payload,
         'isDefault': isDefault,
       };
-      _channel!.sink.add(jsonEncode(message));
+
+      // final db = DatabaseService();
+      // final contact = db.getContact(to!);
+      // contact?.lastMessageSentStatus = MessageStatus.sending;
+      // contact?.lastMessageSentTimestamp = DateTime.now();
+      // db.updateContact(contact!);
+
+      try {
+        // On essaye d'envoyer le message.
+        _channel!.sink.add(jsonEncode(message));
+      } catch (e) {
+        // Si une erreur se produit (ex: le canal vient de se fermer), on la propage.
+        debugPrint("[WebSocket] Erreur d'envoi du message: $e");
+        throw Exception("Erreur d'envoi: $e");
+      }
+
+      // contact.lastMessageSentStatus = MessageStatus.sent;
+      // contact.lastMessageSentTimestamp = DateTime.now();
+      // db.updateContact(contact);
     }
   }
 
@@ -319,12 +360,15 @@ class WebSocketService {
 
   void ensureConnected() {
     if (_channel == null || _channel!.closeCode != null) {
-      debugPrint("[WebSocket] La connexion est coupée. Tentative de rétablissement...");
-      _reconnectAttempts = 0; // Réinitialise les tentatives pour une reconnexion manuelle
+      debugPrint(
+          "[WebSocket] La connexion est coupée. Tentative de rétablissement...");
+      _reconnectAttempts =
+          0; // Réinitialise les tentatives pour une reconnexion manuelle
       if (_currentUserId != null && _currentUserPseudo != null) {
         connect(_currentUserId!, _currentUserPseudo!);
       } else {
-        debugPrint("[WebSocket] Impossible de se reconnecter : informations utilisateur manquantes.");
+        debugPrint(
+            "[WebSocket] Impossible de se reconnecter : informations utilisateur manquantes.");
       }
     } else {
       debugPrint("[WebSocket] La connexion est déjà active.");

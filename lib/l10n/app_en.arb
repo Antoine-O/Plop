@@ -22,7 +22,6 @@
   "addNewQuickMessage": "New quick message",
   "yourMessages": "Your messages ({count}/10)",
   "noMessagesConfigured": "No messages configured.",
-  "delete": "Delete",
   "resetApp": "Reset Application",
   "inviteContact": "Invite a contact",
   "addByCode": "Add via code",
@@ -210,5 +209,11 @@
   "contactDeletedSuccessfully": "Contact deleted successfully",
   "@contactDeletedSuccessfully": {
     "description": "Snackbar message shown after a contact has been successfully deleted"
-  }
+  },   "muteTooltip": "Mute",
+  "unmuteTooltip": "Unmute",
+  "statusSending": "Sending...",
+  "statusSent": "Sent",
+  "statusAcknowledged": "Delivered",
+  "statusFailed": "Failed",
+  "statusDistributed": "Distributed"
 }
