@@ -47,3 +47,4 @@ lib/firebase_options.dart
 **/ios/Flutter/ephemeral
 **/linux/flutter/ephemeral/
 .idea/caches/**
+Plop.iml
