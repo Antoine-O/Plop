@@ -86,11 +86,16 @@ class _ContactTileState extends State<ContactTile>
 
   // This function now correctly updates state to show sent messages
   void _sendDefaultMessage() async {
-    if (_inCooldown) return;
     final String defaultMessage = AppConfig.getDefaultPlopMessage(context);
+    _sendCustomMessage(defaultMessage);
+  }
+
+  void _sendCustomMessage(String message) async {
+    if (_inCooldown) return;
+
 
     setState(() {
-      _contact.lastMessageSent = defaultMessage;
+      _contact.lastMessageSent = message;
       _contact.lastMessageSentStatus = MessageStatus.sending;
       _contact.lastMessageSentTimestamp = DateTime.now();
       _contact.lastMessageSentError = null; // Réinitialise l'erreur précédente
@@ -101,7 +106,7 @@ class _ContactTileState extends State<ContactTile>
       _webSocketService.sendMessage(
           type: 'plop',
           to: _contact.userId,
-          payload: defaultMessage,
+          payload: message,
           isDefault: true);
 
       _startCooldown();
@@ -146,10 +151,8 @@ class _ContactTileState extends State<ContactTile>
             return ListTile(
               title: Text(message.text),
               onTap: () {
-                _webSocketService.sendMessage(
-                    type: 'plop', to: _contact.userId, payload: message.text);
+                _sendCustomMessage(message.text);
                 Navigator.pop(context);
-                _startCooldown();
               },
             );
           },
@@ -173,15 +176,16 @@ class _ContactTileState extends State<ContactTile>
     return DateFormat.Hm(locale).format(timestamp);
   }
 
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!; // Get the localization instance
     final bool hasCustomAlias =
         _contact.alias.isNotEmpty && _contact.alias != _contact.originalPseudo;
     final String primaryName =
-        hasCustomAlias ? _contact.alias : _contact.originalPseudo;
+    hasCustomAlias ? _contact.alias : _contact.originalPseudo;
     final String? secondaryName =
-        hasCustomAlias ? _contact.originalPseudo : null;
+    hasCustomAlias ? _contact.originalPseudo : null;
 
     return AbsorbPointer(
       absorbing: _inCooldown,
@@ -196,92 +200,99 @@ class _ContactTileState extends State<ContactTile>
             child: InkWell(
               onTap: _sendDefaultMessage,
               onLongPress: _handleLongPress,
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+              child: Stack(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(8.0, 6.0, 8.0, 6.0),
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Stack(
-                          alignment: Alignment.topCenter,
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            CircleAvatar(
-                              backgroundColor: Colors.white70,
-                              child: Text(primaryName.isNotEmpty
-                                  ? primaryName[0].toUpperCase()
-                                  : '?'),
-                            ),
-                            if (_inCooldown)
-                              AnimatedBuilder(
-                                animation: _cooldownProgressController,
-                                builder: (context, child) => Positioned.fill(
-                                  child: CircularProgressIndicator(
-                                    value: _cooldownProgressController.value,
-                                    strokeWidth: 2.0,
-                                    color: Colors.white.withAlpha(200),
+                            Stack(
+                              alignment: Alignment.topCenter,
+                              children: [
+                                CircleAvatar(
+                                  backgroundColor: Colors.white70,
+                                  child: Text(primaryName.isNotEmpty
+                                      ? primaryName[0].toUpperCase()
+                                      : '?'),
+                                ),
+                                if (_inCooldown)
+                                  AnimatedBuilder(
+                                    animation: _cooldownProgressController,
+                                    builder: (context, child) => Positioned.fill(
+                                      child: CircularProgressIndicator(
+                                        value: _cooldownProgressController.value,
+                                        strokeWidth: 2.0,
+                                        color: Colors.white.withAlpha(200),
+                                      ),
+                                    ),
                                   ),
+                              ],
+                            ),
+                            const SizedBox(width: 8.0),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.only(right: 32.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(primaryName,
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16)),
+                                    if (secondaryName != null)
+                                      Text(
+                                        "($secondaryName)",
+                                        style: TextStyle(
+                                            color: Colors.grey.shade900,
+                                            fontSize: 12),
+                                      ),
+                                  ],
                                 ),
                               ),
+                            ),
                           ],
                         ),
-                        const SizedBox(width: 8.0),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(primaryName,
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16)),
-                              if (secondaryName != null)
-                                Text(
-                                  "($secondaryName)",
-                                  style: TextStyle(
-                                      color: Colors.grey.shade900,
-                                      fontSize: 12),
-                                ),
-                            ],
+                        if (_contact.lastMessageSent != null ||
+                            _contact.lastMessage != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4.0),
+                            child: Row(
+                              children: [
+                                if (_contact.lastMessageSent != null)
+                                  _buildMessageSentBubble(context),
+                                const Spacer(),
+                                if (_contact.lastMessage != null)
+                                  _buildMessageBubble(context),
+                              ],
+                            ),
                           ),
-                        ),
-                        Align(
-                          alignment: Alignment.topRight,
-                          child: IconButton(
-                            icon: Icon(
-                                _isMuted ? Icons.volume_off : Icons.volume_up,
-                                size: 20,
-                                color: _isMuted
-                                    ? Colors.red
-                                    : Colors.grey.shade900),
-                            onPressed: _toggleMute,
-                            // Using keys from .arb files
-                            tooltip: _isMuted
-                                ? l10n.unmuteTooltip
-                                : l10n.muteTooltip,
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                          ),
-                        ),
                       ],
                     ),
-                    if (_contact.lastMessageSent != null ||
-                        _contact.lastMessage != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8.0),
-                        child: Row(
-                          children: [
-                            if (_contact.lastMessageSent != null)
-                              _buildMessageSentBubble(context),
-                            const Spacer(),
-                            if (_contact.lastMessage != null)
-                              _buildMessageBubble(context),
-                          ],
-                        ),
-                      ),
-                  ],
-                ),
+                  ),
+                  Positioned(
+                    top: 0,
+                    right:0,
+                    child: IconButton(
+                      icon: Icon(
+                          _isMuted ? Icons.volume_off : Icons.volume_up,
+                          size: 20,
+                          color: _isMuted
+                              ? Colors.red
+                              : Colors.grey.shade900),
+                      onPressed: _toggleMute,
+                      tooltip: _isMuted
+                          ? l10n.unmuteTooltip
+                          : l10n.muteTooltip,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -290,26 +301,24 @@ class _ContactTileState extends State<ContactTile>
     );
   }
 
+
   Widget _buildMessageBubble(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
         color: Colors.white70,
         borderRadius: const BorderRadius.all(Radius.circular(12)),
       ),
-      child: Row(
+      child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.baseline,
-        textBaseline: TextBaseline.alphabetic,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Flexible(
-            child: Text(
-              _contact.lastMessage!,
-              style: const TextStyle(color: Colors.black87),
-              overflow: TextOverflow.ellipsis,
-            ),
+          Text(
+            _contact.lastMessage!,
+            style: const TextStyle(color: Colors.black87),
+            overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(width: 8),
+          // const SizedBox(height: 4),
           Text(
             _formatTimestamp(_contact.lastMessageTimestamp),
             style: TextStyle(color: Colors.grey.shade700, fontSize: 11),
@@ -321,26 +330,23 @@ class _ContactTileState extends State<ContactTile>
 
   Widget _buildMessageSentBubble(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: Colors.lightGreen.shade100,
         borderRadius: const BorderRadius.all(Radius.circular(12)),
       ),
-      child: Row(
+      child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.baseline,
-        textBaseline: TextBaseline.alphabetic,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text(
+            _contact.lastMessageSent!,
+            style: const TextStyle(color: Colors.black87),
+            overflow: TextOverflow.ellipsis,
+          ),
+
           if (_contact.lastMessageSentStatus != null)
             _buildStatusIndicator(context, _contact.lastMessageSentStatus!),
-          const SizedBox(width: 8),
-          Flexible(
-            child: Text(
-              _contact.lastMessageSent!,
-              style: const TextStyle(color: Colors.black87),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
         ],
       ),
     );
