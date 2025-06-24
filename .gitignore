@@ -38,3 +38,12 @@ bin/
 /android/app/google-services.json
 lib/firebase_options.dart
 /tmp/
+
+
+
+**/Flutter/ephemeral/
+**/macos/Flutter/ephemeral
+**/windows/flutter/ephemeral/
+**/ios/Flutter/ephemeral
+**/linux/flutter/ephemeral/
+.idea/caches
