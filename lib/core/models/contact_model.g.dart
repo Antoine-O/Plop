@@ -105,6 +105,8 @@ class MessageStatusAdapter extends TypeAdapter<MessageStatus> {
         return MessageStatus.acknowledged;
       case 4:
         return MessageStatus.failed;
+      case 5:
+        return MessageStatus.unknown;
       default:
         return MessageStatus.sending;
     }
@@ -127,6 +129,9 @@ class MessageStatusAdapter extends TypeAdapter<MessageStatus> {
         break;
       case MessageStatus.failed:
         writer.writeByte(4);
+        break;
+      case MessageStatus.unknown:
+        writer.writeByte(5);
         break;
     }
   }

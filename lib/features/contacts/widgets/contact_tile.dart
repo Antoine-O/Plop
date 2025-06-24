@@ -385,9 +385,15 @@ class _ContactTileState extends State<ContactTile>
         text = l10n.statusFailed;
         color = Colors.red.shade600;
         break;
+      case MessageStatus.unknown:
+        icon = Icons.pending;
+        color = Colors.grey.shade600;
+        text = l10n.statusPending;
+        break;
     }
 
     // Le widget de base (icône + timestamp)
+
     statusWidget = Row(
       mainAxisSize: MainAxisSize.min,
       children: [

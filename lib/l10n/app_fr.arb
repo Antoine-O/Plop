@@ -215,5 +215,6 @@
   "statusSent": "Envoyé",
   "statusAcknowledged": "Lu",
   "statusDistributed": "Distribué",
-  "statusFailed": "Échec"
+  "statusFailed": "Échec",
+  "statusPending":"En attente"
 }

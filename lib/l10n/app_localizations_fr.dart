@@ -460,4 +460,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get statusDistributed => 'Distribué';
+
+  @override
+  String get statusPending => 'En attente';
 }

@@ -5,7 +5,6 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:plop/core/models/contact_model.dart';
 import 'package:plop/core/models/message_model.dart';
@@ -103,14 +102,18 @@ class BackupService {
         DatabaseService databaseService = DatabaseService();
         if (backupData.containsKey('contacts') &&
             backupData['contacts'] is List) {
-          final List<Contact> contactsList = backupData['contacts']
+          List contactsListRaw = backupData['contacts'] as List;
+          final List<Contact> contactsList = contactsListRaw
               .map((contactJson) =>
                   Contact.fromJson(contactJson as Map<String, dynamic>))
               .toList();
           databaseService.replaceAllContacts(contactsList);
           if (backupData.containsKey('contactsOrder') &&
-              backupData['contactsOrder'] is List<String>) {
-            databaseService.setContactOrder(backupData['contactsOrder']);
+              backupData['contactsOrder'] is List) {
+            List contactsOrderListRaw = backupData['contactsOrder'] as List;
+            final List<String> contactsList =
+                contactsOrderListRaw.cast<String>().toList();
+            databaseService.setContactOrder(contactsList);
           }
         } else {
           databaseService.clearContacts();
@@ -118,7 +121,8 @@ class BackupService {
 
         if (backupData.containsKey('messages') &&
             backupData['messages'] is List) {
-          final List<MessageModel> messagesList = backupData['messages']
+          List messagesListRaw = backupData['messages'] as List;
+          final List<MessageModel> messagesList = messagesListRaw
               .map((messageJson) =>
                   MessageModel.fromJson(messageJson as Map<String, dynamic>))
               .toList();

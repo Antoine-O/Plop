@@ -214,5 +214,6 @@
   "statusSent": "Inviato",
   "statusAcknowledged": "Ricevuto",
   "statusFailed": "Fallito",
-  "statusDistributed": "Distribuito"
+  "statusDistributed": "Distribuito",
+  "statusPending":"In attesa"
 }

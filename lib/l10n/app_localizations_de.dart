@@ -462,4 +462,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get statusDistributed => 'Verteilt';
+
+  @override
+  String get statusPending => 'Ausstehend';
 }

@@ -937,6 +937,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Distributed'**
   String get statusDistributed;
+
+  /// No description provided for @statusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pendiente'**
+  String get statusPending;
 }
 
 class _AppLocalizationsDelegate

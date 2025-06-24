@@ -15,7 +15,20 @@ enum MessageStatus {
   acknowledged,
 
   @HiveField(4)
-  failed
+  failed,
+
+  @HiveField(5)
+  unknown;
+
+  String toJson() => name; // 'name' donne la représentation String de l'enum (ex: "sent")
+
+  // Méthode (factory constructor) pour créer l'enum depuis une String (utile pour la désérialisation)
+  static MessageStatus fromJson(String jsonValue) {
+    return MessageStatus.values.firstWhere(
+          (status) => status.name == jsonValue,
+      orElse: () => MessageStatus.unknown, // Valeur par défaut si inconnue
+    );
+  }
 }
 @HiveType(typeId: 0)
 class Contact extends HiveObject {
@@ -98,7 +111,7 @@ class Contact extends HiveObject {
           : null,
       lastMessageSent: json['lastMessageSent'],
       lastMessageSentDefault: json['lastMessageSentDefault'],
-      lastMessageSentStatus: json['lastMessageSentStatus'],
+      lastMessageSentStatus: json['lastMessageSentStatus']!=null ? MessageStatus.fromJson(json['lastMessageSentStatus']) : null,
       lastMessageSentError: json['lastMessageSentError'],
     );
   }
@@ -120,7 +133,7 @@ class Contact extends HiveObject {
       'lastMessageSentTimestamp': lastMessageTimestamp?.toIso8601String(),
       'lastMessageSent': lastMessageSent,
       'lastMessageSentDefault': lastMessageSentDefault,
-      'lastMessageSentStatus': lastMessageSentStatus,
+      'lastMessageSentStatus': lastMessageSentStatus?.toJson(),
       'lastMessageSentError': lastMessageSentError,
     };
   }

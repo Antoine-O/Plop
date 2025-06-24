@@ -215,5 +215,6 @@
   "statusSent": "Sent",
   "statusAcknowledged": "Delivered",
   "statusFailed": "Failed",
-  "statusDistributed": "Distributed"
+  "statusDistributed": "Distributed",
+  "statusPending":"Pendiente"
 }
