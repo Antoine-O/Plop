@@ -51,6 +51,63 @@ Plop est conçu pour plusieurs scénarios :
 
 Soutenir le développement : <https://buymeacoffee.com/antoineo>
 
+
+```mermaid
+
+graph TD
+    A[Utilisateur Lance l'App] --> B{Compte Existant?};
+    B -- Non --> C[Génération Locale Compte/Clé Secrète];
+    C --> D[Affichage Clé Secrète];
+    D --> E[Interface Principale];
+    B -- Oui --> E;
+
+    subgraph "Gestion de Compte"
+        direction LR
+        U1[Utilisateur] -->|Modifie Profil| P[Profil Service];
+        P -->|Stocke Pseudo| DB_User[Base de Données Utilisateurs];
+    end
+
+    subgraph "Système d'Invitations"
+        direction LR
+        U_Inviteur[Utilisateur A] -->|Génère Code| InvSrv[Service d'Invitation];
+        InvSrv -->|Stocke Code /temporaire/| DB_Inv[Base de Données Invitations];
+        InvSrv -->|Affiche Code| U_Inviteur;
+        U_Invité[Utilisateur B] -->|Utilise Code| InvSrv;
+        InvSrv -->|Valide Code, Crée Contact Mutuel| ContactSrv[Service de Contacts];
+        ContactSrv -->|Stocke Contacts| DB_Contacts[Base de Données Contacts];
+        ContactSrv -->|Notifie Utilisateurs| U_Inviteur;
+        ContactSrv --> U_Invité;
+    end
+
+    subgraph "Communication"
+        direction LR
+        Sender[Utilisateur A] -->|Envoie 'Plop'| MsgSrv[Service de Messagerie];
+        MsgSrv -->|Récupère Contact| DB_Contacts;
+        MsgSrv -->|Transmet Message /via API Backend/| BackendAPI[API Backend];
+        BackendAPI -->|Notifie /Push/WebSocket/| Receiver[Utilisateur B App];
+        Receiver -->|Affiche 'Plop'| U_Receiver[Utilisateur B];
+        Sender -->|Appui Long: Choisit Message| CustomMsg[Liste Messages Personnalisés];
+        CustomMsg --> MsgSrv;
+    end
+
+    E --> F{Action?};
+    F -- Générer Invitation --> U_Inviteur;
+    F -- Utiliser Invitation --> U_Invité;
+    F -- Envoyer Plop --> Sender;
+    F -- Gérer Profil --> U1;
+
+    classDef default fill:#f9f9f9,stroke:#333,stroke-width:2px;
+    classDef user fill:#lightgrey,stroke:#333;
+    classDef service fill:#lightblue,stroke:#333;
+    classDef db fill:#lightgreen,stroke:#333;
+    classDef api fill:#orange,stroke:#333;
+
+    class A,B,C,D,E,F,U_Inviteur,U_Invité,Sender,U_Receiver,U1,CustomMsg,Receiver default;
+    class P,InvSrv,ContactSrv,MsgSrv service;
+    class DB_User,DB_Inv,DB_Contacts db;
+    class BackendAPI api;
+```
+
 --------
 
 # **Plop - Minimalist Communication App**
