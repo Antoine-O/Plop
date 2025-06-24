@@ -46,4 +46,4 @@ lib/firebase_options.dart
 **/windows/flutter/ephemeral/
 **/ios/Flutter/ephemeral
 **/linux/flutter/ephemeral/
-.idea/caches
+.idea/caches/**
