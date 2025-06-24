@@ -365,6 +365,7 @@ class WebSocketService {
       _reconnectAttempts =
           0; // Réinitialise les tentatives pour une reconnexion manuelle
       if (_currentUserId != null && _currentUserPseudo != null) {
+        _channel = null;
         connect(_currentUserId!, _currentUserPseudo!);
       } else {
         debugPrint(
