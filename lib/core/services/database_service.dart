@@ -49,10 +49,10 @@ class DatabaseService {
     // Assurer la cohérence entre la liste d'ordre et les contacts existants
     final contactMap = {for (var c in allContacts) c.userId: c};
     final consistentOrder =
-    order.where((id) => contactMap.containsKey(id)).toList();
+        order.where((id) => contactMap.containsKey(id)).toList();
 
     final orderedContacts =
-    consistentOrder.map((id) => contactMap[id]!).toList();
+        consistentOrder.map((id) => contactMap[id]!).toList();
 
     // Ajouter les contacts qui n'étaient pas dans la liste d'ordre (nouveaux ajouts)
     for (var contact in allContacts) {
@@ -177,7 +177,8 @@ class DatabaseService {
     }
 
     // 2. Récupérer le contact correspondant depuis la base de données
-    final Contact? contact = getContact(userId); // ou la méthode que vous utilisez pour trouver un contact
+    final Contact? contact = getContact(
+        userId); // ou la méthode que vous utilisez pour trouver un contact
 
     if (contact!.isMuted == false) {
       bool? hasVibrator = await Vibration.hasVibrator();
@@ -187,7 +188,8 @@ class DatabaseService {
     }
     // 3. Si le contact existe, le mettre à jour
     contact.lastMessage = messageText;
-    contact.lastMessageTimestamp = DateTime.now(); // Utiliser l'heure de réception
+    contact.lastMessageTimestamp =
+        DateTime.now(); // Utiliser l'heure de réception
 
     // Optionnel : si le serveur envoie un timestamp, vous pouvez le parser et l'utiliser
     // if (update.containsKey('timestamp')) {
@@ -197,6 +199,22 @@ class DatabaseService {
     // 4. Sauvegarder les modifications du contact dans la base de données
     await contact.save(); // En supposant que votre modèle a une méthode save()
 
-    debugPrint("Message reçu pour l'utilisateur : $userId");debugPrint("Contact ${contact.userId} mis à jour avec le nouveau message.");
-    }
+    debugPrint("Message reçu pour l'utilisateur : $userId");
+    debugPrint("Contact ${contact.userId} mis à jour avec le nouveau message.");
+  }
+
+  void clearContacts() async {
+    contactsBox.clear();
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setStringList(_contactOrderKey, []);
+  }
+
+  void setContactOrder(List<String> order) async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setStringList(_contactOrderKey, order);
+  }
+
+  void clearMessages() async {
+    messagesBox.clear();
+  }
 }

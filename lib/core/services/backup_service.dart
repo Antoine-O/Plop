@@ -49,7 +49,8 @@ class BackupService {
       if (saveToUserSelectedLocation) {
         final Uint8List fileBytes = utf8.encode(jsonString);
         await FilePicker.platform.saveFile(
-          dialogTitle: 'Veuillez sélectionner un emplacement pour enregistrer votre configuration :',
+          dialogTitle:
+              'Veuillez sélectionner un emplacement pour enregistrer votre configuration :',
           fileName: _backupFileName,
           bytes: fileBytes,
         );
@@ -64,6 +65,7 @@ class BackupService {
       return "Erreur lors de la sauvegarde : ${e.toString()}";
     }
   }
+
   Future<String?> restoreFromBackup() async {
     try {
       // 1. Ouvrir le sélecteur de fichiers pour que l'utilisateur choisisse le backup
@@ -88,14 +90,31 @@ class BackupService {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('userId', backupData['userId']!);
 
-        if (backupData.containsKey('username') && backupData['username'] != null) {
+        if (backupData.containsKey('username') &&
+            backupData['username'] != null) {
           await prefs.setString('username', backupData['username']!);
         } else {
           await prefs.setString('username', 'Utilisateur restauré');
         }
 
-        // NOTE: Ici, on pourrait ajouter la restauration des contacts/messages
-        // en appelant d'autres services (ex: DatabaseService).
+        DatabaseService databaseService = DatabaseService();
+        if (backupData.containsKey('contacts') &&
+            backupData['contacts'] is List) {
+          databaseService.replaceAllContacts(backupData['contacts']);
+          if (backupData.containsKey('contactsOrder') &&
+              backupData['contactsOrder'] is List<String>) {
+            databaseService.setContactOrder(backupData['contactsOrder']);
+          }
+        } else {
+          databaseService.clearContacts();
+        }
+
+        if (backupData.containsKey('messages') &&
+            backupData['messages'] is List) {
+          databaseService.replaceAllMessages(backupData['messages']);
+        } else {
+          databaseService.clearMessages();
+        }
 
         // Succès ! On renvoie null.
         return null;
