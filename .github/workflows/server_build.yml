@@ -56,18 +56,17 @@ jobs:
 
       # Build the Docker image
       - name: Build the Docker image
-        run: docker compose  -f docker-compose-web.yml build
+        run: docker compose  -f docker-compose-server.yml build
 
       - name: Create build directory
-        run: mkdir -p build/web
+        run: mkdir -p build/service
 
-      - name: Extract WEB from Docker image
+      - name: Extract Server from Docker image
         run: |
-          docker create --name extractor_site registry.profluens.com/plop_site:latest
-          docker cp extractor_site:/usr/share/nginx/html ./build/web
-          docker rm extractor_site
-          tar czf ./build/web/site.tar.gz ./build/web/html
-          rm -rf ./build/web/html
+          docker create --name extractor_service registry.profluens.com/plop_service:latest
+          docker cp extractor_service:/root/server_binary ./build/service/server_binary
+          docker rm extractor_service
+           
 
       - name: Login to registry
         run: echo $DOCKER_PASSWORD | docker login https://$DOCKER_REGISTRY_URL/v2/ -u $DOCKER_USERNAME --password-stdin
@@ -83,19 +82,19 @@ jobs:
 
       # Push the images to the registry
       - name: Push the Docker image with version number
-        run: docker compose  -f docker-compose-web.yml push
+        run: docker compose  -f docker-compose-server.yml push
         continue-on-error: true
 
       - name: Push the Docker image with version number
-        run: docker compose  -f docker-compose-web.yml push
+        run: docker compose  -f docker-compose-server.yml push
         continue-on-error: true
 
       - name: Push the Docker image with version number
-        run: docker compose -f docker-compose-web.yml push
+        run: docker compose -f docker-compose-server.yml push
         continue-on-error: true
 
       # Remove the local images
       - name: Remove the Docker image with version number
-        run: docker compose -f docker-compose-web.yml down --rmi all
+        run: docker compose -f docker-compose-server.yml down --rmi all
 
 

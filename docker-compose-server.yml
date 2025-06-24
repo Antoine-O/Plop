@@ -1,0 +1,16 @@
+services:
+  service:
+    image: registry.profluens.com/plop_service
+    build:
+      dockerfile: Dockerfile
+      context: server
+      args:
+        PRODUCTION: "true"
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: 20m
+        max-file: '10'
+    ports:
+      - "8080:8080"
