@@ -3,9 +3,11 @@ import 'dart:convert'; // Pour jsonEncode
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:plop/core/services/database_service.dart';
 import 'package:plop/core/services/user_service.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:plop/core/config/app_config.dart';
+import 'package:plop/core/services/websocket_service.dart';
 import 'package:plop/main.dart';
 
 class NotificationService {
@@ -169,7 +171,23 @@ Future<void> sendFcmTokenToServer() async {
     debugPrint("Erreur réseau lors de l'envoi du token FCM : $e");
   }
 }
+Future<void> initializeWebSocket() async {
+// Initialisation des services
+  final webSocketService = WebSocketService();
+  final databaseService = DatabaseService();
 
+  // Lancer l'écouteur UNE SEULE FOIS pour toute l'application
+  webSocketService.messageUpdates.listen((update) {
+    debugPrint("Message reçu pour l'utilisateur : ${update['userId']}");
+
+    // Logique centrale : sauvegarder le message dans la base de données
+    databaseService.handleIncomingMessage(update);
+
+    // Ensuite, un gestionnaire d'état (ex: Provider, BLoC) notifierait
+    // les widgets concernés qu'une mise à jour est disponible.
+  });
+
+}
 Future<void> initializeNotificationPlugin() async {
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();

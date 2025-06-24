@@ -1,7 +1,10 @@
+import 'package:flutter/cupertino.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/contact_model.dart';
 import '../models/message_model.dart';
+
+import 'package:vibration/vibration.dart';
 
 class DatabaseService {
   DatabaseService._privateConstructor();
@@ -156,4 +159,44 @@ class DatabaseService {
     }
     return hasChanged;
   }
+
+  /// Gère un message entrant depuis le WebSocket, met à jour le contact
+  /// et sauvegarde les changements en base de données.
+  ///
+  /// [update] est une Map contenant les données du message,
+  /// par exemple : {'userId': 'some_id', 'payload': 'Hello!', 'timestamp': '2025-06-24T13:15:00Z'}
+  Future<void> handleIncomingMessage(Map<String, dynamic> update) async {
+    // 1. Extraire les informations pertinentes du message reçu
+    final String? userId = update['userId'];
+    final String? messageText = update['payload'];
+
+    // Si les informations essentielles manquent, on ne fait rien.
+    if (userId == null || messageText == null) {
+      debugPrint("Erreur: Données de message incomplètes.");
+      return;
+    }
+
+    // 2. Récupérer le contact correspondant depuis la base de données
+    final Contact? contact = getContact(userId); // ou la méthode que vous utilisez pour trouver un contact
+
+    if (contact!.isMuted == false) {
+      bool? hasVibrator = await Vibration.hasVibrator();
+      if (hasVibrator ?? false) {
+        Vibration.vibrate(duration: 200);
+      }
+    }
+    // 3. Si le contact existe, le mettre à jour
+    contact.lastMessage = messageText;
+    contact.lastMessageTimestamp = DateTime.now(); // Utiliser l'heure de réception
+
+    // Optionnel : si le serveur envoie un timestamp, vous pouvez le parser et l'utiliser
+    // if (update.containsKey('timestamp')) {
+    //   contact.lastMessageTimestamp = DateTime.parse(update['timestamp']);
+    // }
+
+    // 4. Sauvegarder les modifications du contact dans la base de données
+    await contact.save(); // En supposant que votre modèle a une méthode save()
+
+    debugPrint("Message reçu pour l'utilisateur : $userId");debugPrint("Contact ${contact.userId} mis à jour avec le nouveau message.");
+    }
 }

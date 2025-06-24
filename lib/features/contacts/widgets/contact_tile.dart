@@ -48,7 +48,7 @@ class _ContactTileState extends State<ContactTile>
     );
 
     // This listener now correctly reloads state to show incoming messages
-    _messageSubscription = _webSocketService.messageUpdates.listen((update) {
+    _messageSubscription = _webSocketService.messageUpdates.listen((update) async{
       if (!mounted) return;
       if (update['userId'] == _contact.userId) {
         final freshContact = _databaseService.getContact(_contact.userId);

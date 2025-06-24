@@ -131,6 +131,7 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   await initializeNotificationPlugin();
+  await initializeWebSocket();
   runApp(
     ChangeNotifierProvider(
       create: (context) => LocaleProvider(),
