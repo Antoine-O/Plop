@@ -56,30 +56,35 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable' # ou 'beta', 'dev'
-
-      # 3. Activation du support pour macOS
-      - name: Enable macOS desktop support
-        run: flutter clean
-
-      - name: Enable macOS desktop support
-        run: flutter create --platforms=macos .
-
-
-      # 3. Activation du support pour macOS
-      - name: Enable macOS desktop support
-        run: flutter config --enable-macos-desktop
-
-      # 4. Téléchargement des dépendances du projet
+      # 3. (CORRECTION) Forcer la recréation des fichiers de la plateforme macOS
+      - name: Recreate macOS platform files
+        run: |
+          # Supprime le dossier macos potentiellement corrompu
+          mv macos/Podfile .
+          rm -rf macos
+          # Demande à Flutter de le recréer proprement à partir du code source
+          flutter create --platforms=macos .
+          cat Podfile macos/Podfile
+          mv Podfile macos/Podfile
+        shell: bash
+      # 3. Installation des dépendances (UNE SEULE FOIS)
+      # Cette étape génère tous les fichiers nécessaires pour les plateformes natives.
       - name: Get Flutter dependencies
         run: flutter pub get
-
-      # 5. Compilation de l'application pour macOS
-      # Passe les URLs via --dart-define pour la configuration.
+    # 4. (NOUVEAU) Étape de débogage pour lister les fichiers
+      - name: List files for debugging
+        run: ls -laR
+        shell: bash
+      - name: Update macOS Deployment Target in Podfile
+        run: sed -i '' "s/platform :osx, '10.14'/platform :osx, '10.15'/" macos/Podfile
+        shell: bash
+      # 4. Compilation de l'application pour macOS
       - name: Build macOS application
         run: |
           flutter build macos --release \
             --dart-define=BASE_URL=${{ env.BASE_URL }} \
             --dart-define=WEBSOCKET_URL=${{ env.WEBSOCKET_URL }}
+
 
       # 6. Compression de l'application (.app) en une archive .zip
       # Le résultat du build est un dossier .app, nous le compressons pour la distribution.
