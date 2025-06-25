@@ -263,11 +263,11 @@ class _ContactTileState extends State<ContactTile>
                             padding: const EdgeInsets.only(top: 4.0),
                             child: Row(
                               children: [
-                                if (_contact.lastMessageSent != null)
-                                  _buildMessageSentBubble(context),
-                                const Spacer(),
                                 if (_contact.lastMessage != null)
                                   _buildMessageBubble(context),
+                                const Spacer(),
+                                if (_contact.lastMessageSent != null)
+                                  _buildMessageSentBubble(context),
                               ],
                             ),
                           ),
