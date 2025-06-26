@@ -37,9 +37,9 @@ ENV ANDROID_SDK_ROOT=/usr/lib/android-sdk
 ENV PATH="$PATH:${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${ANDROID_SDK_ROOT}/platform-tools"
 
 # On télécharge et installe les outils de ligne de commande du SDK Android.
-# La version 11076708 est une version récente (début 2024).
+# La version 13114758 est une version récente (début 2024).
 RUN mkdir -p ${ANDROID_SDK_ROOT}/cmdline-tools && \
-    wget -q -O cmdline-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip && \
+    wget -q -O cmdline-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-13114758_latest.zip && \
     unzip -q cmdline-tools.zip -d ${ANDROID_SDK_ROOT}/cmdline-tools && \
     mv ${ANDROID_SDK_ROOT}/cmdline-tools/cmdline-tools ${ANDROID_SDK_ROOT}/cmdline-tools/latest && \
     rm cmdline-tools.zip
