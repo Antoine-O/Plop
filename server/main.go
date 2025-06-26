@@ -34,6 +34,7 @@ type Message struct {
 	From       string      `json:"from,omitempty"`
 	Payload    interface{} `json:"payload"`
 	IsDefault  bool        `json:"isDefault,omitempty"`
+	IsPending  bool        `json:"isPending,omitempty"`
 	SourceConn *websocket.Conn `json:"-"` // Champ interne pour ne pas renvoyer le message à l'expéditeur
 }
 
@@ -768,6 +769,7 @@ func sendPendingMessages(userID string, conn *websocket.Conn) {
 
     // On envoie chaque message stocké
     for senderID, msg := range messagesForUser {
+        msg.IsPending = true // Pour indiquer que c'est un message en attente
         if err := conn.WriteJSON(msg); err != nil {
             debugLog("Erreur lors de l'envoi du message en attente de %s à %s: %v", senderID, userID, err)
             // Si l'envoi échoue, on arrête et on ne supprime pas les messages pour réessayer plus tard.

@@ -142,7 +142,8 @@ class WebSocketService {
     final String? recipientId = payload['recipientId'];
     if (recipientId == null) return;
 
-    debugPrint('[WebSocket] Accusé de réception reçu pour le message envoyé à $recipientId');
+    debugPrint(
+        '[WebSocket] Accusé de réception reçu pour le message envoyé à $recipientId');
 
     final db = DatabaseService();
     final contact = db.getContact(recipientId);
@@ -340,15 +341,16 @@ class WebSocketService {
     await userService.init();
     bool isMuted = (contact.isMuted ?? false) == true;
     if (!isMuted && !userService.isGlobalMute && !fromExternalNotification) {
-      if (contact.customSoundPath != null &&
-          contact.customSoundPath!.isNotEmpty) {
-        await _audioPlayer.play(DeviceFileSource(contact.customSoundPath!));
-      } else {
-        await _audioPlayer.play(AssetSource('sounds/plop.mp3'));
+      if (!data['IsPending']) {
+        if (contact.customSoundPath != null &&
+            contact.customSoundPath!.isNotEmpty) {
+          await _audioPlayer.play(DeviceFileSource(contact.customSoundPath!));
+        } else {
+          await _audioPlayer.play(AssetSource('sounds/plop.mp3'));
+        }
+        NotificationService().showNotification(
+            title: contact.alias, body: finalMessage, isMuted: isMuted);
       }
-
-      NotificationService().showNotification(
-          title: contact.alias, body: finalMessage, isMuted: isMuted);
     }
 
     _messageUpdateController.add({'userId': fromUserId});
