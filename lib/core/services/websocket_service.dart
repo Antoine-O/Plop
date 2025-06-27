@@ -14,6 +14,7 @@ class WebSocketService {
   WebSocketService._privateConstructor();
 
   final userService = UserService();
+  final notificationService = NotificationService();
   String? _currentUserId; // NOUVEAU
   String? _currentUserPseudo; // NOUVEAU
   final String _baseUrl = AppConfig.websocketUrl;
@@ -318,48 +319,9 @@ class WebSocketService {
     final messageText = data['payload'] as String;
     // On récupère le flag pour savoir si c'est un message par défaut
     final bool isDefaultMessage = (data['isDefault'] == 'true');
+    final bool isPending = (data['IsPending'] == 'true');
 
-    final db = DatabaseService();
-    final contact = db.getContact(fromUserId);
-
-    if (contact == null || (contact.isBlocked ?? false)) return;
-
-    // CORRECTION : La logique utilise maintenant la variable `isDefaultMessage`
-    final bool hasOverride = contact.defaultMessageOverride != null &&
-        contact.defaultMessageOverride!.isNotEmpty;
-    final String finalMessage = (hasOverride && isDefaultMessage)
-        ? contact.defaultMessageOverride!
-        : messageText;
-
-    contact.lastMessage = finalMessage;
-
-    contact.lastMessageTimestamp =
-        data['sendDate']?.toLocal() ?? DateTime.now();
-    await db.updateContact(contact);
-
-    final userService = UserService();
-    await userService.init();
-    bool isMuted = (contact.isMuted ?? false) == true;
-    if (!fromExternalNotification &&
-        (data['IsPending'] == null || !data['IsPending'])) {
-      if (!isMuted && !userService.isGlobalMute) {
-        debugPrint("[handlePlop] sound on");
-        if (contact.customSoundPath != null &&
-            contact.customSoundPath!.isNotEmpty) {
-          await _audioPlayer.play(DeviceFileSource(contact.customSoundPath!));
-        } else {
-          await _audioPlayer.play(AssetSource('sounds/plop.mp3'));
-        }
-        debugPrint("[handlePlop] sound on then mute");
-        isMuted = true;
-      } else {
-        debugPrint("[handlePlop] sound off");
-      }
-      NotificationService().showNotification(
-          title: contact.alias, body: finalMessage, isMuted: isMuted);
-    }
-
-    _messageUpdateController.add({'userId': fromUserId});
+    notificationService.handlePlop(fromUserId:fromUserId,messageText:messageText,isDefaultMessage: isDefaultMessage,isPending:isPending, sentDate:data['sendDate'],fromExternalNotification:false);
   }
 
   Future<void> stopCurrentSound() async {
