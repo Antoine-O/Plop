@@ -343,12 +343,17 @@ class WebSocketService {
     if (!fromExternalNotification &&
         (data['IsPending'] == null || !data['IsPending'])) {
       if (!isMuted && !userService.isGlobalMute) {
+        debugPrint("[handlePlop] sound on");
         if (contact.customSoundPath != null &&
             contact.customSoundPath!.isNotEmpty) {
           await _audioPlayer.play(DeviceFileSource(contact.customSoundPath!));
         } else {
           await _audioPlayer.play(AssetSource('sounds/plop.mp3'));
         }
+        debugPrint("[handlePlop] sound on then mute");
+        isMuted = true;
+      } else {
+        debugPrint("[handlePlop] sound off");
       }
       NotificationService().showNotification(
           title: contact.alias, body: finalMessage, isMuted: isMuted);

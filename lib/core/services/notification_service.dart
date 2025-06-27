@@ -74,6 +74,7 @@ class NotificationService {
       {required String title,
       required String body,
       required bool isMuted}) async {
+    debugPrint("[showNotification] $title $body $isMuted");
     final userService = UserService();
     userService.init();
     final AndroidNotificationDetails androidPlatformChannelSpecifics =
@@ -96,7 +97,7 @@ class NotificationService {
       presentBadge: true, // Mettre à jour le badge de l'icône
       presentSound: true, // Jouer un son
       // subtitle: "plop",   // Affiche un sous-titre sous le titre principal
-      sound: 'plop.aiff', // Pour un son personnalisé
+      sound: userService.isGlobalMute == false && !isMuted ? 'plop.aiff':null, // Pour un son personnalisé
     );
 
     // 3. Détails spécifiques à Linux
@@ -115,12 +116,15 @@ class NotificationService {
       linux: linuxPlatformChannelSpecifics,
     );
 
+
+
+
     await _flutterLocalNotificationsPlugin.show(
       DateTime.now().millisecondsSinceEpoch.remainder(100000),
       title,
       body,
       platformChannelSpecifics,
-      payload: 'item x',
+      // payload: 'item x',
     );
   }
 }
