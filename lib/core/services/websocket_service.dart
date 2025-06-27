@@ -340,12 +340,15 @@ class WebSocketService {
     final userService = UserService();
     await userService.init();
     bool isMuted = (contact.isMuted ?? false) == true;
-    if (!isMuted && !userService.isGlobalMute && !fromExternalNotification && (data['IsPending'] == null || !data['IsPending'])) {
-      if (contact.customSoundPath != null &&
-          contact.customSoundPath!.isNotEmpty) {
-        await _audioPlayer.play(DeviceFileSource(contact.customSoundPath!));
-      } else {
-        await _audioPlayer.play(AssetSource('sounds/plop.mp3'));
+    if (!fromExternalNotification &&
+        (data['IsPending'] == null || !data['IsPending'])) {
+      if (!isMuted && !userService.isGlobalMute) {
+        if (contact.customSoundPath != null &&
+            contact.customSoundPath!.isNotEmpty) {
+          await _audioPlayer.play(DeviceFileSource(contact.customSoundPath!));
+        } else {
+          await _audioPlayer.play(AssetSource('sounds/plop.mp3'));
+        }
       }
       NotificationService().showNotification(
           title: contact.alias, body: finalMessage, isMuted: isMuted);
