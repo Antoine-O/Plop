@@ -155,6 +155,7 @@ func handleUseSyncCode(w http.ResponseWriter, r *http.Request) {
 }
 
 // handleUpdateToken adds or updates an FCM device token for a user.
+// It now saves to the file in a non-blocking way.
 func handleUpdateToken(w http.ResponseWriter, r *http.Request) {
 	log.Println("[HTTP] Received request for /users/update-token")
 	var req struct{ UserID, Token string }
@@ -179,9 +180,13 @@ func handleUpdateToken(w http.ResponseWriter, r *http.Request) {
 
 	if !tokenExists {
 		userDeviceTokens[req.UserID] = append(tokens, req.Token)
-		log.Printf("[INFO] New FCM token added for user %s", req.UserID)
-		userDeviceTokensMutex.Unlock() // Unlock before saving to file to reduce lock time
-		saveUserDeviceTokensToFile()
+		log.Printf("[INFO] New FCM token added for user %s. Responding immediately.", req.UserID)
+		userDeviceTokensMutex.Unlock()
+
+		// Run the slow file save operation in the background.
+		// This allows the HTTP request to return immediately.
+		go saveUserDeviceTokensToFile()
+
 	} else {
 		userDeviceTokensMutex.Unlock()
 		log.Printf("[INFO] Existing FCM token received for user %s", req.UserID)
