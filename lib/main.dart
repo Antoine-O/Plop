@@ -36,7 +36,7 @@ class MyHttpOverrides extends HttpOverrides {
 
 // 1. Initialiser le plugin de notifications locales
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-    FlutterLocalNotificationsPlugin();
+FlutterLocalNotificationsPlugin();
 
 Future<void> initializationHive() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -76,7 +76,8 @@ void onStart(ServiceInstance service) async {
   }
 }
 
-void connectToApi() async {
+
+Future<Object>  connectToApi() async {
   // Récupère l'URL compilée
   final String apiUrl = "${AppConfig.baseUrl}/ping";
   debugPrint(
@@ -85,13 +86,16 @@ void connectToApi() async {
   try {
     final response = await http.get(Uri.parse(apiUrl));
     debugPrint('Réponse reçue: ${response.statusCode}');
+    return response;
   } catch (e) {
     // C'EST LA PARTIE LA PLUS IMPORTANTE !
     debugPrint('ERREUR DE CONNEXION DÉTAILLÉE: $e');
+    return e;
   }
 }
 
-void connectToName() async {
+
+Future<Object>  connectToName() async {
   // Récupère l'URL compilée
   final String apiUrl = "https://www.google.com";
   debugPrint(
@@ -100,13 +104,15 @@ void connectToName() async {
   try {
     final response = await http.get(Uri.parse(apiUrl));
     debugPrint('Réponse reçue: ${response.statusCode}');
+    return response;
   } catch (e) {
     // C'EST LA PARTIE LA PLUS IMPORTANTE !
     debugPrint('ERREUR DE CONNEXION DÉTAILLÉE: $e');
+    return e;
   }
 }
 
-void connectToIp() async {
+Future<Object> connectToIp() async {
   // Récupère l'URL compilée
   final String apiUrl = "https://8.8.8.8";
   debugPrint(
@@ -115,9 +121,11 @@ void connectToIp() async {
   try {
     final response = await http.get(Uri.parse(apiUrl));
     debugPrint('Réponse reçue: ${response.statusCode}');
+    return response;
   } catch (e) {
     // C'EST LA PARTIE LA PLUS IMPORTANTE !
     debugPrint('ERREUR DE CONNEXION DÉTAILLÉE: $e');
+    return e;
   }
 }
 
@@ -154,17 +162,22 @@ class _AppLoaderState extends State<AppLoader> {
   @override
   void initState() {
     super.initState();
+    debugPrint("[AppLoader] initState: Démarrage de l'initialisation des services.");
     _initializationFuture = _initializeServices();
   }
 
   Future<UserService> _initializeServices() async {
+    debugPrint("[AppLoader] _initializeServices: Début de l'initialisation.");
     // Garantit que les bindings Flutter sont prêts
     WidgetsFlutterBinding.ensureInitialized();
+    debugPrint("[AppLoader] _initializeServices: Flutter bindings assurés.");
 
     // Initialisation des packages
     await initializationHive();
+    debugPrint("[AppLoader] _initializeServices: Hive initialisé.");
     await initializeDateFormatting(
         'fr_FR', null); // Initialisation de la localisation
+    debugPrint("[AppLoader] _initializeServices: Formatage des dates initialisé pour fr_FR.");
 
     // Enregistrement des adaptateurs Hive
     // Hive.registerAdapter(ContactAdapter());
@@ -173,27 +186,43 @@ class _AppLoaderState extends State<AppLoader> {
 
     // Initialisation des services
     await DatabaseService().init();
+    debugPrint("[AppLoader] _initializeServices: DatabaseService initialisé.");
     await NotificationService().init();
+    debugPrint("[AppLoader] _initializeServices: NotificationService initialisé.");
     final userService = UserService();
     await userService.init();
-    connectToIp();
-    connectToName();
-    connectToApi();
+    debugPrint("[AppLoader] _initializeServices: UserService initialisé. User has data: ${userService.hasUser()}");
+    await connectToIp();
+    debugPrint("[AppLoader] _initializeServices: Tentative de connexion à l'IP terminée.");
+    await connectToName();
+    debugPrint("[AppLoader] _initializeServices: Tentative de connexion au nom de domaine terminée.");
+    await connectToApi();
+    debugPrint("[AppLoader] _initializeServices: Tentative de connexion à l'API terminée.");
     // Retourne le service utilisateur pour le passer à l'application
     if (userService.hasUser()) {
+      debugPrint("[AppLoader] _initializeServices: Utilisateur trouvé. Vérification des notifications et envoi du token FCM.");
       await checkNotificationFromTerminatedState();
+      debugPrint("[AppLoader] _initializeServices: Vérification des notifications depuis l'état terminé, terminée.");
       await sendFcmTokenToServer();
+      debugPrint("[AppLoader] _initializeServices: Envoi du token FCM au serveur terminé.");
+    } else {
+      debugPrint("[AppLoader] _initializeServices: Aucun utilisateur trouvé. Aucune action spécifique pour l'utilisateur existant.");
     }
+    debugPrint("[AppLoader] _initializeServices: Initialisation des services terminée.");
     return userService;
   }
 
   @override
   Widget build(BuildContext context) {
+    debugPrint("[AppLoader] build: Construction de l'interface utilisateur.");
     return FutureBuilder<UserService>(
       future: _initializationFuture,
       builder: (context, snapshot) {
+        debugPrint("[AppLoader] FutureBuilder: État de la connexion: ${snapshot.connectionState}");
         // CORRECTION : On vérifie d'abord s'il y a une erreur pour l'afficher.
         if (snapshot.hasError) {
+          debugPrint("[AppLoader] FutureBuilder: Erreur rencontrée: ${snapshot.error}");
+          debugPrintStack(stackTrace: snapshot.stackTrace, label: "[AppLoader] FutureBuilder StackTrace");
           return MaterialApp(
             navigatorKey: navigatorKey,
             home: Scaffold(
@@ -211,11 +240,13 @@ class _AppLoaderState extends State<AppLoader> {
         }
 
         if (snapshot.connectionState == ConnectionState.done) {
+          debugPrint("[AppLoader] FutureBuilder: Connexion terminée. Snapshot has data: ${snapshot.hasData}");
           // Si on arrive ici, snapshot.hasData est forcément vrai, car on a déjà géré le cas d'erreur.
           return MyApp(userService: snapshot.data!);
         }
 
         // Affiche un écran de chargement pendant l'initialisation
+        debugPrint("[AppLoader] FutureBuilder: Affichage de l'indicateur de chargement.");
         return const MaterialApp(
           home: Scaffold(
             body: Center(
@@ -236,9 +267,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    connectToIp();
-    connectToName();
-    connectToApi();
+    debugPrint("[MyApp] build: Construction de l'interface utilisateur principale. L'utilisateur a des données: ${userService.hasUser()}");
     return MultiProvider(
         providers: [
           // On fournit l'instance de UserService qui a été initialisée dans AppLoader
@@ -248,13 +277,20 @@ class MyApp extends StatelessWidget {
           ChangeNotifierProvider<LocaleProvider>(
               create: (_) => LocaleProvider()),
           Provider<WebSocketService>(
-            create: (_) => WebSocketService(),
+            create: (_) {
+              debugPrint("[MyApp] MultiProvider: Création de WebSocketService.");
+              return WebSocketService();
+            },
             // La méthode `dispose` du Provider appellera la méthode `dispose` de votre service.
-            dispose: (_, service) => service.dispose(),
+            dispose: (_, service) {
+              debugPrint("[MyApp] MultiProvider: Suppression de WebSocketService.");
+              service.dispose();
+            },
           ),
         ],
         child: Consumer<LocaleProvider>(
           builder: (context, localeProvider, child) {
+            debugPrint("[MyApp] Consumer<LocaleProvider>: Construction de MaterialApp avec locale: ${localeProvider.locale}.");
             return MaterialApp(
               title: 'Plop',
               locale: localeProvider.locale,
@@ -274,36 +310,4 @@ class MyApp extends StatelessWidget {
           },
         ));
   }
-}
-
-void handleNotificationPayload(String payload) {
-  try {
-    // final Map<String, dynamic> data = jsonDecode(payload);
-
-    // if (data['action'] == 'open_chat') {
-    //   final String chatId = data['chatId'];
-
-    // Utilisation de la GlobalKey pour naviguer sans BuildContext !
-    navigatorKey.currentState?.pushNamed('/');
-    // }
-    // Ajoutez d'autres 'if' pour d'autres actions
-  } catch (e) {
-    debugPrint('Erreur lors du traitement du payload de notification : $e');
-  }
-}
-
-/// Gère la navigation quand une notification est cliquée.
-void handleNotificationTap(RemoteMessage message) {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  debugPrint(
-      "Gestion du clic sur la notification ! Payload de données : ${message.data}");
-
-  WebSocketService webSocketService = WebSocketService();
-  webSocketService.ensureConnected();
-  final DateTime? sentTimestamp = message.sentTime;
-  message.data['sendDate'] = sentTimestamp;
-  webSocketService.handlePlop(message.data, fromExternalNotification: true);
-
-  // Vous pouvez ajouter d'autres 'if' pour d'autres types de notifications
 }
