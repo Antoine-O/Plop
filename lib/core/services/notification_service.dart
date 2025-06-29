@@ -43,8 +43,8 @@ class NotificationService {
     return _instance;
   }
 
-  // DatabaseService instance - consider dependency injection
-  static final DatabaseService _dbService = DatabaseService();
+  // // DatabaseService instance - consider dependency injection
+  // static final DatabaseService _dbService = DatabaseService();
 
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
@@ -146,55 +146,52 @@ class NotificationService {
   Future<void> showNotification({
     required String title,
     required String body,
-    required bool isMuted,
-    String? payload, // Added payload parameter
+    bool isMuted = false, // If true, this notification instance will be silent
+    String? payload,
   }) async {
+    // No need for UserService here anymore for global mute check,
+    // as that's handled by the 'isMuted' parameter passed in.
     debugPrint(
-        "[NotificationService] showNotification: Preparing to show notification. Title: '$title', Body: '$body', IsMuted: $isMuted, Payload: $payload");
+        "[NotificationService] showNotification: Title: '$title', Body: '$body', IsMuted (for this system notification): $isMuted, Payload: $payload");
 
-    final userService =
-        UserService(); // Consider making this a member or injecting
-    await userService.init(); // Ensure it's initialized
+    // If isMuted is true, playSound will be false.
+    // If isMuted is false, playSound will be true.
+    final bool playSystemSound = !isMuted;
     debugPrint(
-        "[NotificationService] showNotification: UserService initialized. GlobalMute: ${userService.isGlobalMute}");
-
-    final bool playSound = userService.isGlobalMute == false && !isMuted;
-    debugPrint(
-        "[NotificationService] showNotification: Calculated playSound: $playSound");
+        "[NotificationService] showNotification: playSystemSound for this notification: $playSystemSound");
 
     final AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
-      'plop_channel_id', // Must match channel ID
-      'Plop Notifications', // Must match channel name
-      channelDescription:
-          'Canal pour les notifications Plop avec un son personnalisé.',
-      // Optional but good
+      'plop_channel_id', // Ensure this channel is created with sound enabled
+      'Plop Notifications',
+      channelDescription: 'Canal pour les notifications Plop.',
       priority: Priority.high,
       importance: Importance.max,
-      // Ensure this matches channel importance
       showWhen: false,
       color: Colors.transparent,
       icon: "@mipmap/ic_launcher",
-      // Ensure this icon exists
-      sound:
-          playSound ? const RawResourceAndroidNotificationSound('plop') : null,
+      sound: playSystemSound
+          ? const RawResourceAndroidNotificationSound('plop')
+          : null,
+      // Sound based on playSystemSound
+      playSound:
+          playSystemSound, // Also control this if necessary, though channel settings are primary
     );
-    debugPrint(
-        "[NotificationService] showNotification: AndroidNotificationDetails configured. Sound: ${playSound ? 'plop' : 'null'}");
 
     final DarwinNotificationDetails darwinPlatformChannelSpecifics =
         DarwinNotificationDetails(
       presentAlert: true,
       presentBadge: true,
-      presentSound: playSound, // Use calculated playSound
-      sound: playSound ? 'plop.aiff' : null,
-      // subtitle: "plop", // Optional
+      presentSound: playSystemSound, // Sound based on playSystemSound
+      sound: playSystemSound
+          ? 'plop.aiff'
+          : null, // Ensure 'plop.aiff' is in your Runner/Resources
+      // Adjust badge number if necessary, e.g., via a separate service or logic
+      // badgeNumber: 1,
     );
-    debugPrint(
-        "[NotificationService] showNotification: DarwinNotificationDetails configured. Sound: ${playSound ? 'plop.aiff' : 'null'}");
 
     const LinuxNotificationDetails linuxPlatformChannelSpecifics =
-        LinuxNotificationDetails(
+    LinuxNotificationDetails(
       defaultActionName: 'Ouvrir',
     );
     debugPrint(
@@ -206,10 +203,8 @@ class NotificationService {
       macOS: darwinPlatformChannelSpecifics,
       linux: linuxPlatformChannelSpecifics,
     );
-    debugPrint(
-        "[NotificationService] showNotification: Combined NotificationDetails configured.");
 
-    if (playSound) {
+    if (playSystemSound) {
       // Vibration should also respect global mute and specific mute
       debugPrint(
           "[NotificationService] showNotification: Sound is enabled, checking for vibrator.");
@@ -250,11 +245,13 @@ class NotificationService {
     String? fromUserId,
     String? messageText,
     bool? isDefaultMessage,
-    bool?
-        isPending, // isPending is used to decide if notification should be shown
+    bool? isPending,
     DateTime? sentDate,
-    bool?
-        fromExternalNotification, // fromExternalNotification is used to decide if sound should be played by app
+    // This flag is crucial. Set it to 'false' if the message comes via WebSocket
+    // when the app is in the foreground, and you want the app to handle the sound.
+    // For FCM messages, this would typically be 'true' or not set (defaulting to behavior where system handles sound).
+    bool fromExternalNotification =
+        true, // Default to true (system plays sound)
   }) async {
     debugPrint(
         "[NotificationService] handlePlop: Processing Plop. FromUserId: $fromUserId, Message: '$messageText', IsDefault: $isDefaultMessage, IsPending: $isPending, SentDate: $sentDate, FromExternal: $fromExternalNotification");
@@ -265,7 +262,6 @@ class NotificationService {
       return;
     }
 
-    // Consider making DatabaseService and UserService injectable or class members
     final db = DatabaseService();
     final contact = db.getContact(fromUserId);
 
@@ -280,7 +276,7 @@ class NotificationService {
       return;
     }
     debugPrint(
-        "[NotificationService] handlePlop: Contact found: ${contact.alias}, IsMuted: ${contact.isMuted}, CustomSound: ${contact.customSoundPath}");
+        "[NotificationService] handlePlop: Contact found: ${contact.alias}, IsMuted (contact): ${contact.isMuted}, CustomSound: ${contact.customSoundPath}");
 
     final bool hasOverride = contact.defaultMessageOverride != null &&
         contact.defaultMessageOverride!.isNotEmpty;
@@ -290,7 +286,7 @@ class NotificationService {
       debugPrint(
           "[NotificationService] handlePlop: Using default message override: '$finalMessage'");
     } else {
-      finalMessage = messageText ?? "Nouveau message"; // Fallback message
+      finalMessage = messageText ?? "Plop";
       debugPrint(
           "[NotificationService] handlePlop: Using provided or fallback message: '$finalMessage'");
     }
@@ -310,80 +306,92 @@ class NotificationService {
     }
 
     final userService = UserService();
-    await userService.init(); // Ensure initialized
+    await userService.init();
     debugPrint(
         "[NotificationService] handlePlop: UserService initialized. GlobalMute: ${userService.isGlobalMute}");
 
-    bool isContactMuted = contact.isMuted ?? false;
-    bool playSoundForThisPlop = !isContactMuted && !userService.isGlobalMute;
-    bool showSystemNotification =
-        isPending == false; // Only show notification if not pending
+    bool isContactMutedSetting = contact.isMuted ?? false;
+    bool isGlobalMuteSetting = userService.isGlobalMute;
 
+    // Determine if sound should be played AT ALL (either by app or system)
+    bool shouldAnySoundBePlayed =
+        !isContactMutedSetting && !isGlobalMuteSetting;
     debugPrint(
-        "[NotificationService] handlePlop: Calculated flags -> isContactMuted: $isContactMuted, playSoundForThisPlop: $playSoundForThisPlop, showSystemNotification: $showSystemNotification");
+        "[NotificationService] handlePlop: shouldAnySoundBePlayed: $shouldAnySoundBePlayed (ContactMuted: $isContactMutedSetting, GlobalMute: $isGlobalMuteSetting)");
 
-    // Play sound directly if it's not from an external notification source (which would have its own sound)
-    // and if sounds are generally enabled for this contact/globally.
-    if (playSoundForThisPlop && (fromExternalNotification == false)) {
+    bool appPlayedSound = false;
+
+    // If it's NOT from an external notification (e.g., direct WebSocket) AND sound is generally allowed
+    if (!fromExternalNotification && shouldAnySoundBePlayed) {
       debugPrint(
-          "[NotificationService] handlePlop: Conditions met to play sound directly.");
+          "[NotificationService] handlePlop: Conditions met for APP to play sound (not external, not muted).");
       if (contact.customSoundPath != null &&
           contact.customSoundPath!.isNotEmpty) {
         try {
           await _audioPlayer.play(DeviceFileSource(contact.customSoundPath!));
           debugPrint(
-              "[NotificationService] handlePlop: Played custom sound: ${contact.customSoundPath}");
+              "[NotificationService] handlePlop: App played custom sound: ${contact.customSoundPath}");
+
+          bool? hasVibrator = await Vibration.hasVibrator();
+          if (hasVibrator ?? false) {
+            Vibration.vibrate(duration: 200);
+            debugPrint(
+                "[NotificationService] showNotification: Vibration triggered.");
+          }
+          appPlayedSound = true;
         } catch (e, stackTrace) {
           debugPrint(
               "[NotificationService] handlePlop: ERROR playing custom sound: $e");
           debugPrintStack(
               stackTrace: stackTrace,
               label: "[NotificationService] handlePlop Custom Sound Error");
-          // Fallback to default sound if custom sound fails?
+          // Fallback to default sound if custom sound fails
           await _audioPlayer.play(AssetSource('sounds/plop.mp3'));
           debugPrint(
-              "[NotificationService] handlePlop: Played default sound as fallback.");
+              "[NotificationService] handlePlop: App played default sound as fallback.");
+          appPlayedSound = true;
         }
       } else {
         await _audioPlayer.play(AssetSource('sounds/plop.mp3'));
         debugPrint(
-            "[NotificationService] handlePlop: Played default sound 'plop.mp3'.");
+            "[NotificationService] handlePlop: App played default sound 'plop.mp3'.");
+        appPlayedSound = true;
       }
-      // If we play sound here, the system notification should NOT play sound again.
-      // The `showNotification` method's `isMuted` parameter handles this.
-    } else {
+    } else if (fromExternalNotification) {
       debugPrint(
-          "[NotificationService] handlePlop: Conditions not met to play sound directly (muted or from external with own sound).");
+          "[NotificationService] handlePlop: From external source. App will NOT play sound. System notification will handle it if not muted.");
+    } else if (!shouldAnySoundBePlayed) {
+      debugPrint(
+          "[NotificationService] handlePlop: Sound is muted (contact or global). App will NOT play sound.");
     }
 
     // Show system notification if it's not a pending message
+    bool showSystemNotification = isPending == false;
     if (showSystemNotification) {
       debugPrint(
-          "[NotificationService] handlePlop: Showing system notification for non-pending message.");
-      // If we played sound above (because fromExternalNotification was false),
-      // we tell showNotification that it's "muted" in terms of system sound,
-      // because we've already handled the audio cue.
-      // If sound was not played above (e.g., contactMuted, globalMute, or fromExternalNotification=true),
-      // then showNotification should decide based on its own logic.
-      bool isEffectivelyMutedForSystemNotification =
-          (playSoundForThisPlop && (fromExternalNotification == false)) ||
-              isContactMuted ||
-              userService.isGlobalMute;
+          "[NotificationService] handlePlop: Attempting to show system notification for non-pending message.");
+
+      // System notification should be muted IF:
+      // 1. The app already played the sound (because it wasn't an external notification)
+      // OR 2. Sounds are generally disabled for this plop (contact mute or global mute)
+      bool muteSystemNotificationSound =
+          appPlayedSound || !shouldAnySoundBePlayed;
+
+      debugPrint(
+          "[NotificationService] handlePlop: muteSystemNotificationSound: $muteSystemNotificationSound (appPlayedSound: $appPlayedSound, shouldAnySoundBePlayed: $shouldAnySoundBePlayed)");
 
       showNotification(
         title: contact.alias,
         body: finalMessage,
-        isMuted: isEffectivelyMutedForSystemNotification,
-        // This controls system notification sound
-        payload: jsonEncode(
-            {'action': 'open_chat', 'userId': fromUserId}), // Example payload
+        // This 'isMuted' now controls whether the *system notification* makes a sound
+        isMuted: muteSystemNotificationSound,
+        payload: jsonEncode({'action': 'open_chat', 'userId': fromUserId}),
       );
     } else {
       debugPrint(
           "[NotificationService] handlePlop: Not showing system notification (message is pending).");
     }
 
-    // Notify listeners about the message update
     _messageUpdateController
         .add({'userId': fromUserId, 'message': finalMessage});
     debugPrint(

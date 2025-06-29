@@ -34,8 +34,12 @@ class _ContactTileState extends State<ContactTile>
   @override
   void initState() {
     super.initState();
+    debugPrint(
+        '[ContactTile] initState for contact: ${widget.contact.userId} - ${widget.contact.alias}');
     _contact = widget.contact;
     _isMuted = _contact.isMuted ?? false;
+    debugPrint(
+        '[ContactTile] initState - Initial _isMuted: $_isMuted for contact: ${_contact.userId}');
 
     _animationController = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 150));
@@ -50,23 +54,39 @@ class _ContactTileState extends State<ContactTile>
     // This listener now correctly reloads state to show incoming messages
     _messageSubscription =
         _webSocketService.messageUpdates.listen((update) async {
-      if (!mounted) return;
-      if (update['userId'] == _contact.userId) {
-        final freshContact = _databaseService.getContact(_contact.userId);
-        if (freshContact != null) {
-          setState(() {
-            _contact = freshContact;
-          });
-        }
-        _animationController
-            .forward()
-            .then((_) => _animationController.reverse());
-      }
-    });
+          if (!mounted) {
+            debugPrint(
+                '[ContactTile] _messageSubscription - Not mounted, skipping update for contact: ${_contact.userId}');
+            return;
+          }
+          debugPrint(
+              '[ContactTile] _messageSubscription - Received update: $update for contact: ${_contact.userId}');
+          if (update['userId'] == _contact.userId) {
+            debugPrint(
+                '[ContactTile] _messageSubscription - Update matches current contact: ${_contact.userId}');
+            final freshContact = _databaseService.getContact(_contact.userId);
+            if (freshContact != null) {
+              debugPrint(
+                  '[ContactTile] _messageSubscription - Fetched fresh contact: ${freshContact.userId} - ${freshContact.lastMessage}');
+              setState(() {
+                _contact = freshContact;
+              });
+            } else {
+              debugPrint(
+                  '[ContactTile] _messageSubscription - Could not fetch fresh contact for: ${_contact.userId}');
+            }
+            _animationController
+                .forward()
+                .then((_) => _animationController.reverse());
+          }
+        });
+    debugPrint(
+        '[ContactTile] initState completed for contact: ${_contact.userId}');
   }
 
   @override
   void dispose() {
+    debugPrint('[ContactTile] dispose for contact: ${_contact.userId}');
     _animationController.dispose();
     _messageSubscription?.cancel();
     _cooldownTimer?.cancel();
@@ -75,25 +95,50 @@ class _ContactTileState extends State<ContactTile>
   }
 
   void _startCooldown() {
-    if (_inCooldown) return;
+    debugPrint(
+        '[ContactTile] _startCooldown called for contact: ${_contact.userId}. Current _inCooldown: $_inCooldown');
+    if (_inCooldown) {
+      debugPrint(
+          '[ContactTile] _startCooldown - Already in cooldown for contact: ${_contact.userId}, returning.');
+      return;
+    }
     setState(() => _inCooldown = true);
     _cooldownProgressController.forward(from: 0.0);
     _cooldownTimer = Timer(const Duration(seconds: 5), () {
       if (mounted) {
+        debugPrint(
+            '[ContactTile] _startCooldown - Cooldown finished for contact: ${_contact.userId}. Setting _inCooldown to false.');
         setState(() => _inCooldown = false);
+      } else {
+        debugPrint(
+            '[ContactTile] _startCooldown - Cooldown timer finished but widget not mounted for contact: ${_contact.userId}.');
       }
     });
+    debugPrint(
+        '[ContactTile] _startCooldown - Cooldown started for contact: ${_contact.userId}. _inCooldown: $_inCooldown');
   }
 
   // This function now correctly updates state to show sent messages
   void _sendDefaultMessage() async {
+    debugPrint(
+        '[ContactTile] _sendDefaultMessage called for contact: ${_contact.userId}');
     final String defaultMessage = AppConfig.getDefaultPlopMessage(context);
+    debugPrint(
+        '[ContactTile] _sendDefaultMessage - Default message: "$defaultMessage" for contact: ${_contact.userId}');
     _sendCustomMessage(defaultMessage);
   }
 
   void _sendCustomMessage(String message) async {
-    if (_inCooldown) return;
+    debugPrint(
+        '[ContactTile] _sendCustomMessage called for contact: ${_contact.userId} with message: "$message"');
+    if (_inCooldown) {
+      debugPrint(
+          '[ContactTile] _sendCustomMessage - In cooldown for contact: ${_contact.userId}, returning.');
+      return;
+    }
 
+    debugPrint(
+        '[ContactTile] _sendCustomMessage - Updating contact state before sending for: ${_contact.userId}');
     setState(() {
       _contact.lastMessageSent = message;
       _contact.lastMessageSentStatus = MessageStatus.sending;
@@ -102,41 +147,74 @@ class _ContactTileState extends State<ContactTile>
     });
 
     await _contact.save();
+    debugPrint(
+        '[ContactTile] _sendCustomMessage - Contact saved. Attempting to send message via WebSocket for: ${_contact.userId}');
     try {
       _webSocketService.sendMessage(
           type: 'plop', to: _contact.userId, payload: message, isDefault: true);
+      debugPrint(
+          '[ContactTile] _sendCustomMessage - Message sent via WebSocket. Starting cooldown for: ${_contact.userId}');
 
       _startCooldown();
 
       await Future.delayed(const Duration(seconds: 1));
       if (mounted) {
+        debugPrint(
+            '[ContactTile] _sendCustomMessage - Updating contact status to SENT for: ${_contact.userId}');
         setState(() {
           _contact.lastMessageSentStatus = MessageStatus.sent;
         });
         await _contact.save();
+        debugPrint(
+            '[ContactTile] _sendCustomMessage - Contact saved with SENT status for: ${_contact.userId}');
+      } else {
+        debugPrint(
+            '[ContactTile] _sendCustomMessage - Widget not mounted after delay for contact: ${_contact.userId}, cannot update to SENT.');
       }
-    } catch (e) {
+    } catch (e, s) {
+      debugPrint(
+          '[ContactTile] _sendCustomMessage - ERROR sending message for contact: ${_contact.userId}. Error: $e\nStackTrace: $s');
       // Si l'envoi échoue, on met à jour l'UI avec le statut "échec"
       if (mounted) {
+        debugPrint(
+            '[ContactTile] _sendCustomMessage - Updating contact status to FAILED for: ${_contact.userId}');
         setState(() {
           _contact.lastMessageSentStatus = MessageStatus.failed;
           _contact.lastMessageSentError =
               e.toString(); // On stocke l'erreur pour le tooltip
         });
         await _contact.save();
+        debugPrint(
+            '[ContactTile] _sendCustomMessage - Contact saved with FAILED status for: ${_contact.userId}');
+      } else {
+        debugPrint(
+            '[ContactTile] _sendCustomMessage - Widget not mounted after error for contact: ${_contact.userId}, cannot update to FAILED.');
       }
     }
   }
 
   void _handleLongPress() {
-    if (_inCooldown) return;
+    debugPrint(
+        '[ContactTile] _handleLongPress called for contact: ${_contact.userId}. _inCooldown: $_inCooldown');
+    if (_inCooldown) {
+      debugPrint(
+          '[ContactTile] _handleLongPress - In cooldown for contact: ${_contact.userId}, returning.');
+      return;
+    }
     final List<MessageModel> messages = _databaseService.getAllMessages();
+    debugPrint(
+        '[ContactTile] _handleLongPress - Fetched ${messages.length} custom messages for contact: ${_contact.userId}');
     if (messages.isNotEmpty) {
       _showCustomMessageMenu(messages);
+    } else {
+      debugPrint(
+          '[ContactTile] _handleLongPress - No custom messages to show for contact: ${_contact.userId}');
     }
   }
 
   void _showCustomMessageMenu(List<MessageModel> messages) {
+    debugPrint(
+        '[ContactTile] _showCustomMessageMenu called for contact: ${_contact.userId} with ${messages.length} messages.');
     showModalBottomSheet(
       context: context,
       builder: (context) {
@@ -148,6 +226,8 @@ class _ContactTileState extends State<ContactTile>
             return ListTile(
               title: Text(message.text),
               onTap: () {
+                debugPrint(
+                    '[ContactTile] _showCustomMessageMenu - Custom message selected: "${message.text}" for contact: ${_contact.userId}');
                 _sendCustomMessage(message.text);
                 Navigator.pop(context);
               },
@@ -159,11 +239,15 @@ class _ContactTileState extends State<ContactTile>
   }
 
   Future<void> _toggleMute() async {
+    debugPrint(
+        '[ContactTile] _toggleMute called for contact: ${_contact.userId}. Current _isMuted: $_isMuted');
     setState(() {
       _isMuted = !_isMuted;
     });
     _contact.isMuted = _isMuted;
     await _contact.save();
+    debugPrint(
+        '[ContactTile] _toggleMute - Contact ${_contact.userId} mute status saved as: $_isMuted');
   }
 
   String _formatTimestamp(DateTime? timestamp) {
@@ -175,13 +259,17 @@ class _ContactTileState extends State<ContactTile>
 
   @override
   Widget build(BuildContext context) {
+    debugPrint(
+        '[ContactTile] build called for contact: ${_contact.userId} - Alias: ${_contact.alias}, Original: ${_contact.originalPseudo}');
+    debugPrint(
+        '[ContactTile] build - _inCooldown: $_inCooldown, _isMuted: $_isMuted, LastSent: ${_contact.lastMessageSent}, LastReceived: ${_contact.lastMessage}');
     final l10n = AppLocalizations.of(context)!; // Get the localization instance
     final bool hasCustomAlias =
         _contact.alias.isNotEmpty && _contact.alias != _contact.originalPseudo;
     final String primaryName =
-        hasCustomAlias ? _contact.alias : _contact.originalPseudo;
+    hasCustomAlias ? _contact.alias : _contact.originalPseudo;
     final String? secondaryName =
-        hasCustomAlias ? _contact.originalPseudo : null;
+    hasCustomAlias ? _contact.originalPseudo : null;
 
     return AbsorbPointer(
       absorbing: _inCooldown,
@@ -220,13 +308,13 @@ class _ContactTileState extends State<ContactTile>
                                     animation: _cooldownProgressController,
                                     builder: (context, child) =>
                                         Positioned.fill(
-                                      child: CircularProgressIndicator(
-                                        value:
+                                          child: CircularProgressIndicator(
+                                            value:
                                             _cooldownProgressController.value,
-                                        strokeWidth: 2.0,
-                                        color: Colors.white.withAlpha(200),
-                                      ),
-                                    ),
+                                            strokeWidth: 2.0,
+                                            color: Colors.white.withAlpha(200),
+                                          ),
+                                        ),
                                   ),
                               ],
                             ),
@@ -295,6 +383,8 @@ class _ContactTileState extends State<ContactTile>
   }
 
   Widget _buildMessageBubble(BuildContext context) {
+    // Limited logging here as it's primarily a display widget
+    // debugPrint('[ContactTile] _buildMessageBubble for contact: ${_contact.userId}, message: ${_contact.lastMessage}');
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
@@ -321,6 +411,8 @@ class _ContactTileState extends State<ContactTile>
   }
 
   Widget _buildMessageSentBubble(BuildContext context) {
+    // Limited logging here as it's primarily a display widget
+    // debugPrint('[ContactTile] _buildMessageSentBubble for contact: ${_contact.userId}, message: ${_contact.lastMessageSent}, status: ${_contact.lastMessageSentStatus}');
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -344,6 +436,8 @@ class _ContactTileState extends State<ContactTile>
   }
 
   Widget _buildStatusIndicator(BuildContext context, MessageStatus status) {
+    // Limited logging here as it's primarily a display widget
+    // debugPrint('[ContactTile] _buildStatusIndicator for contact: ${_contact.userId}, status: $status');
     final l10n = AppLocalizations.of(context)!; // Get the localization instance
     IconData icon;
     String text; // Text now comes from l10n
@@ -410,7 +504,5 @@ class _ContactTileState extends State<ContactTile>
         child: statusWidget,
       );
     }
-
-    // return statusWidget; // Sinon, on retourne le widget de base
   }
 }
