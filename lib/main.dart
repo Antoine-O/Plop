@@ -315,7 +315,7 @@ class MyApp extends StatelessWidget {
             debugPrint(
                 "[MyApp] Consumer<LocaleProvider>: Construction de MaterialApp avec locale: ${localeProvider.locale}.");
             return MaterialApp(
-              title: AppLocalizations.of(context)!.appName,
+              title: AppLocalizations.of(context)?.appName ?? "Plop",
               locale: localeProvider.locale,
               localizationsDelegates: const [
                 AppLocalizations.delegate,
