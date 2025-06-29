@@ -27,6 +27,7 @@ class _AdvancedContactSettingsScreenState
     super.initState();
     _loadContact();
   }
+
   final List<Color> _availableColors = [
     Colors.red,
     Colors.green,
@@ -59,12 +60,11 @@ class _AdvancedContactSettingsScreenState
     _contact.defaultMessageOverride = _overrideController.text.trim();
     await _contact.save();
     if (mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.settingsSaved)));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context)!.settingsSaved)));
       Navigator.of(context).pop();
     }
   }
-
 
   // NOUVELLE FONCTION : Pour supprimer le contact avec confirmation
   Future<void> _deleteContact() async {
@@ -99,15 +99,18 @@ class _AdvancedContactSettingsScreenState
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.contactDeletedSuccessfully)),
+          SnackBar(
+              content: Text(
+                  AppLocalizations.of(context)!.contactDeletedSuccessfully)),
         );
         // Après la suppression, on revient à l'écran précédent (la liste de contacts)
         Navigator.of(context).pop();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Erreur lors de la suppression : $e")),
+        ScaffoldMessenger.of(context).showSnackBar(// Before:
+          SnackBar(content: Text(AppLocalizations.of(context)!.errorDuringDeletion(e.toString()))),
+
         );
       }
     }
@@ -168,11 +171,10 @@ class _AdvancedContactSettingsScreenState
                   }).toList(),
                 ),
 
-
-
                 SizedBox(height: 20),
                 SwitchListTile(
-                  title: Text(AppLocalizations.of(context)!.ignoreNotifications),
+                  title:
+                      Text(AppLocalizations.of(context)!.ignoreNotifications),
                   subtitle: Text(AppLocalizations.of(context)!.muteThisContact),
                   value: _contact.isMuted ?? false, // CORRECTION
                   onChanged: (bool value) {
@@ -181,8 +183,7 @@ class _AdvancedContactSettingsScreenState
                 ),
                 SwitchListTile(
                   title: Text(AppLocalizations.of(context)!.hideThisContact),
-                  subtitle:
-                      Text(AppLocalizations.of(context)!.doNotSeeInList),
+                  subtitle: Text(AppLocalizations.of(context)!.doNotSeeInList),
                   value: _contact.isHidden ?? false,
                   onChanged: (bool value) {
                     setState(() => _contact.isHidden = value);
@@ -199,7 +200,8 @@ class _AdvancedContactSettingsScreenState
                 SizedBox(height: 20),
                 ListTile(
                   title: Text(AppLocalizations.of(context)!.notificationSound),
-                  subtitle: Text(_contact.customSoundPath ?? AppLocalizations.of(context)!.defaultSound),
+                  subtitle: Text(_contact.customSoundPath ??
+                      AppLocalizations.of(context)!.defaultSound),
                   trailing: Icon(Icons.audiotrack),
                   onTap: _pickSound,
                 ),
@@ -207,7 +209,8 @@ class _AdvancedContactSettingsScreenState
                 TextField(
                   controller: _overrideController,
                   decoration: InputDecoration(
-                    labelText: AppLocalizations.of(context)!.overrideDefaultMessage,
+                    labelText:
+                        AppLocalizations.of(context)!.overrideDefaultMessage,
                     hintText: AppLocalizations.of(context)!.exampleNewPlop,
                     border: OutlineInputBorder(),
                   ),

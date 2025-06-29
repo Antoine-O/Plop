@@ -215,7 +215,58 @@
   "statusAcknowledged": "Bestätigt",
   "statusFailed": "Fehlgeschlagen",
   "statusDistributed": "Verteilt",
-  "statusPending":"Ausstehend",  "startByAddingContactTitle": "Beginnen Sie mit dem Hinzufügen eines Kontakts",
+  "statusPending": "Ausstehend",
+  "startByAddingContactTitle": "Beginnen Sie mit dem Hinzufügen eines Kontakts",
   "startByAddingContactSubtitle": "Laden Sie einen Freund ein oder geben Sie dessen Code ein, um mit dem Ploppen zu beginnen.",
-  "addViaCode": "Über Code hinzufügen"
+  "addViaCode": "Über Code hinzufügen",    "usernameUpdated": "Benutzername aktualisiert!",    "myUserIdDebug": "Meine Benutzer-ID (zum Debuggen)",    "wsServerTitle": "WS-Server",    "httpServerTitle": "HTTP-Server",    "resetButtonAction": "ZURÜCKSETZEN","invitationShareText": "Mein Plop-Einladungscode lautet: {invitationCode}",
+  "@invitationShareText": {
+    "description": "Text, der beim Teilen eines Einladungscodes verwendet wird",
+    "placeholders": {
+      "invitationCode": {
+        "type": "String",
+        "example": "ABC123"
+      }
+    }
+  },    "errorGeneratingCode": "Fehler: Code konnte nicht generiert werden.",    "tooltipGlobalMute": "Globaler Stumm-Modus","errorDuringDeletion": "Fehler beim Löschen: {error}",
+  "@errorDuringDeletion": {
+    "description": "Fehlermeldung, die angezeigt wird, wenn das Löschen des Kontakts fehlschlägt.",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Datenbank nicht verfügbar"
+      }
+    }
+  },"tooltipMuteContact": "Kontakt stummschalten","tooltipAdvancedSettings": "Erweiterte Einstellungen","tooltipHideContact": "Kontakt ausblenden",    "importAccountButtonLabel": "Konto importieren",    "syncCodeShareText": "Mein Plop-Synchronisationscode lautet: {generatedCode}",
+  "@syncCodeShareText": {
+    "description": "Text, der beim Teilen eines Plop-Synchronisationscodes verwendet wird",
+    "placeholders": {
+      "generatedCode": {
+        "type": "String",
+        "example": "XYZ789"
+      }
+    },"defaultImportedUsername": "Importierter Benutzer",        "selectedFileDisplay": "Ausgewählte Datei: {fileName}",
+    "@selectedFileDisplay": {
+      "description": "Text, der den Namen der ausgewählten Sicherungsdatei anzeigt.",
+      "placeholders": {
+        "fileName": {
+          "type": "String",
+          "example": "plop_backup.json"
+        }
+      }
+    },    "criticalStartupError": "Kritischer Fehler beim Start:\n\n{error}\n\n{stackTrace}",
+    "@criticalStartupError": {
+      "description": "Fehlermeldung, die angezeigt wird, wenn die App nicht initialisiert werden kann.",
+      "placeholders": {
+        "error": {
+          "type": "String",
+          "example": "Verbindung zum Server fehlgeschlagen."
+        },
+        "stackTrace": {
+          "type": "String",
+          "example": "main.dart:102 Exception..."
+        }
+      }
+    }
+  }
+
 }

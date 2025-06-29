@@ -1,35 +1,35 @@
 import 'package:hive/hive.dart';
+
 part 'contact_model.g.dart';
-@HiveType(typeId: 2) // IMPORTANT: Use a typeId that is not used by any other type
+
+@HiveType(
+    typeId: 2) // IMPORTANT: Use a typeId that is not used by any other type
 enum MessageStatus {
   @HiveField(0)
   sending,
-
   @HiveField(1)
   sent,
-
   @HiveField(2)
   distributed,
-
   @HiveField(3)
   acknowledged,
-
   @HiveField(4)
   failed,
-
   @HiveField(5)
   unknown;
 
-  String toJson() => name; // 'name' donne la représentation String de l'enum (ex: "sent")
+  String toJson() =>
+      name; // 'name' donne la représentation String de l'enum (ex: "sent")
 
   // Méthode (factory constructor) pour créer l'enum depuis une String (utile pour la désérialisation)
   static MessageStatus fromJson(String jsonValue) {
     return MessageStatus.values.firstWhere(
-          (status) => status.name == jsonValue,
+      (status) => status.name == jsonValue,
       orElse: () => MessageStatus.unknown, // Valeur par défaut si inconnue
     );
   }
 }
+
 @HiveType(typeId: 0)
 class Contact extends HiveObject {
   @HiveField(0)
@@ -69,26 +69,24 @@ class Contact extends HiveObject {
   @HiveField(16)
   String? lastMessageSentError;
 
-
-  Contact({
-    required this.userId,
-    required this.originalPseudo,
-    required this.alias,
-    required this.colorValue,
-    this.isMuted = false,
-    this.type = 'user',
-    this.lastMessage,
-    this.lastMessageTimestamp,
-    this.isBlocked = false,
-    this.customSoundPath,
-    this.defaultMessageOverride,
-    this.isHidden = false, // NOUVEAU
-    this.lastMessageSentTimestamp,
-    this.lastMessageSent,
-    this.lastMessageSentDefault,
-    this.lastMessageSentStatus,
-    this.lastMessageSentError
-  });
+  Contact(
+      {required this.userId,
+      required this.originalPseudo,
+      required this.alias,
+      required this.colorValue,
+      this.isMuted = false,
+      this.type = 'user',
+      this.lastMessage,
+      this.lastMessageTimestamp,
+      this.isBlocked = false,
+      this.customSoundPath,
+      this.defaultMessageOverride,
+      this.isHidden = false, // NOUVEAU
+      this.lastMessageSentTimestamp,
+      this.lastMessageSent,
+      this.lastMessageSentDefault,
+      this.lastMessageSentStatus,
+      this.lastMessageSentError});
 
   factory Contact.fromJson(Map<String, dynamic> json) {
     return Contact(
@@ -111,7 +109,9 @@ class Contact extends HiveObject {
           : null,
       lastMessageSent: json['lastMessageSent'],
       lastMessageSentDefault: json['lastMessageSentDefault'],
-      lastMessageSentStatus: json['lastMessageSentStatus']!=null ? MessageStatus.fromJson(json['lastMessageSentStatus']) : null,
+      lastMessageSentStatus: json['lastMessageSentStatus'] != null
+          ? MessageStatus.fromJson(json['lastMessageSentStatus'])
+          : null,
       lastMessageSentError: json['lastMessageSentError'],
     );
   }

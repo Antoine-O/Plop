@@ -209,15 +209,66 @@
   "contactDeletedSuccessfully": "Contact deleted successfully",
   "@contactDeletedSuccessfully": {
     "description": "Snackbar message shown after a contact has been successfully deleted"
-  },   "muteTooltip": "Mute",
+  },
+  "muteTooltip": "Mute",
   "unmuteTooltip": "Unmute",
   "statusSending": "Sending...",
   "statusSent": "Sent",
   "statusAcknowledged": "Delivered",
   "statusFailed": "Failed",
   "statusDistributed": "Distributed",
-  "statusPending":"Pendiente",
+  "statusPending": "Pendiente",
   "startByAddingContactTitle": "Start by adding a contact",
   "startByAddingContactSubtitle": "Invite a friend or enter their code to start plopping.",
-  "addViaCode": "Add via code"
+  "addViaCode": "Add via code",
+  "usernameUpdated": "Username updated!",    "myUserIdDebug": "My User ID (for debugging)",    "wsServerTitle": "WS Server",    "httpServerTitle": "HTTP Server",    "resetButtonAction": "RESET","invitationShareText": "My Plop invitation code is: {invitationCode}",
+  "@invitationShareText": {
+    "description": "Text used when sharing an invitation code",
+    "placeholders": {
+      "invitationCode": {
+        "type": "String",
+        "example": "ABC123"
+      }
+    }
+  },    "errorGeneratingCode": "Error: Could not generate code.",    "tooltipGlobalMute": "Global mute mode","errorDuringDeletion": "Error during deletion: {error}",
+  "@errorDuringDeletion": {
+    "description": "Error message shown when contact deletion fails.",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Database unavailable"
+      }
+    }
+  },"tooltipMuteContact": "Mute contact","tooltipHideContact": "Hide contact","tooltipAdvancedSettings": "Advanced settings",    "syncCodeShareText": "My Plop synchronization code is: {generatedCode}",
+  "@syncCodeShareText": {
+    "description": "Text used when sharing a Plop synchronization code",
+    "placeholders": {
+      "generatedCode": {
+        "type": "String",
+        "example": "XYZ789"
+      }
+    }
+  },    "importAccountButtonLabel": "Import an account","defaultImportedUsername": "Imported User",        "selectedFileDisplay": "Selected file: {fileName}",
+  "@selectedFileDisplay": {
+    "description": "Text displaying the name of the selected backup file.",
+    "placeholders": {
+      "fileName": {
+        "type": "String",
+        "example": "plop_backup.json"
+      }
+    }
+  },    "criticalStartupError": "Critical error during startup:\n\n{error}\n\n{stackTrace}",
+  "@criticalStartupError": {
+    "description": "Error message displayed if the app fails to initialize.",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Failed to connect to server."
+      },
+      "stackTrace": {
+        "type": "String",
+        "example": "main.dart:102 Exception..."
+      }
+    }
+  }
 }

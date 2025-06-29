@@ -19,28 +19,31 @@ class _ImportAccountScreenState extends State<ImportAccountScreen> {
   Future<void> _importAccount() async {
     if (_codeController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.pleaseEnterSyncCode)),
+        SnackBar(
+            content: Text(AppLocalizations.of(context)!.pleaseEnterSyncCode)),
       );
       return;
     }
     setState(() => _isLoading = true);
-    final syncData = await _syncService.useSyncCode(_codeController.text.trim());
+    final syncData =
+        await _syncService.useSyncCode(_codeController.text.trim());
     if (syncData != null && mounted) {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('userId', syncData['userId']!);
       if (syncData['pseudo'] != null && syncData['pseudo']!.isNotEmpty) {
         await prefs.setString('username', syncData['pseudo']!);
       } else {
-        await prefs.setString('username', 'Utilisateur importé');
+        await prefs.setString('username', AppLocalizations.of(context)!.defaultImportedUsername);
       }
 
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => ContactListScreen()),
-            (route) => false,
+        (route) => false,
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.invalidOrExpiredCode)),
+        SnackBar(
+            content: Text(AppLocalizations.of(context)!.invalidOrExpiredCode)),
       );
     }
     setState(() => _isLoading = false);
@@ -49,7 +52,7 @@ class _ImportAccountScreenState extends State<ImportAccountScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Importer un compte')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context)!.importAccountTitle)),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -58,11 +61,15 @@ class _ImportAccountScreenState extends State<ImportAccountScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Icon(Icons.download_for_offline_outlined, size: 80, color: Theme.of(context).primaryColor),
+                Icon(Icons.download_for_offline_outlined,
+                    size: 80, color: Theme.of(context).primaryColor),
                 SizedBox(height: 24),
                 Text(
                   AppLocalizations.of(context)!.syncYourAccount,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                  style: Theme.of(context)
+                      .textTheme
+                      .headlineSmall
+                      ?.copyWith(fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
                 SizedBox(height: 16),
@@ -76,19 +83,20 @@ class _ImportAccountScreenState extends State<ImportAccountScreen> {
                   decoration: InputDecoration(
                     labelText: AppLocalizations.of(context)!.syncCode,
                     border: OutlineInputBorder(),
-                  ),maxLength: 20,
+                  ),
+                  maxLength: 20,
                 ),
                 SizedBox(height: 20),
                 _isLoading
                     ? Center(child: CircularProgressIndicator())
                     : ElevatedButton.icon(
-                  onPressed: _importAccount,
-                  icon: Icon(Icons.sync),
-                  label: Text(AppLocalizations.of(context)!.import),
-                  style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                  ),
-                ),
+                        onPressed: _importAccount,
+                        icon: Icon(Icons.sync),
+                        label: Text(AppLocalizations.of(context)!.import),
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                        ),
+                      ),
               ],
             ),
           ),

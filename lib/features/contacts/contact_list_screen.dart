@@ -16,6 +16,7 @@ import 'package:plop/l10n/app_localizations.dart';
 
 class ContactListScreen extends StatefulWidget {
   const ContactListScreen({super.key});
+
   @override
   _ContactListScreenState createState() => _ContactListScreenState();
 }
@@ -35,7 +36,8 @@ class _ContactListScreenState extends State<ContactListScreen> {
   void initState() {
     super.initState();
     _loadDataAndSync();
-    _messageUpdateSubscription = _webSocketService.messageUpdates.listen((update) {
+    _messageUpdateSubscription =
+        _webSocketService.messageUpdates.listen((update) {
       _loadContacts();
     });
   }
@@ -56,7 +58,8 @@ class _ContactListScreenState extends State<ContactListScreen> {
     }
 
     final localContacts = await _databaseService.getAllContactsOrdered();
-    final bool wasUpdated = await _userService.syncContactsPseudos(localContacts);
+    final bool wasUpdated =
+        await _userService.syncContactsPseudos(localContacts);
 
     if (wasUpdated) {
       await _loadContacts();
@@ -67,9 +70,12 @@ class _ContactListScreenState extends State<ContactListScreen> {
   }
 
   Future<void> _loadContacts({List<Contact>? initialContacts}) async {
-    final allContacts = initialContacts ?? await _databaseService.getAllContactsOrdered();
+    final allContacts =
+        initialContacts ?? await _databaseService.getAllContactsOrdered();
     setState(() {
-      _contacts = allContacts.where((c) => !(c.isBlocked ?? false) && !(c.isHidden ?? false)).toList();
+      _contacts = allContacts
+          .where((c) => !(c.isBlocked ?? false) && !(c.isHidden ?? false))
+          .toList();
     });
   }
 
@@ -77,13 +83,15 @@ class _ContactListScreenState extends State<ContactListScreen> {
     if (_userService.userId == null || _userService.username == null) return;
     showDialog(
       context: context,
-      builder: (context) => AddContactDialog(myUserId: _userService.userId!, myPseudo: _userService.username!),
+      builder: (context) => AddContactDialog(
+          myUserId: _userService.userId!, myPseudo: _userService.username!),
     ).then((_) => _loadContacts());
   }
 
   void _generateInvitation() async {
     if (_userService.userId == null || _userService.username == null) return;
-    final invitationData = await _invitationService.createInvitationCode(_userService.userId!, _userService.username!);
+    final invitationData = await _invitationService.createInvitationCode(
+        _userService.userId!, _userService.username!);
     if (invitationData != null && mounted) {
       showDialog(
         context: context,
@@ -93,7 +101,8 @@ class _ContactListScreenState extends State<ContactListScreen> {
         ),
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur: Impossible de générer un code.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context)!.errorGeneratingCode)));
     }
   }
 
@@ -106,7 +115,8 @@ class _ContactListScreenState extends State<ContactListScreen> {
   }
 
   void _onMenuSelection(String value) {
-    if (value == 'sync') { // NOUVEAU
+    if (value == 'sync') {
+      // NOUVEAU
       Navigator.of(context)
           .push(MaterialPageRoute(builder: (context) => SyncAccountScreen()))
           .then((_) => _loadDataAndSync());
@@ -124,20 +134,20 @@ class _ContactListScreenState extends State<ContactListScreen> {
         title: Text(AppLocalizations.of(context)!.appName),
         actions: [
           IconButton(
-            icon: Icon(_isGlobalMute ? Icons.volume_off : Icons.volume_up, color: _isGlobalMute
-                ? Colors.red
-                : Colors.grey.shade900),
+            icon: Icon(_isGlobalMute ? Icons.volume_off : Icons.volume_up,
+                color: _isGlobalMute ? Colors.red : Colors.grey.shade900),
             onPressed: _toggleGlobalMute,
-            tooltip: 'Mode silencieux global',
+            tooltip: AppLocalizations.of(context)!.tooltipGlobalMute,
           ),
           IconButton(
             icon: const Icon(Icons.people_alt_outlined),
             onPressed: () {
               Navigator.of(context)
-                  .push(MaterialPageRoute(builder: (context) => ManageContactsScreen()))
+                  .push(MaterialPageRoute(
+                      builder: (context) => ManageContactsScreen()))
                   .then((_) => _loadDataAndSync());
             },
-            tooltip: 'Gérer les contacts',
+            tooltip: AppLocalizations.of(context)!.manageContacts,
           ),
           PopupMenuButton<String>(
             icon: Icon(Icons.more_vert),
@@ -145,13 +155,16 @@ class _ContactListScreenState extends State<ContactListScreen> {
             itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
               PopupMenuItem<String>(
                 value: "settings",
-                child: ListTile(leading: Icon(Icons.settings), title: Text(AppLocalizations.of(context)!.settings)),
-
+                child: ListTile(
+                    leading: Icon(Icons.settings),
+                    title: Text(AppLocalizations.of(context)!.settings)),
               ),
-
-              PopupMenuItem<String>( // NOUVEAU
+              PopupMenuItem<String>(
+                // NOUVEAU
                 value: 'sync',
-                child: ListTile(leading: Icon(Icons.sync), title: Text(AppLocalizations.of(context)!.syncTitle)),
+                child: ListTile(
+                    leading: Icon(Icons.sync),
+                    title: Text(AppLocalizations.of(context)!.syncTitle)),
               ),
             ],
           ),
@@ -160,35 +173,45 @@ class _ContactListScreenState extends State<ContactListScreen> {
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : RefreshIndicator(
-        onRefresh: _loadDataAndSync,
-        child: _contacts.isEmpty
-            ? Center(child: Text(AppLocalizations.of(context)!.noContactsYet))
-            : Padding(
-          padding: const EdgeInsets.all(1.0), // Add some padding around the wrap
-            child: LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints constraints) {
-            final double screenWidth = constraints.maxWidth;
-            // You can adjust these values based on your desired minimum/maximum tile width
-            final double tileWidth = screenWidth < 500.0 ?screenWidth :(screenWidth *0.95)  / (screenWidth *0.95/500).round(); // Minimum width for a contact tile
+              onRefresh: _loadDataAndSync,
+              child: _contacts.isEmpty
+                  ? Center(
+                      child: Text(AppLocalizations.of(context)!.noContactsYet))
+                  : Padding(
+                      padding: const EdgeInsets.all(1.0),
+                      // Add some padding around the wrap
+                      child: LayoutBuilder(
+                        builder:
+                            (BuildContext context, BoxConstraints constraints) {
+                          final double screenWidth = constraints.maxWidth;
+                          // You can adjust these values based on your desired minimum/maximum tile width
+                          final double tileWidth = screenWidth < 500.0
+                              ? screenWidth
+                              : (screenWidth * 0.95) /
+                                  (screenWidth * 0.95 / 500)
+                                      .round(); // Minimum width for a contact tile
 
-
-          return Wrap(
-            spacing: 1.0, // horizontal spacing between items
-            runSpacing: 1.0, // vertical spacing between lines
-            alignment: WrapAlignment.spaceAround, // Align items in the center
-            children: _contacts.map((contact) {
-              return SizedBox(
-                width: tileWidth, // Set the calculated width for each tile
-                height: 110, // Set the calculated width for each tile
-                child: ContactTile(contact: contact),
-              );
-            }).toList(),
-            );
-          },
-
-          ),
-        ),
-      ),
+                          return Wrap(
+                            spacing: 1.0,
+                            // horizontal spacing between items
+                            runSpacing: 1.0,
+                            // vertical spacing between lines
+                            alignment: WrapAlignment.spaceAround,
+                            // Align items in the center
+                            children: _contacts.map((contact) {
+                              return SizedBox(
+                                width:
+                                    tileWidth, // Set the calculated width for each tile
+                                height:
+                                    110, // Set the calculated width for each tile
+                                child: ContactTile(contact: contact),
+                              );
+                            }).toList(),
+                          );
+                        },
+                      ),
+                    ),
+            ),
       floatingActionButton: SpeedDial(
         icon: Icons.menu,
         activeIcon: Icons.close,
@@ -201,7 +224,7 @@ class _ContactListScreenState extends State<ContactListScreen> {
             child: const Icon(Icons.share),
             backgroundColor: Colors.blue,
             foregroundColor: Colors.white,
-            label: 'Inviter un contact',
+            label: AppLocalizations.of(context)!.inviteContact,
             shape: const CircleBorder(),
             onTap: _generateInvitation,
           ),
@@ -209,7 +232,7 @@ class _ContactListScreenState extends State<ContactListScreen> {
             child: const Icon(Icons.group_add),
             backgroundColor: Colors.green,
             foregroundColor: Colors.white,
-            label: 'Ajouter via un code',
+            label: AppLocalizations.of(context)!.addByCode,
             shape: const CircleBorder(),
             onTap: _showAddContactDialog,
           ),

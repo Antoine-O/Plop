@@ -52,6 +52,7 @@ class _ManageContactsScreenState extends State<ManageContactsScreen> {
     setState(() => contact.isHidden = !(contact.isHidden ?? false));
     await _databaseService.updateContact(contact);
   }
+
   void _reorderContacts(int oldIndex, int newIndex) {
     setState(() {
       if (newIndex > oldIndex) newIndex -= 1;
@@ -63,22 +64,27 @@ class _ManageContactsScreenState extends State<ManageContactsScreen> {
   }
 
   void _openAdvancedSettings(Contact contact) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => AdvancedContactSettingsScreen(contactKey: contact.key),
-      ),
-    ).then((_) => _loadContacts());
+    Navigator.of(context)
+        .push(
+          MaterialPageRoute(
+            builder: (context) =>
+                AdvancedContactSettingsScreen(contactKey: contact.key),
+          ),
+        )
+        .then((_) => _loadContacts());
   }
 
   void _showAddContactDialog() {
     showDialog(
       context: context,
-      builder: (context) => AddContactDialog(myUserId: _userService.userId!, myPseudo: _userService.username!),
+      builder: (context) => AddContactDialog(
+          myUserId: _userService.userId!, myPseudo: _userService.username!),
     ).then((_) => _loadContacts());
   }
 
   void _generateInvitation() async {
-    final invitationData = await _invitationService.createInvitationCode(_userService.userId!, _userService.username!);
+    final invitationData = await _invitationService.createInvitationCode(
+        _userService.userId!, _userService.username!);
     if (invitationData != null && mounted) {
       showDialog(
         context: context,
@@ -88,7 +94,8 @@ class _ManageContactsScreenState extends State<ManageContactsScreen> {
         ),
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur: Impossible de générer un code.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context)!.errorGeneratingCode)));
     }
   }
 
@@ -103,12 +110,16 @@ class _ManageContactsScreenState extends State<ManageContactsScreen> {
             SizedBox(height: 20),
             Text(
               AppLocalizations.of(context)!.startByAddingContactTitle, // AFTER
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context)
+                  .textTheme
+                  .headlineSmall
+                  ?.copyWith(fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 10),
             Text(
-              AppLocalizations.of(context)!.startByAddingContactSubtitle, // AFTER
+              AppLocalizations.of(context)!.startByAddingContactSubtitle,
+              // AFTER
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyLarge,
             ),
@@ -147,79 +158,98 @@ class _ManageContactsScreenState extends State<ManageContactsScreen> {
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : _contacts.isEmpty
-          ? _buildEmptyState()
-          : ReorderableListView(
-        padding: const EdgeInsets.all(8.0),
-        header: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Text(AppLocalizations.of(context)!.reorderListHint),
-        ),
-        onReorder: _reorderContacts,
-        children: _contacts.map((contact) {
-          final bool hasCustomAlias = contact.alias.isNotEmpty && contact.alias != contact.originalPseudo;
-          final String primaryName = hasCustomAlias ? contact.alias : contact.originalPseudo;
-          final String? secondaryName = hasCustomAlias ? contact.originalPseudo : null;
+              ? _buildEmptyState()
+              : ReorderableListView(
+                  padding: const EdgeInsets.all(8.0),
+                  header: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(AppLocalizations.of(context)!.reorderListHint),
+                  ),
+                  onReorder: _reorderContacts,
+                  children: _contacts.map((contact) {
+                    final bool hasCustomAlias = contact.alias.isNotEmpty &&
+                        contact.alias != contact.originalPseudo;
+                    final String primaryName =
+                        hasCustomAlias ? contact.alias : contact.originalPseudo;
+                    final String? secondaryName =
+                        hasCustomAlias ? contact.originalPseudo : null;
 
-          return Card(
-            key: Key(contact.userId),
-            child: ListTile(
-              leading: CircleAvatar(
-                backgroundColor: Color(contact.colorValue),
-                child: Text(primaryName.isNotEmpty ? primaryName[0].toUpperCase() : '?'),
-              ),
-              title: Text(primaryName, style: TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: secondaryName != null
-                  ? Text("($secondaryName)", style: TextStyle(color: Colors.grey.shade600, fontSize: 12))
-                  : null,
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: Icon((contact.isMuted ?? false) ? Icons.volume_off : Icons.volume_up, color: Colors.grey),
-                    onPressed: () => _toggleMute(contact),
-                    tooltip: 'Mettre en sourdine',
-                  ),
-                  IconButton(
-                    icon: Icon((contact.isHidden ?? false) ? Icons.visibility_off : Icons.visibility, color: Colors.grey),
-                    onPressed: () => _toggleHidden(contact),
-                    tooltip: 'Cacher le contact',
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.edit_note, color: Theme.of(context).primaryColor),
-                    onPressed: () => _openAdvancedSettings(contact),
-                    tooltip: 'Paramètres avancés',
-                  ),
-                ],
-              ),
-            ),
-          );
-        }).toList(),
-      ),
+                    return Card(
+                      key: Key(contact.userId),
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: Color(contact.colorValue),
+                          child: Text(primaryName.isNotEmpty
+                              ? primaryName[0].toUpperCase()
+                              : '?'),
+                        ),
+                        title: Text(primaryName,
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle: secondaryName != null
+                            ? Text("($secondaryName)",
+                                style: TextStyle(
+                                    color: Colors.grey.shade600, fontSize: 12))
+                            : null,
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: Icon(
+                                  (contact.isMuted ?? false)
+                                      ? Icons.volume_off
+                                      : Icons.volume_up,
+                                  color: Colors.grey),
+                              onPressed: () => _toggleMute(contact),
+                              tooltip:  AppLocalizations.of(context)!.tooltipMuteContact,
+                            ),
+                            IconButton(
+                              icon: Icon(
+                                  (contact.isHidden ?? false)
+                                      ? Icons.visibility_off
+                                      : Icons.visibility,
+                                  color: Colors.grey),
+                              onPressed: () => _toggleHidden(contact),
+                              tooltip:  AppLocalizations.of(context)!.tooltipHideContact,
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.edit_note,
+                                  color: Theme.of(context).primaryColor),
+                              onPressed: () => _openAdvancedSettings(contact),
+                              tooltip:  AppLocalizations.of(context)!.advancedSettings,
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
       floatingActionButton: _contacts.isNotEmpty
           ? SpeedDial(
-        icon: Icons.menu,
-        activeIcon: Icons.close,
-        backgroundColor: Theme.of(context).primaryColor,
-        foregroundColor: Colors.white,
-        visible: true,
-        curve: Curves.bounceIn,
-        children: [
-          SpeedDialChild(
-            child: const Icon(Icons.share),
-            backgroundColor: Colors.blue,
-            foregroundColor: Colors.white,
-            label: AppLocalizations.of(context)!.inviteContact, // Localized
-            onTap: _generateInvitation,
-          ),
-          SpeedDialChild(
-            child: const Icon(Icons.group_add),
-            backgroundColor: Colors.green,
-            foregroundColor: Colors.white,
-            label: AppLocalizations.of(context)!.addViaCode, // Localized
-            onTap: _showAddContactDialog,
-          ),
-        ],
-      )
+              icon: Icons.menu,
+              activeIcon: Icons.close,
+              backgroundColor: Theme.of(context).primaryColor,
+              foregroundColor: Colors.white,
+              visible: true,
+              curve: Curves.bounceIn,
+              children: [
+                SpeedDialChild(
+                  child: const Icon(Icons.share),
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                  label: AppLocalizations.of(context)!.inviteContact,
+                  // Localized
+                  onTap: _generateInvitation,
+                ),
+                SpeedDialChild(
+                  child: const Icon(Icons.group_add),
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                  label: AppLocalizations.of(context)!.addViaCode,
+                  // Localized
+                  onTap: _showAddContactDialog,
+                ),
+              ],
+            )
           : null,
     );
   }

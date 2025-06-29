@@ -13,13 +13,15 @@ class AppConfig {
   static String get websocketUrl {
     return dotenv.env['WEBSOCKET_URL'] ?? 'ws://localhost:8080';
   }
+
   static String getDefaultPlopMessage(BuildContext? context) {
     // Récupère la langue du système (ex: "fr_FR" -> "fr")
     String languageCode;
 
     if (context != null) {
       final locale = Provider.of<LocaleProvider>(context, listen: false).locale;
-      languageCode = locale?.languageCode ?? Platform.localeName.split('_').first;
+      languageCode =
+          locale?.languageCode ?? Platform.localeName.split('_').first;
     } else {
       languageCode = Platform.localeName.split('_').first;
     }

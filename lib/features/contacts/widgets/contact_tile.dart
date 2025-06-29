@@ -48,7 +48,8 @@ class _ContactTileState extends State<ContactTile>
     );
 
     // This listener now correctly reloads state to show incoming messages
-    _messageSubscription = _webSocketService.messageUpdates.listen((update) async{
+    _messageSubscription =
+        _webSocketService.messageUpdates.listen((update) async {
       if (!mounted) return;
       if (update['userId'] == _contact.userId) {
         final freshContact = _databaseService.getContact(_contact.userId);
@@ -93,7 +94,6 @@ class _ContactTileState extends State<ContactTile>
   void _sendCustomMessage(String message) async {
     if (_inCooldown) return;
 
-
     setState(() {
       _contact.lastMessageSent = message;
       _contact.lastMessageSentStatus = MessageStatus.sending;
@@ -104,10 +104,7 @@ class _ContactTileState extends State<ContactTile>
     await _contact.save();
     try {
       _webSocketService.sendMessage(
-          type: 'plop',
-          to: _contact.userId,
-          payload: message,
-          isDefault: true);
+          type: 'plop', to: _contact.userId, payload: message, isDefault: true);
 
       _startCooldown();
 
@@ -176,16 +173,15 @@ class _ContactTileState extends State<ContactTile>
     return DateFormat.Hm(locale).format(timestamp);
   }
 
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!; // Get the localization instance
     final bool hasCustomAlias =
         _contact.alias.isNotEmpty && _contact.alias != _contact.originalPseudo;
     final String primaryName =
-    hasCustomAlias ? _contact.alias : _contact.originalPseudo;
+        hasCustomAlias ? _contact.alias : _contact.originalPseudo;
     final String? secondaryName =
-    hasCustomAlias ? _contact.originalPseudo : null;
+        hasCustomAlias ? _contact.originalPseudo : null;
 
     return AbsorbPointer(
       absorbing: _inCooldown,
@@ -222,9 +218,11 @@ class _ContactTileState extends State<ContactTile>
                                 if (_inCooldown)
                                   AnimatedBuilder(
                                     animation: _cooldownProgressController,
-                                    builder: (context, child) => Positioned.fill(
+                                    builder: (context, child) =>
+                                        Positioned.fill(
                                       child: CircularProgressIndicator(
-                                        value: _cooldownProgressController.value,
+                                        value:
+                                            _cooldownProgressController.value,
                                         strokeWidth: 2.0,
                                         color: Colors.white.withAlpha(200),
                                       ),
@@ -276,18 +274,13 @@ class _ContactTileState extends State<ContactTile>
                   ),
                   Positioned(
                     top: 0,
-                    right:0,
+                    right: 0,
                     child: IconButton(
-                      icon: Icon(
-                          _isMuted ? Icons.volume_off : Icons.volume_up,
+                      icon: Icon(_isMuted ? Icons.volume_off : Icons.volume_up,
                           size: 20,
-                          color: _isMuted
-                              ? Colors.red
-                              : Colors.grey.shade900),
+                          color: _isMuted ? Colors.red : Colors.grey.shade900),
                       onPressed: _toggleMute,
-                      tooltip: _isMuted
-                          ? l10n.unmuteTooltip
-                          : l10n.muteTooltip,
+                      tooltip: _isMuted ? l10n.unmuteTooltip : l10n.muteTooltip,
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                     ),
@@ -300,7 +293,6 @@ class _ContactTileState extends State<ContactTile>
       ),
     );
   }
-
 
   Widget _buildMessageBubble(BuildContext context) {
     return Container(
@@ -344,7 +336,6 @@ class _ContactTileState extends State<ContactTile>
             style: const TextStyle(color: Colors.black87),
             overflow: TextOverflow.ellipsis,
           ),
-
           if (_contact.lastMessageSentStatus != null)
             _buildStatusIndicator(context, _contact.lastMessageSentStatus!),
         ],
@@ -407,17 +398,17 @@ class _ContactTileState extends State<ContactTile>
     );
 
     // Si le statut est "échec" et qu'il y a un message d'erreur, on l'englobe dans un Tooltip
-    if (status == MessageStatus.failed && _contact.lastMessageSentError != null) {
+    if (status == MessageStatus.failed &&
+        _contact.lastMessageSentError != null) {
       return Tooltip(
         message: _contact.lastMessageSentError!,
         child: statusWidget,
       );
-    }else{
+    } else {
       return Tooltip(
         message: text,
         child: statusWidget,
       );
-
     }
 
     // return statusWidget; // Sinon, on retourne le widget de base

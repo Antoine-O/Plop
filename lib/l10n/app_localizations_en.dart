@@ -468,4 +468,65 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addViaCode => 'Add via code';
+
+  @override
+  String get usernameUpdated => 'Username updated!';
+
+  @override
+  String get myUserIdDebug => 'My User ID (for debugging)';
+
+  @override
+  String get wsServerTitle => 'WS Server';
+
+  @override
+  String get httpServerTitle => 'HTTP Server';
+
+  @override
+  String get resetButtonAction => 'RESET';
+
+  @override
+  String invitationShareText(String invitationCode) {
+    return 'My Plop invitation code is: $invitationCode';
+  }
+
+  @override
+  String get errorGeneratingCode => 'Error: Could not generate code.';
+
+  @override
+  String get tooltipGlobalMute => 'Global mute mode';
+
+  @override
+  String errorDuringDeletion(String error) {
+    return 'Error during deletion: $error';
+  }
+
+  @override
+  String get tooltipMuteContact => 'Mute contact';
+
+  @override
+  String get tooltipHideContact => 'Hide contact';
+
+  @override
+  String get tooltipAdvancedSettings => 'Advanced settings';
+
+  @override
+  String syncCodeShareText(String generatedCode) {
+    return 'My Plop synchronization code is: $generatedCode';
+  }
+
+  @override
+  String get importAccountButtonLabel => 'Import an account';
+
+  @override
+  String get defaultImportedUsername => 'Imported User';
+
+  @override
+  String selectedFileDisplay(String fileName) {
+    return 'Selected file: $fileName';
+  }
+
+  @override
+  String criticalStartupError(String error, String stackTrace) {
+    return 'Critical error during startup:\n\n$error\n\n$stackTrace';
+  }
 }

@@ -961,6 +961,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add via code'**
   String get addViaCode;
+
+  /// No description provided for @usernameUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Username updated!'**
+  String get usernameUpdated;
+
+  /// No description provided for @myUserIdDebug.
+  ///
+  /// In en, this message translates to:
+  /// **'My User ID (for debugging)'**
+  String get myUserIdDebug;
+
+  /// No description provided for @wsServerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'WS Server'**
+  String get wsServerTitle;
+
+  /// No description provided for @httpServerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'HTTP Server'**
+  String get httpServerTitle;
+
+  /// No description provided for @resetButtonAction.
+  ///
+  /// In en, this message translates to:
+  /// **'RESET'**
+  String get resetButtonAction;
+
+  /// Text used when sharing an invitation code
+  ///
+  /// In en, this message translates to:
+  /// **'My Plop invitation code is: {invitationCode}'**
+  String invitationShareText(String invitationCode);
+
+  /// No description provided for @errorGeneratingCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: Could not generate code.'**
+  String get errorGeneratingCode;
+
+  /// No description provided for @tooltipGlobalMute.
+  ///
+  /// In en, this message translates to:
+  /// **'Global mute mode'**
+  String get tooltipGlobalMute;
+
+  /// Error message shown when contact deletion fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Error during deletion: {error}'**
+  String errorDuringDeletion(String error);
+
+  /// No description provided for @tooltipMuteContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute contact'**
+  String get tooltipMuteContact;
+
+  /// No description provided for @tooltipHideContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide contact'**
+  String get tooltipHideContact;
+
+  /// No description provided for @tooltipAdvancedSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced settings'**
+  String get tooltipAdvancedSettings;
+
+  /// Text used when sharing a Plop synchronization code
+  ///
+  /// In en, this message translates to:
+  /// **'My Plop synchronization code is: {generatedCode}'**
+  String syncCodeShareText(String generatedCode);
+
+  /// No description provided for @importAccountButtonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Import an account'**
+  String get importAccountButtonLabel;
+
+  /// No description provided for @defaultImportedUsername.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported User'**
+  String get defaultImportedUsername;
+
+  /// Text displaying the name of the selected backup file.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected file: {fileName}'**
+  String selectedFileDisplay(String fileName);
+
+  /// Error message displayed if the app fails to initialize.
+  ///
+  /// In en, this message translates to:
+  /// **'Critical error during startup:\n\n{error}\n\n{stackTrace}'**
+  String criticalStartupError(String error, String stackTrace);
 }
 
 class _AppLocalizationsDelegate

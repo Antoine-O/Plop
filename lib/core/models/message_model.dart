@@ -10,9 +10,7 @@ class MessageModel extends HiveObject {
   @HiveField(1)
   String text;
 
-  MessageModel(
-      {required this.id,
-      required this.text});
+  MessageModel({required this.id, required this.text});
 
   factory MessageModel.fromJson(Map<String, dynamic> json) {
     return MessageModel(
@@ -20,7 +18,6 @@ class MessageModel extends HiveObject {
       text: json['text'],
     );
   }
-
 
   Map<String, dynamic> toJson() {
     return {

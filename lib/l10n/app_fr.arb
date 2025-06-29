@@ -175,7 +175,8 @@
   "noBackupFileFound": "Aucun fichier de sauvegarde trouvé.",
   "@noBackupFileFound": {
     "description": "Message affiché si le fichier de sauvegarde par défaut n'existe pas"
-  },  "restoreYourAccount": "Restaurez votre compte",
+  },
+  "restoreYourAccount": "Restaurez votre compte",
   "@restoreYourAccount": {
     "description": "Titre pour l'écran de restauration de compte"
   },
@@ -190,7 +191,8 @@
   "selectBackupFile": "Sélectionner le fichier de sauvegarde",
   "@selectBackupFile": {
     "description": "Label pour le bouton qui ouvre le sélecteur de fichier pour choisir une sauvegarde"
-  },"deleteContact": "Supprimer le contact",
+  },
+  "deleteContact": "Supprimer le contact",
   "@deleteContact": {
     "description": "Texte du bouton pour supprimer un contact"
   },
@@ -209,15 +211,65 @@
   "contactDeletedSuccessfully": "Contact supprimé avec succès",
   "@contactDeletedSuccessfully": {
     "description": "Message de confirmation affiché après qu'un contact a été supprimé avec succès"
-  },    "muteTooltip": "Mettre en sourdine",
+  },
+  "muteTooltip": "Mettre en sourdine",
   "unmuteTooltip": "Réactiver le son",
   "statusSending": "Envoi...",
   "statusSent": "Envoyé",
   "statusAcknowledged": "Lu",
   "statusDistributed": "Distribué",
   "statusFailed": "Échec",
-  "statusPending":"En attente",
+  "statusPending": "En attente",
   "startByAddingContactTitle": "Commencez par ajouter un contact",
   "startByAddingContactSubtitle": "Invitez un ami ou entrez son code pour commencer à plopper.",
-  "addViaCode": "Ajouter via un code"
+  "addViaCode": "Ajouter via un code",    "usernameUpdated": "Pseudo mis à jour !",    "myUserIdDebug": "Mon User ID (pour le débogage)",    "wsServerTitle": "Serveur WS",    "httpServerTitle": "Serveur HTTP",    "resetButtonAction": "RÉINITIALISER","invitationShareText": "Mon code d'invitation Plop est : {invitationCode}",
+  "@invitationShareText": {
+    "description": "Texte utilisé lors du partage d'un code d'invitation",
+    "placeholders": {
+      "invitationCode": {
+        "type": "String",
+        "example": "ABC123"
+      }
+    }
+  },    "errorGeneratingCode": "Erreur: Impossible de générer un code.",    "tooltipGlobalMute": "Mode silencieux global","errorDuringDeletion": "Erreur lors de la suppression : {error}",
+  "@errorDuringDeletion": {
+    "description": "Message d'erreur affiché lorsque la suppression du contact échoue.",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Base de données indisponible"
+      }
+    }
+  },"tooltipMuteContact": "Mettre en sourdine le contact","tooltipHideContact": "Cacher le contact","tooltipAdvancedSettings": "Paramètres avancés",    "syncCodeShareText": "Mon code de synchronisation Plop est : {generatedCode}",
+  "@syncCodeShareText": {
+    "description": "Texte utilisé lors du partage d'un code de synchronisation Plop",
+    "placeholders": {
+      "generatedCode": {
+        "type": "String",
+        "example": "XYZ789"
+      }
+    }
+  },    "importAccountButtonLabel": "Importer un compte","defaultImportedUsername": "Utilisateur importé",        "selectedFileDisplay": "Fichier sélectionné : {fileName}",
+  "@selectedFileDisplay": {
+    "description": "Texte affichant le nom du fichier de sauvegarde sélectionné.",
+    "placeholders": {
+      "fileName": {
+        "type": "String",
+        "example": "plop_backup.json"
+      }
+    }
+  },    "criticalStartupError": "Erreur critique lors du démarrage :\n\n{error}\n\n{stackTrace}",
+  "@criticalStartupError": {
+    "description": "Message d'erreur affiché si l'application ne parvient pas à s'initialiser.",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Échec de la connexion au serveur."
+      },
+      "stackTrace": {
+        "type": "String",
+        "example": "main.dart:102 Exception..."
+      }
+    }
+  }
 }

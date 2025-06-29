@@ -471,4 +471,65 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get addViaCode => 'Añadir mediante código';
+
+  @override
+  String get usernameUpdated => '¡Nombre de usuario actualizado!';
+
+  @override
+  String get myUserIdDebug => 'Mi ID de Usuario (para depuración)';
+
+  @override
+  String get wsServerTitle => 'Servidor WS';
+
+  @override
+  String get httpServerTitle => 'Servidor HTTP';
+
+  @override
+  String get resetButtonAction => 'REINICIAR';
+
+  @override
+  String invitationShareText(String invitationCode) {
+    return 'Mi código de invitación de Plop es: $invitationCode';
+  }
+
+  @override
+  String get errorGeneratingCode => 'Error: No se pudo generar el código.';
+
+  @override
+  String get tooltipGlobalMute => 'Modo silencio global';
+
+  @override
+  String errorDuringDeletion(String error) {
+    return 'Error durante la eliminación: $error';
+  }
+
+  @override
+  String get tooltipMuteContact => 'Silenciar contacto';
+
+  @override
+  String get tooltipHideContact => 'Ocultar contacto';
+
+  @override
+  String get tooltipAdvancedSettings => 'Ajustes avanzados';
+
+  @override
+  String syncCodeShareText(String generatedCode) {
+    return 'Mi código de sincronización de Plop es: $generatedCode';
+  }
+
+  @override
+  String get importAccountButtonLabel => 'Import an account';
+
+  @override
+  String get defaultImportedUsername => 'Usuario importado';
+
+  @override
+  String selectedFileDisplay(String fileName) {
+    return 'Archivo seleccionado: $fileName';
+  }
+
+  @override
+  String criticalStartupError(String error, String stackTrace) {
+    return 'Error crítico durante el inicio:\n\n$error\n\n$stackTrace';
+  }
 }

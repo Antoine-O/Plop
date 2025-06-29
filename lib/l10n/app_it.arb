@@ -215,8 +215,57 @@
   "statusAcknowledged": "Ricevuto",
   "statusFailed": "Fallito",
   "statusDistributed": "Distribuito",
-  "statusPending":"In attesa",
+  "statusPending": "In attesa",
   "startByAddingContactTitle": "Inizia aggiungendo un contatto",
   "startByAddingContactSubtitle": "Invita un amico o inserisci il suo codice per iniziare a ploppare.",
-  "addViaCode": "Aggiungi tramite codice"
+  "addViaCode": "Aggiungi tramite codice",    "usernameUpdated": "Nome utente aggiornato!",    "myUserIdDebug": "Il mio ID Utente (per debug)",    "wsServerTitle": "Server WS",    "httpServerTitle": "Server HTTP",    "resetButtonAction": "REIMPOSTA","invitationShareText": "Il mio codice d'invito Plop è: {invitationCode}",
+  "@invitationShareText": {
+    "description": "Testo utilizzato quando si condivide un codice d'invito",
+    "placeholders": {
+      "invitationCode": {
+        "type": "String",
+        "example": "ABC123"
+      }
+    }
+  },    "errorGeneratingCode": "Errore: Impossibile generare il codice.",    "tooltipGlobalMute": "Modalità silenziosa globale","errorDuringDeletion": "Errore durante l'eliminazione: {error}",
+  "@errorDuringDeletion": {
+    "description": "Messaggio di errore visualizzato quando l'eliminazione del contatto fallisce.",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Database non disponibile"
+      }
+    }
+  },"tooltipMuteContact": "Silenzia contatto","tooltipHideContact": "Nascondi contatto","tooltipAdvancedSettings": "Impostazioni avanzate",    "syncCodeShareText": "Il mio codice di sincronizzazione Plop è: {generatedCode}",
+  "@syncCodeShareText": {
+    "description": "Testo utilizzato quando si condivide un codice di sincronizzazione Plop",
+    "placeholders": {
+      "generatedCode": {
+        "type": "String",
+        "example": "XYZ789"
+      }
+    }
+  },    "importAccountButtonLabel": "Importa un account","defaultImportedUsername": "Utente importato",        "selectedFileDisplay": "File selezionato: {fileName}",
+  "@selectedFileDisplay": {
+    "description": "Testo che visualizza il nome del file di backup selezionato.",
+    "placeholders": {
+      "fileName": {
+        "type": "String",
+        "example": "plop_backup.json"
+      }
+    }
+  },    "criticalStartupError": "Errore critico durante l'avvio:\n\n{error}\n\n{stackTrace}",
+  "@criticalStartupError": {
+    "description": "Messaggio di errore visualizzato se l'applicazione non si inizializza.",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Impossibile connettersi al server."
+      },
+      "stackTrace": {
+        "type": "String",
+        "example": "main.dart:102 Exception..."
+      }
+    }
+  }
 }

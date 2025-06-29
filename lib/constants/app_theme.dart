@@ -12,7 +12,8 @@ class AppTheme {
   // --- THÈME CLAIR ---
   static final ThemeData lightTheme = ThemeData(
     useMaterial3: true,
-    fontFamily: 'Inter', // Utilise la police que nous avons ajoutée
+    fontFamily: 'Inter',
+    // Utilise la police que nous avons ajoutée
     colorScheme: ColorScheme.fromSeed(
       seedColor: _primaryColor,
       brightness: Brightness.light,
@@ -35,7 +36,6 @@ class AppTheme {
       ),
     ),
   );
-
 
   // --- THÈME SOMBRE ---
   static final ThemeData darkTheme = ThemeData(

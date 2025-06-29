@@ -33,7 +33,7 @@ class _RestoreBackupScreenState extends State<RestoreBackupScreen> {
         // Succès : naviguer vers l'écran principal
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const ContactListScreen()),
-              (route) => false,
+          (route) => false,
         );
       } else {
         // Échec : afficher le message d'erreur
@@ -48,10 +48,12 @@ class _RestoreBackupScreenState extends State<RestoreBackupScreen> {
       setState(() => _isLoading = false);
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(AppLocalizations.of(context)!.restoreFromBackup)),
+      appBar:
+          AppBar(title: Text(AppLocalizations.of(context)!.restoreFromBackup)),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -60,11 +62,15 @@ class _RestoreBackupScreenState extends State<RestoreBackupScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Icon(Icons.settings_backup_restore, size: 80, color: Theme.of(context).primaryColor),
+                Icon(Icons.settings_backup_restore,
+                    size: 80, color: Theme.of(context).primaryColor),
                 const SizedBox(height: 24),
                 Text(
                   AppLocalizations.of(context)!.restoreYourAccount,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                  style: Theme.of(context)
+                      .textTheme
+                      .headlineSmall
+                      ?.copyWith(fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
@@ -76,14 +82,15 @@ class _RestoreBackupScreenState extends State<RestoreBackupScreen> {
                 _isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : ElevatedButton.icon(
-                  // MODIFICATION : Appelle la nouvelle fonction de "contrôle"
-                  onPressed: _handleRestore,
-                  icon: const Icon(Icons.folder_open),
-                  label: Text(AppLocalizations.of(context)!.selectBackupFile),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                ),
+                        // MODIFICATION : Appelle la nouvelle fonction de "contrôle"
+                        onPressed: _handleRestore,
+                        icon: const Icon(Icons.folder_open),
+                        label: Text(
+                            AppLocalizations.of(context)!.selectBackupFile),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
+                      ),
               ],
             ),
           ),

@@ -36,7 +36,7 @@ class MyHttpOverrides extends HttpOverrides {
 
 // 1. Initialiser le plugin de notifications locales
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-FlutterLocalNotificationsPlugin();
+    FlutterLocalNotificationsPlugin();
 
 Future<void> initializationHive() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -76,8 +76,7 @@ void onStart(ServiceInstance service) async {
   }
 }
 
-
-Future<Object>  connectToApi() async {
+Future<Object> connectToApi() async {
   // Récupère l'URL compilée
   final String apiUrl = "${AppConfig.baseUrl}/ping";
   debugPrint(
@@ -94,8 +93,7 @@ Future<Object>  connectToApi() async {
   }
 }
 
-
-Future<Object>  connectToName() async {
+Future<Object> connectToName() async {
   // Récupère l'URL compilée
   final String apiUrl = "https://www.google.com";
   debugPrint(
@@ -162,7 +160,8 @@ class _AppLoaderState extends State<AppLoader> {
   @override
   void initState() {
     super.initState();
-    debugPrint("[AppLoader] initState: Démarrage de l'initialisation des services.");
+    debugPrint(
+        "[AppLoader] initState: Démarrage de l'initialisation des services.");
     _initializationFuture = _initializeServices();
   }
 
@@ -177,7 +176,8 @@ class _AppLoaderState extends State<AppLoader> {
     debugPrint("[AppLoader] _initializeServices: Hive initialisé.");
     await initializeDateFormatting(
         'fr_FR', null); // Initialisation de la localisation
-    debugPrint("[AppLoader] _initializeServices: Formatage des dates initialisé pour fr_FR.");
+    debugPrint(
+        "[AppLoader] _initializeServices: Formatage des dates initialisé pour fr_FR.");
 
     // Enregistrement des adaptateurs Hive
     // Hive.registerAdapter(ContactAdapter());
@@ -188,27 +188,37 @@ class _AppLoaderState extends State<AppLoader> {
     await DatabaseService().init();
     debugPrint("[AppLoader] _initializeServices: DatabaseService initialisé.");
     await NotificationService().init();
-    debugPrint("[AppLoader] _initializeServices: NotificationService initialisé.");
+    debugPrint(
+        "[AppLoader] _initializeServices: NotificationService initialisé.");
     final userService = UserService();
     await userService.init();
-    debugPrint("[AppLoader] _initializeServices: UserService initialisé. User has data: ${userService.hasUser()}");
+    debugPrint(
+        "[AppLoader] _initializeServices: UserService initialisé. User has data: ${userService.hasUser()}");
     await connectToIp();
-    debugPrint("[AppLoader] _initializeServices: Tentative de connexion à l'IP terminée.");
+    debugPrint(
+        "[AppLoader] _initializeServices: Tentative de connexion à l'IP terminée.");
     await connectToName();
-    debugPrint("[AppLoader] _initializeServices: Tentative de connexion au nom de domaine terminée.");
+    debugPrint(
+        "[AppLoader] _initializeServices: Tentative de connexion au nom de domaine terminée.");
     await connectToApi();
-    debugPrint("[AppLoader] _initializeServices: Tentative de connexion à l'API terminée.");
+    debugPrint(
+        "[AppLoader] _initializeServices: Tentative de connexion à l'API terminée.");
     // Retourne le service utilisateur pour le passer à l'application
     if (userService.hasUser()) {
-      debugPrint("[AppLoader] _initializeServices: Utilisateur trouvé. Vérification des notifications et envoi du token FCM.");
+      debugPrint(
+          "[AppLoader] _initializeServices: Utilisateur trouvé. Vérification des notifications et envoi du token FCM.");
       await checkNotificationFromTerminatedState();
-      debugPrint("[AppLoader] _initializeServices: Vérification des notifications depuis l'état terminé, terminée.");
+      debugPrint(
+          "[AppLoader] _initializeServices: Vérification des notifications depuis l'état terminé, terminée.");
       await sendFcmTokenToServer();
-      debugPrint("[AppLoader] _initializeServices: Envoi du token FCM au serveur terminé.");
+      debugPrint(
+          "[AppLoader] _initializeServices: Envoi du token FCM au serveur terminé.");
     } else {
-      debugPrint("[AppLoader] _initializeServices: Aucun utilisateur trouvé. Aucune action spécifique pour l'utilisateur existant.");
+      debugPrint(
+          "[AppLoader] _initializeServices: Aucun utilisateur trouvé. Aucune action spécifique pour l'utilisateur existant.");
     }
-    debugPrint("[AppLoader] _initializeServices: Initialisation des services terminée.");
+    debugPrint(
+        "[AppLoader] _initializeServices: Initialisation des services terminée.");
     return userService;
   }
 
@@ -218,19 +228,26 @@ class _AppLoaderState extends State<AppLoader> {
     return FutureBuilder<UserService>(
       future: _initializationFuture,
       builder: (context, snapshot) {
-        debugPrint("[AppLoader] FutureBuilder: État de la connexion: ${snapshot.connectionState}");
+        debugPrint(
+            "[AppLoader] FutureBuilder: État de la connexion: ${snapshot.connectionState}");
         // CORRECTION : On vérifie d'abord s'il y a une erreur pour l'afficher.
         if (snapshot.hasError) {
-          debugPrint("[AppLoader] FutureBuilder: Erreur rencontrée: ${snapshot.error}");
-          debugPrintStack(stackTrace: snapshot.stackTrace, label: "[AppLoader] FutureBuilder StackTrace");
+          debugPrint(
+              "[AppLoader] FutureBuilder: Erreur rencontrée: ${snapshot.error}");
+          debugPrintStack(
+              stackTrace: snapshot.stackTrace,
+              label: "[AppLoader] FutureBuilder StackTrace");
           return MaterialApp(
             navigatorKey: navigatorKey,
             home: Scaffold(
               body: Center(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
-                  child: Text(
-                    'Erreur critique lors du démarrage :\n\n${snapshot.error}\n\n${snapshot.stackTrace}',
+                  child:  Text(
+                    AppLocalizations.of(context)!.criticalStartupError(
+                        snapshot.error.toString(), // Ensure error is a String
+                        snapshot.stackTrace.toString() // Ensure stackTrace is a String
+                    ),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -240,13 +257,15 @@ class _AppLoaderState extends State<AppLoader> {
         }
 
         if (snapshot.connectionState == ConnectionState.done) {
-          debugPrint("[AppLoader] FutureBuilder: Connexion terminée. Snapshot has data: ${snapshot.hasData}");
+          debugPrint(
+              "[AppLoader] FutureBuilder: Connexion terminée. Snapshot has data: ${snapshot.hasData}");
           // Si on arrive ici, snapshot.hasData est forcément vrai, car on a déjà géré le cas d'erreur.
           return MyApp(userService: snapshot.data!);
         }
 
         // Affiche un écran de chargement pendant l'initialisation
-        debugPrint("[AppLoader] FutureBuilder: Affichage de l'indicateur de chargement.");
+        debugPrint(
+            "[AppLoader] FutureBuilder: Affichage de l'indicateur de chargement.");
         return const MaterialApp(
           home: Scaffold(
             body: Center(
@@ -267,7 +286,8 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("[MyApp] build: Construction de l'interface utilisateur principale. L'utilisateur a des données: ${userService.hasUser()}");
+    debugPrint(
+        "[MyApp] build: Construction de l'interface utilisateur principale. L'utilisateur a des données: ${userService.hasUser()}");
     return MultiProvider(
         providers: [
           // On fournit l'instance de UserService qui a été initialisée dans AppLoader
@@ -278,21 +298,24 @@ class MyApp extends StatelessWidget {
               create: (_) => LocaleProvider()),
           Provider<WebSocketService>(
             create: (_) {
-              debugPrint("[MyApp] MultiProvider: Création de WebSocketService.");
+              debugPrint(
+                  "[MyApp] MultiProvider: Création de WebSocketService.");
               return WebSocketService();
             },
             // La méthode `dispose` du Provider appellera la méthode `dispose` de votre service.
             dispose: (_, service) {
-              debugPrint("[MyApp] MultiProvider: Suppression de WebSocketService.");
+              debugPrint(
+                  "[MyApp] MultiProvider: Suppression de WebSocketService.");
               service.dispose();
             },
           ),
         ],
         child: Consumer<LocaleProvider>(
           builder: (context, localeProvider, child) {
-            debugPrint("[MyApp] Consumer<LocaleProvider>: Construction de MaterialApp avec locale: ${localeProvider.locale}.");
+            debugPrint(
+                "[MyApp] Consumer<LocaleProvider>: Construction de MaterialApp avec locale: ${localeProvider.locale}.");
             return MaterialApp(
-              title: 'Plop',
+              title: AppLocalizations.of(context)!.appName,
               locale: localeProvider.locale,
               localizationsDelegates: const [
                 AppLocalizations.delegate,

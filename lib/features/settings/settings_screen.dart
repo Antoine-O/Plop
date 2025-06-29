@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 // import 'package:plop/core/models/contact_model.dart';
 import 'package:plop/core/models/message_model.dart';
 import 'package:plop/core/services/database_service.dart';
@@ -32,10 +33,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   // State
   late List<MessageModel> _messages;
+
   // List<Contact> _contacts = [];
   String? _userId;
   bool _isLoading = true;
-
 
   final String _backupFileName = 'plop_config_backup.json';
 
@@ -45,18 +46,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         setState(() {
-          _selectedLocale = Provider.of<LocaleProvider>(context, listen: false).locale;
+          _selectedLocale =
+              Provider.of<LocaleProvider>(context, listen: false).locale;
         });
       }
     });
     _loadAllData();
   }
+
   void _saveLocale() {
-    Provider.of<LocaleProvider>(context, listen: false).setLocale(_selectedLocale);
+    Provider.of<LocaleProvider>(context, listen: false)
+        .setLocale(_selectedLocale);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(AppLocalizations.of(context)!.languageUpdated)),
     );
   }
+
   Future<void> _loadAllData() async {
     setState(() => _isLoading = true);
     await _userService.init();
@@ -78,8 +83,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       });
     } else if (_messages.length >= 10) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(AppLocalizations.of(context)!.maxTenMessages)),
+        SnackBar(content: Text(AppLocalizations.of(context)!.maxTenMessages)),
       );
     }
   }
@@ -96,7 +100,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (newUsername.isNotEmpty && newUsername != _userService.username) {
       await _userService.updateUsername(newUsername);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Pseudo mis à jour !')),
+        SnackBar(content:  Text(AppLocalizations.of(context)!.usernameUpdated)),
       );
       FocusScope.of(context).unfocus(); // Ferme le clavier
     }
@@ -116,14 +120,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
   // }
   String _getLanguageName(BuildContext context, String code) {
     switch (code) {
-      case 'fr': return AppLocalizations.of(context)!.french;
-      case 'en': return AppLocalizations.of(context)!.english;
-      case 'de': return AppLocalizations.of(context)!.german;
-      case 'es': return AppLocalizations.of(context)!.spanish;
-      case 'it': return AppLocalizations.of(context)!.italian;
-      default: return code;
+      case 'fr':
+        return AppLocalizations.of(context)!.french;
+      case 'en':
+        return AppLocalizations.of(context)!.english;
+      case 'de':
+        return AppLocalizations.of(context)!.german;
+      case 'es':
+        return AppLocalizations.of(context)!.spanish;
+      case 'it':
+        return AppLocalizations.of(context)!.italian;
+      default:
+        return code;
     }
   }
+
   // Future<void> _deleteContact(String userId) async {
   //   final bool? confirm = await showDialog<bool>(
   //       context: context,
@@ -155,10 +166,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
           title: Text(AppLocalizations.of(context)!.resetApp),
           content: Text(AppLocalizations.of(context)!.resetWarning),
           actions: <Widget>[
-            TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(AppLocalizations.of(context)!.cancel)),
+            TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: Text(AppLocalizations.of(context)!.cancel)),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: Text('RÉINITIALISER', style: TextStyle(color: Colors.red)),
+              child: Text(AppLocalizations.of(context)!.resetButtonAction, style: TextStyle(color: Colors.red)),
             ),
           ],
         );
@@ -179,11 +192,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => SetupScreen()),
-            (Route<dynamic> route) => false,
+        (Route<dynamic> route) => false,
       );
     }
   }
-
 
   // void _openAdvancedSettings(Contact contact) {
   //   Navigator.of(context).push(
@@ -194,7 +206,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   // }
   @override
   Widget build(BuildContext context) {
-    final localeProvider = Provider.of<LocaleProvider>(context); if (!_isLocaleInitialized) {
+    final localeProvider = Provider.of<LocaleProvider>(context);
+    if (!_isLocaleInitialized) {
       _selectedLocale = localeProvider.locale;
       _isLocaleInitialized = true;
     }
@@ -230,14 +243,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   if (_userId != null)
                     ListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: Text('Mon User ID (pour le débogage)'),
+                      title: Text(AppLocalizations.of(context)!.myUserId ),
                       subtitle: Text(_userId!),
                       trailing: IconButton(
                         icon: Icon(Icons.copy),
                         onPressed: () {
                           Clipboard.setData(ClipboardData(text: _userId!));
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(AppLocalizations.of(context)!.userIdCopied)),
+                            SnackBar(
+                                content: Text(AppLocalizations.of(context)!
+                                    .userIdCopied)),
                           );
                         },
                       ),
@@ -246,23 +261,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   if (_userId != null)
                     ListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: Text('WS server'),
+                      title: Text(AppLocalizations.of(context)!.wsServerTitle),
                       subtitle: Text(dotenv.env['WEBSOCKET_URL']!),
-
                     ),
                   SizedBox(height: 10),
                   if (_userId != null)
                     ListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: Text('HTTP Server'),
+                      title: Text(AppLocalizations.of(context)!.httpServerTitle),
                       subtitle: Text(dotenv.env['BASE_URL']!),
-
                     ),
 
-                 Divider(height: 40),
+                  Divider(height: 40),
 
 // --- Section Langue ---
-                  Text(AppLocalizations.of(context)!.language, style: Theme.of(context).textTheme.titleLarge),
+                  Text(AppLocalizations.of(context)!.language,
+                      style: Theme.of(context).textTheme.titleLarge),
                   const SizedBox(height: 10),
                   Row(
                     children: [
@@ -272,17 +286,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           items: [
                             DropdownMenuItem(
                               value: null,
-                              child: Text(AppLocalizations.of(context)!.systemLanguage),
+                              child: Text(
+                                  AppLocalizations.of(context)!.systemLanguage),
                             ),
                             ...AppLocalizations.supportedLocales.map((locale) {
-                              final flag = {'en': '🇬🇧', 'fr': '🇫🇷', 'de': '🇩🇪', 'es': '🇪🇸', 'it': '🇮🇹'}[locale.languageCode];
+                              final flag = {
+                                'en': '🇬🇧',
+                                'fr': '🇫🇷',
+                                'de': '🇩🇪',
+                                'es': '🇪🇸',
+                                'it': '🇮🇹'
+                              }[locale.languageCode];
                               return DropdownMenuItem(
                                 value: locale,
                                 child: Row(
                                   children: [
                                     Text(flag ?? ''),
                                     const SizedBox(width: 8),
-                                    Text(_getLanguageName(context, locale.languageCode)),
+                                    Text(_getLanguageName(
+                                        context, locale.languageCode)),
                                   ],
                                 ),
                               );
@@ -301,13 +323,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       const SizedBox(width: 8),
                       IconButton(
                         icon: const Icon(Icons.check_circle_outline),
-                        onPressed: (_selectedLocale != localeProvider.locale) ? _saveLocale : null,
+                        onPressed: (_selectedLocale != localeProvider.locale)
+                            ? _saveLocale
+                            : null,
                         tooltip: AppLocalizations.of(context)!.save,
                         color: Theme.of(context).primaryColor,
                       )
                     ],
                   ),
-
 
                   Divider(height: 40),
                   // --- Section Messages Rapides ---
@@ -317,7 +340,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   TextField(
                     controller: _messageController,
                     decoration: InputDecoration(
-                      labelText: AppLocalizations.of(context)!.addNewQuickMessage,
+                      labelText:
+                          AppLocalizations.of(context)!.addNewQuickMessage,
                       border: OutlineInputBorder(),
                       suffixIcon: IconButton(
                         icon: Icon(Icons.add_circle),
@@ -329,7 +353,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     inputFormatters: [LengthLimitingTextInputFormatter(20)],
                   ),
                   SizedBox(height: 10),
-                  Text(AppLocalizations.of(context)!.yourMessages(_messages.length),
+                  Text(
+                      AppLocalizations.of(context)!
+                          .yourMessages(_messages.length),
                       style: Theme.of(context).textTheme.titleMedium),
                   Divider(),
                   ..._messages.map((message) => ListTile(
@@ -343,9 +369,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   if (_messages.isEmpty)
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 20.0),
-                      child: Center(child: Text(AppLocalizations.of(context)!.noMessagesConfigured)),
+                      child: Center(
+                          child: Text(AppLocalizations.of(context)!
+                              .noMessagesConfigured)),
                     ),
-
 
                   // --- Section Réinitialisation ---
                   TextButton(

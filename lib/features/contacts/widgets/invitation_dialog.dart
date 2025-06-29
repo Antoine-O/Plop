@@ -15,7 +15,7 @@ class InvitationDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final shareText = 'Mon code d\'invitation Plop est : $invitationCode';
+    final shareText = AppLocalizations.of(context)!.invitationShareText(invitationCode);
 
     return AlertDialog(
       title: Text(AppLocalizations.of(context)!.invitationDialogTitle),
@@ -35,7 +35,8 @@ class InvitationDialog extends StatelessWidget {
             ),
             child: SelectableText(
               invitationCode,
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 2),
+              style: TextStyle(
+                  fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 2),
             ),
           ),
         ],
@@ -44,12 +45,14 @@ class InvitationDialog extends StatelessWidget {
         TextButton(
           onPressed: () {
             Clipboard.setData(ClipboardData(text: invitationCode));
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.codeCopied)));
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(AppLocalizations.of(context)!.codeCopied)));
           },
           child: Text(AppLocalizations.of(context)!.copy),
         ),
         ElevatedButton(
-          onPressed: () => SharePlus.instance.share(ShareParams(text: shareText)),
+          onPressed: () =>
+              SharePlus.instance.share(ShareParams(text: shareText)),
           child: Text(AppLocalizations.of(context)!.share),
         ),
       ],

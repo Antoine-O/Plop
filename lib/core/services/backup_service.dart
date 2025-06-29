@@ -27,7 +27,8 @@ class BackupService {
     required DatabaseService databaseService,
     bool saveToUserSelectedLocation = true,
   }) async {
-    debugPrint("[BackupService] saveBackup: Initiating backup process. saveToUserSelectedLocation: $saveToUserSelectedLocation");
+    debugPrint(
+        "[BackupService] saveBackup: Initiating backup process. saveToUserSelectedLocation: $saveToUserSelectedLocation");
     try {
       // 1. Rassembler toutes les données
       final username = userService.username;
@@ -36,12 +37,14 @@ class BackupService {
         debugPrint("[BackupService] saveBackup: User data is not available.");
         return "Les données utilisateur ne sont pas disponibles.";
       }
-      debugPrint("[BackupService] saveBackup: User data collected. Username: $username, UserId: $userId");
+      debugPrint(
+          "[BackupService] saveBackup: User data collected. Username: $username, UserId: $userId");
 
       final messages = databaseService.getAllMessages();
       final contacts = await databaseService.getAllContactsOrdered();
       final contactsOrder = await databaseService.getContactsOrder();
-      debugPrint("[BackupService] saveBackup: Database data collected. Messages count: ${messages.length}, Contacts count: ${contacts.length}, Contacts order count: ${contactsOrder.length}");
+      debugPrint(
+          "[BackupService] saveBackup: Database data collected. Messages count: ${messages.length}, Contacts count: ${contacts.length}, Contacts order count: ${contactsOrder.length}");
 
       final Map<String, dynamic> configData = {
         'userId': userId,
@@ -52,36 +55,42 @@ class BackupService {
       };
 
       final jsonString = jsonEncode(configData);
-      debugPrint("[BackupService] saveBackup: Configuration data encoded to JSON.");
+      debugPrint(
+          "[BackupService] saveBackup: Configuration data encoded to JSON.");
 
       // 2. Écrire le fichier à l'emplacement choisi
       if (saveToUserSelectedLocation) {
-        debugPrint("[BackupService] saveBackup: Requesting user to select save location.");
+        debugPrint(
+            "[BackupService] saveBackup: Requesting user to select save location.");
         final Uint8List fileBytes = utf8.encode(jsonString);
         await FilePicker.platform.saveFile(
           dialogTitle:
-          'Veuillez sélectionner un emplacement pour enregistrer votre configuration :',
+              'Veuillez sélectionner un emplacement pour enregistrer votre configuration :',
           fileName: _backupFileName,
           bytes: fileBytes,
         );
-        debugPrint("[BackupService] saveBackup: File saved to user selected location.");
+        debugPrint(
+            "[BackupService] saveBackup: File saved to user selected location.");
       } else {
         final directory = await getApplicationDocumentsDirectory();
         final filePath = p.join(directory.path, _backupFileName);
         final file = File(filePath);
         await file.writeAsString(jsonString);
-        debugPrint("[BackupService] saveBackup: File saved to internal directory: $filePath");
+        debugPrint(
+            "[BackupService] saveBackup: File saved to internal directory: $filePath");
       }
       debugPrint("[BackupService] saveBackup: Backup successful.");
       return null; // Succès
     } catch (e) {
-      debugPrint("[BackupService] saveBackup: Error during backup: ${e.toString()}");
+      debugPrint(
+          "[BackupService] saveBackup: Error during backup: ${e.toString()}");
       return "Erreur lors de la sauvegarde : ${e.toString()}";
     }
   }
 
   Future<String?> restoreFromBackup() async {
-    debugPrint("[BackupService] restoreFromBackup: Initiating restore process.");
+    debugPrint(
+        "[BackupService] restoreFromBackup: Initiating restore process.");
     try {
       // 1. Ouvrir le sélecteur de fichiers pour que l'utilisateur choisisse le backup
       debugPrint("[BackupService] restoreFromBackup: Opening file picker.");
@@ -91,7 +100,8 @@ class BackupService {
       );
 
       if (result == null || result.files.single.path == null) {
-        debugPrint("[BackupService] restoreFromBackup: File selection cancelled by user.");
+        debugPrint(
+            "[BackupService] restoreFromBackup: File selection cancelled by user.");
         return "Sélection de fichier annulée.";
       }
       final filePath = result.files.single.path!;
@@ -100,83 +110,109 @@ class BackupService {
       // 2. Lire le contenu du fichier
       final file = File(filePath);
       final jsonString = await file.readAsString();
-      debugPrint("[BackupService] restoreFromBackup: File content read successfully.");
+      debugPrint(
+          "[BackupService] restoreFromBackup: File content read successfully.");
 
       final backupData = jsonDecode(jsonString) as Map<String, dynamic>;
-      debugPrint("[BackupService] restoreFromBackup: JSON data decoded successfully.");
+      debugPrint(
+          "[BackupService] restoreFromBackup: JSON data decoded successfully.");
 
       // 3. Valider le contenu et restaurer les données principales
       if (backupData.containsKey('userId')) {
-        debugPrint("[BackupService] restoreFromBackup: 'userId' key found. Proceeding with user data restoration.");
+        debugPrint(
+            "[BackupService] restoreFromBackup: 'userId' key found. Proceeding with user data restoration.");
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('userId', backupData['userId']!);
-        debugPrint("[BackupService] restoreFromBackup: Restored userId: ${backupData['userId']}");
+        debugPrint(
+            "[BackupService] restoreFromBackup: Restored userId: ${backupData['userId']}");
 
         if (backupData.containsKey('username') &&
             backupData['username'] != null) {
           await prefs.setString('username', backupData['username']!);
-          debugPrint("[BackupService] restoreFromBackup: Restored username: ${backupData['username']}");
+          debugPrint(
+              "[BackupService] restoreFromBackup: Restored username: ${backupData['username']}");
         } else {
           await prefs.setString('username', 'Utilisateur restauré');
-          debugPrint("[BackupService] restoreFromBackup: Restored username with default value: 'Utilisateur restauré'");
+          debugPrint(
+              "[BackupService] restoreFromBackup: Restored username with default value: 'Utilisateur restauré'");
         }
 
         DatabaseService databaseService = DatabaseService();
-        debugPrint("[BackupService] restoreFromBackup: DatabaseService instance created.");
+        debugPrint(
+            "[BackupService] restoreFromBackup: DatabaseService instance created.");
 
         // Restore Contacts
         if (backupData.containsKey('contacts') &&
             backupData['contacts'] is List) {
-          debugPrint("[BackupService] restoreFromBackup: 'contacts' key found. Restoring contacts.");
+          debugPrint(
+              "[BackupService] restoreFromBackup: 'contacts' key found. Restoring contacts.");
           List contactsListRaw = backupData['contacts'] as List;
           final List<Contact> contactsList = contactsListRaw
               .map((contactJson) =>
-              Contact.fromJson(contactJson as Map<String, dynamic>))
+                  Contact.fromJson(contactJson as Map<String, dynamic>))
               .toList();
-          await databaseService.replaceAllContacts(contactsList); // Assuming replaceAllContacts is async
-          debugPrint("[BackupService] restoreFromBackup: Replaced all contacts. Count: ${contactsList.length}");
+          await databaseService.replaceAllContacts(
+              contactsList); // Assuming replaceAllContacts is async
+          debugPrint(
+              "[BackupService] restoreFromBackup: Replaced all contacts. Count: ${contactsList.length}");
 
           if (backupData.containsKey('contactsOrder') &&
               backupData['contactsOrder'] is List) {
-            debugPrint("[BackupService] restoreFromBackup: 'contactsOrder' key found. Restoring contacts order.");
+            debugPrint(
+                "[BackupService] restoreFromBackup: 'contactsOrder' key found. Restoring contacts order.");
             List contactsOrderListRaw = backupData['contactsOrder'] as List;
             final List<String> contactsOrderList = // Corrected variable name
-            contactsOrderListRaw.cast<String>().toList();
-            await databaseService.setContactOrder(contactsOrderList); // Assuming setContactOrder is async
-            debugPrint("[BackupService] restoreFromBackup: Set contact order. Count: ${contactsOrderList.length}");
+                contactsOrderListRaw.cast<String>().toList();
+            await databaseService.setContactOrder(
+                contactsOrderList); // Assuming setContactOrder is async
+            debugPrint(
+                "[BackupService] restoreFromBackup: Set contact order. Count: ${contactsOrderList.length}");
           } else {
-            debugPrint("[BackupService] restoreFromBackup: 'contactsOrder' key not found or invalid. Skipping contacts order restoration.");
+            debugPrint(
+                "[BackupService] restoreFromBackup: 'contactsOrder' key not found or invalid. Skipping contacts order restoration.");
           }
         } else {
-          debugPrint("[BackupService] restoreFromBackup: 'contacts' key not found or invalid. Clearing contacts.");
-          await databaseService.clearContacts(); // Assuming clearContacts is async
+          debugPrint(
+              "[BackupService] restoreFromBackup: 'contacts' key not found or invalid. Clearing contacts.");
+          await databaseService
+              .clearContacts(); // Assuming clearContacts is async
         }
 
         // Restore Messages
         if (backupData.containsKey('messages') &&
             backupData['messages'] is List) {
-          debugPrint("[BackupService] restoreFromBackup: 'messages' key found. Restoring messages.");
+          debugPrint(
+              "[BackupService] restoreFromBackup: 'messages' key found. Restoring messages.");
           List messagesListRaw = backupData['messages'] as List;
           final List<MessageModel> messagesList = messagesListRaw
               .map((messageJson) =>
-              MessageModel.fromJson(messageJson as Map<String, dynamic>))
+                  MessageModel.fromJson(messageJson as Map<String, dynamic>))
               .toList();
-          await databaseService.replaceAllMessages(messagesList); // Assuming replaceAllMessages is async
-          debugPrint("[BackupService] restoreFromBackup: Replaced all messages. Count: ${messagesList.length}");
+          await databaseService.replaceAllMessages(
+              messagesList); // Assuming replaceAllMessages is async
+          debugPrint(
+              "[BackupService] restoreFromBackup: Replaced all messages. Count: ${messagesList.length}");
         } else {
-          debugPrint("[BackupService] restoreFromBackup: 'messages' key not found or invalid. Clearing messages.");
-          await databaseService.clearMessages(); // Assuming clearMessages is async
+          debugPrint(
+              "[BackupService] restoreFromBackup: 'messages' key not found or invalid. Clearing messages.");
+          await databaseService
+              .clearMessages(); // Assuming clearMessages is async
         }
 
-        debugPrint("[BackupService] restoreFromBackup: Restore process completed successfully.");
+        debugPrint(
+            "[BackupService] restoreFromBackup: Restore process completed successfully.");
         return null; // Succès !
       } else {
-        debugPrint("[BackupService] restoreFromBackup: Invalid backup file. 'userId' key missing.");
+        debugPrint(
+            "[BackupService] restoreFromBackup: Invalid backup file. 'userId' key missing.");
         return 'Fichier de sauvegarde invalide ou corrompu.';
       }
     } catch (e, stackTrace) {
-      debugPrint("[BackupService] restoreFromBackup: Error during restore: ${e.toString()}");
-      debugPrintStack(stackTrace: stackTrace, label: "[BackupService] restoreFromBackup StackTrace");
+      debugPrint(
+          "[BackupService] restoreFromBackup: Error during restore: ${e.toString()}");
+      debugPrintStack(
+          stackTrace: stackTrace,
+          label: "[BackupService] restoreFromBackup StackTrace");
       return "Une erreur est survenue lors de la restauration : ${e.toString()}";
     }
   }
