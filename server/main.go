@@ -12,9 +12,9 @@ import (
 func main() {
 	log.Println("[INFO] Starting server...")
 
-	// Initialize external services and load data from disk
+	// Initialize external services and database connection
 	initializeFirebase()
-	loadAllFromDisk()
+	initDB() // Initializes connection to PostgreSQL
 
 	// Start background cleanup routines
 	go cleanupExpiredInvitations()

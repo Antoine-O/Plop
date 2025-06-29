@@ -28,11 +28,14 @@ func initializeFirebase() {
 // sendDirectMessageThroughFirebase sends a push notification to an offline user's devices.
 func sendDirectMessageThroughFirebase(msg Message) {
 	log.Printf("[FCM] Attempting to send push notification from %s to %s.", msg.From, msg.To)
-	userDeviceTokensMutex.Lock()
-	deviceTokens, tokenFound := userDeviceTokens[msg.To]
-	userDeviceTokensMutex.Unlock()
 
-	if !tokenFound || len(deviceTokens) == 0 {
+	deviceTokens, err := dbGetUserDeviceTokens(msg.To)
+	if err != nil {
+		log.Printf("[FCM] Error getting device tokens for user %s: %v", msg.To, err)
+		return
+	}
+
+	if len(deviceTokens) == 0 {
 		log.Printf("[FCM] No FCM tokens found for user %s. Aborting push notification.", msg.To)
 		return
 	}
@@ -44,17 +47,17 @@ func sendDirectMessageThroughFirebase(msg Message) {
 		return
 	}
 
-	userPseudosMutex.Lock()
-	senderPseudo := userPseudos[msg.From]
-	if senderPseudo == "" {
-		senderPseudo = "Quelqu'un"
+	senderPseudo, err := dbGetUserPseudo(msg.From)
+	if err != nil {
+		log.Printf("[FCM] Error getting pseudo for user %s: %v. Using fallback.", msg.From, err)
+		senderPseudo = "Someone" // Fallback pseudo
 	}
-	userPseudosMutex.Unlock()
+	if senderPseudo == "" {
+		senderPseudo = "Someone"
+	}
 
 	notificationBody := extractPayloadText(msg.Payload)
 
-	// This demonstrates sending to each token individually.
-	// For production, consider using SendMulticast for better performance.
 	var tokensToRemove []string
 	for _, token := range deviceTokens {
 		fcmMessage := &messaging.Message{
@@ -96,28 +99,34 @@ func sendDirectMessageThroughFirebase(msg Message) {
 	}
 }
 
-// removeInvalidTokens cleans up FCM tokens that are no longer valid.
+// removeInvalidTokens cleans up FCM tokens that are no longer valid from the database.
 func removeInvalidTokens(userID string, tokensToRemove []string) {
 	log.Printf("[INFO] Removing %d invalid tokens for user %s.", len(tokensToRemove), userID)
-	userDeviceTokensMutex.Lock()
-	defer userDeviceTokensMutex.Unlock()
 
-	if currentTokens, found := userDeviceTokens[userID]; found {
-		var validTokens []string
-		for _, token := range currentTokens {
-			isInvalid := false
-			for _, tokenToRemove := range tokensToRemove {
-				if token == tokenToRemove {
-					isInvalid = true
-					break
-				}
-			}
-			if !isInvalid {
-				validTokens = append(validTokens, token)
+	currentTokens, err := dbGetUserDeviceTokens(userID)
+	if err != nil {
+		log.Printf("[ERROR] Could not get tokens for invalid token removal for user %s: %v", userID, err)
+		return
+	}
+
+	if len(currentTokens) == 0 {
+		return // Nothing to do
+	}
+
+	var validTokens []string
+	for _, token := range currentTokens {
+		isInvalid := false
+		for _, tokenToRemove := range tokensToRemove {
+			if token == tokenToRemove {
+				isInvalid = true
+				break
 			}
 		}
-		userDeviceTokens[userID] = validTokens
-		saveUserDeviceTokensToFile() // Persist the changes
-		log.Printf("[INFO] Finished removing invalid tokens for user %s. Remaining: %d.", userID, len(validTokens))
+		if !isInvalid {
+			validTokens = append(validTokens, token)
+		}
 	}
+
+	go dbSaveUserDeviceTokens(userID, validTokens)
+	log.Printf("[INFO] Finished removing invalid tokens for user %s. Remaining: %d.", userID, len(validTokens))
 }

@@ -12,8 +12,9 @@ import (
 
 // --- HTTP Handlers ---
 const (
-invitationValidityMinutes = 10
+	invitationValidityMinutes = 10
 )
+
 // handleGenerateUserID creates and returns a new unique user ID.
 func handleGenerateUserID(w http.ResponseWriter, r *http.Request) {
 	log.Println("[HTTP] Received request for /users/generate-id")
@@ -39,10 +40,7 @@ func handleCreateInvitation(w http.ResponseWriter, r *http.Request) {
 		CreatorPseudo: creatorPseudo,
 		ExpiresAt:     time.Now().Add(invitationValidityMinutes * time.Minute),
 	}
-	invitationsMutex.Lock()
-	invitations[code] = invitation
-	invitationsMutex.Unlock()
-	saveInvitationsToFile()
+	go dbSaveInvitation(invitation)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{"code": code, "validityMinutes": invitationValidityMinutes})
 	log.Printf("[HTTP] Invitation code %s created for user %s", code, creatorID)
@@ -57,21 +55,19 @@ func handleUseInvitation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	invitationsMutex.Lock()
-	invitation, found := invitations[req.Code]
-	if found {
-		delete(invitations, req.Code)
-	}
-	invitationsMutex.Unlock()
-
-	if found {
-		saveInvitationsToFile()
+	invitation, found, err := dbGetInvitation(req.Code)
+	if err != nil {
+		log.Printf("[ERROR] Failed to get invitation %s: %v", req.Code, err)
+		http.Error(w, "Error checking invitation", http.StatusInternalServerError)
+		return
 	}
 
 	if !found || time.Now().After(invitation.ExpiresAt) {
 		http.Error(w, "Invitation code is invalid or has expired", http.StatusNotFound)
 		return
 	}
+
+	go dbDeleteInvitation(req.Code)
 
 	// Notify the creator that a new contact has been added
 	notificationPayload := map[string]string{"userId": req.UserID, "pseudo": req.Pseudo}
@@ -92,14 +88,11 @@ func handleGetPseudos(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responsePseudos := make(map[string]string)
-	userPseudosMutex.Lock()
-	for _, id := range req.UserIDs {
-		if pseudo, found := userPseudos[id]; found {
-			responsePseudos[id] = pseudo
-		}
+	responsePseudos, err := dbGetUsersPseudos(req.UserIDs)
+	if err != nil {
+		http.Error(w, "Failed to retrieve pseudos", http.StatusInternalServerError)
+		return
 	}
-	userPseudosMutex.Unlock()
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(responsePseudos)
@@ -148,16 +141,17 @@ func handleUseSyncCode(w http.ResponseWriter, r *http.Request) {
 	// Trigger a sync event on the user's other devices
 	broadcastMessageToUser(syncData.UserID, Message{Type: "sync_request"}, nil)
 
-	userPseudosMutex.Lock()
-	pseudo := userPseudos[syncData.UserID]
-	userPseudosMutex.Unlock()
+	pseudo, err := dbGetUserPseudo(syncData.UserID)
+	if err != nil {
+		http.Error(w, "Failed to retrieve user pseudo", http.StatusInternalServerError)
+		return
+	}
 
 	json.NewEncoder(w).Encode(map[string]string{"userId": syncData.UserID, "pseudo": pseudo})
 	log.Printf("[HTTP] Sync code %s successfully used, linking to user %s", req.Code, syncData.UserID)
 }
 
 // handleUpdateToken adds or updates an FCM device token for a user.
-// It now saves to the file in a non-blocking way.
 func handleUpdateToken(w http.ResponseWriter, r *http.Request) {
 	log.Println("[HTTP] Received request for /users/update-token")
 	var req struct{ UserID, Token string }
@@ -170,8 +164,12 @@ func handleUpdateToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userDeviceTokensMutex.Lock()
-	tokens := userDeviceTokens[req.UserID]
+	tokens, err := dbGetUserDeviceTokens(req.UserID)
+	if err != nil {
+		http.Error(w, "Failed to retrieve tokens", http.StatusInternalServerError)
+		return
+	}
+
 	tokenExists := false
 	for _, t := range tokens {
 		if t == req.Token {
@@ -181,16 +179,10 @@ func handleUpdateToken(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !tokenExists {
-		userDeviceTokens[req.UserID] = append(tokens, req.Token)
-		log.Printf("[INFO] New FCM token added for user %s. Responding immediately.", req.UserID)
-		userDeviceTokensMutex.Unlock()
-
-		// Run the slow file save operation in the background.
-		// This allows the HTTP request to return immediately.
-		go saveUserDeviceTokensToFile()
-
+		newTokens := append(tokens, req.Token)
+		go dbSaveUserDeviceTokens(req.UserID, newTokens)
+		log.Printf("[INFO] New FCM token added for user %s.", req.UserID)
 	} else {
-		userDeviceTokensMutex.Unlock()
 		log.Printf("[INFO] Existing FCM token received for user %s", req.UserID)
 	}
 

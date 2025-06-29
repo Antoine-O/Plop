@@ -44,13 +44,11 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 
 	// Update pseudo if provided
 	if pseudo != "" {
-		userPseudosMutex.Lock()
-		userPseudos[userId] = pseudo
-		userPseudosMutex.Unlock()
+		go dbSaveUserPseudo(userId, pseudo)
 	}
 
 	// Deliver any messages that were sent while the user was offline
-	go sendPendingMessages(userId, conn)
+	go dbSendPendingMessages(userId, conn)
 
 	// If this is a new device, request a data sync from other online devices
 	if hasOtherDevices {
@@ -123,7 +121,7 @@ func handlePlopMessage(conn *websocket.Conn, msg Message) {
 }
 
 // sendDirectMessage forwards a message to a recipient if they are online,
-// otherwise it stores it as a pending message.
+// otherwise it stores it as a pending message in the database.
 func sendDirectMessage(msg Message) {
 	if msg.To == "" {
 		log.Printf("[WARN] Dropping direct message from %s: recipient 'to' field is empty.", msg.From)
@@ -144,15 +142,9 @@ func sendDirectMessage(msg Message) {
 		}
 		clientsMutex.Unlock()
 	} else {
-		log.Printf("[MSG] Recipient %s is offline. Storing pending message from %s.", msg.To, msg.From)
-		pendingMessagesMutex.Lock()
-		if _, ok := pendingMessages[msg.To]; !ok {
-			pendingMessages[msg.To] = make(map[string]Message)
-		}
-		pendingMessages[msg.To][msg.From] = msg
-		pendingMessagesMutex.Unlock()
-		savePendingMessagesToFile()
-		sendDirectMessageThroughFirebase(msg)
+		log.Printf("[MSG] Recipient %s is offline. Storing pending message from %s in DB.", msg.To, msg.From)
+		go dbSavePendingMessage(msg)
+		go sendDirectMessageThroughFirebase(msg)
 	}
 }
 

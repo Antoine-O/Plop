@@ -11,56 +11,27 @@ import (
 // --- Global State & Mutexes ---
 
 // clients maps a userID to a set of their active WebSocket connections.
+// This remains in memory as it represents the current live connections, which is ephemeral state.
 var clients = make(map[string]map[*websocket.Conn]bool)
 var clientsMutex = &sync.Mutex{}
 
-// userDeviceTokens maps a userID to their list of FCM device tokens.
-var userDeviceTokens = make(map[string][]string)
-var userDeviceTokensMutex = &sync.Mutex{}
-
-// invitations stores active invitation codes.
-var invitations = make(map[string]Invitation)
-var invitationsMutex = &sync.Mutex{}
-
-// syncCodes stores active synchronization codes.
+// syncCodes stores active synchronization codes. These are short-lived and can remain in memory.
 var syncCodes = make(map[string]SyncCode)
 var syncCodesMutex = &sync.Mutex{}
 
-// pendingMessages stores messages for offline users.
-// The structure is map[recipientId][senderId]Message.
-var pendingMessages = make(map[string]map[string]Message)
-var pendingMessagesMutex = &sync.Mutex{}
-
-// userPseudos maps a userID to their chosen pseudo.
-var userPseudos = make(map[string]string)
-var userPseudosMutex = &sync.Mutex{}
-
-// userLastMessageTime is used for message rate-limiting/cooldown.
+// userLastMessageTime is used for message rate-limiting/cooldown. This is also ephemeral state.
 var userLastMessageTime = make(map[string]time.Time)
 var userLastMessageMutex = &sync.Mutex{}
 
 // --- Background Cleanup Routines ---
 
-// cleanupExpiredInvitations periodically removes expired invitation codes from memory.
+// cleanupExpiredInvitations periodically removes expired invitation codes from the database.
 func cleanupExpiredInvitations() {
 	log.Println("[CLEANUP] Starting expired invitations cleanup routine...")
 	ticker := time.NewTicker(1 * time.Minute)
 	defer ticker.Stop()
 	for range ticker.C {
-		now := time.Now()
-		invitationsMutex.Lock()
-		deleted := false
-		for code, inv := range invitations {
-			if now.After(inv.ExpiresAt) {
-				deleted = true
-				delete(invitations, code)
-				log.Printf("[CLEANUP] Deleted expired invitation code: %s", code)
-			}
-		}
-		invitationsMutex.Unlock()
-		if deleted {
-			saveInvitationsToFile()
-		}
+		dbDeleteExpiredInvitations()
 	}
 }
 
