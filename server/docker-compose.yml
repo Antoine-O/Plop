@@ -21,3 +21,35 @@ services:
     restart: unless-stopped
     environment:
       - DEBUG=true
+      - POSTGRES_USER=${POSTGRES_USER:-db_user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-db_password}
+      - POSTGRES_DB=${POSTGRES_DB:-plop_db}
+      - POSTGRES_HOST=${POSTGRES_DB:-plop-database-server}
+      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+    depends_on:
+      targets_database:
+        condition: service_healthy
+  plop-database-server:
+    image: postgres:17
+    container_name: plop_database_server_container
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-none} # Default to 'none' if not set in .env
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-none} # Default to 'none' if not set in .env
+      POSTGRES_DB: ${POSTGRES_DB:-plop_db} # Default database name
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # Persist data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-db_user} -d ${POSTGRES_DB:-plop_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s # Give some time for postgres to initialize before starting healthchecks
+    logging:
+      driver: json-file
+      options:
+        max-size: 20m
+        max-file: '10'
+
+volumes: # Define the named volume for data persistence
+  postgres_data:
