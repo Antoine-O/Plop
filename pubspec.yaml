@@ -18,8 +18,8 @@ dependencies:
   # Pour l'authentification et l'identité locale
 
   # Firebase Core
-#  firebase_auth: ^5.5.4
-#  cloud_firestore: ^5.6.9
+  #  firebase_auth: ^5.5.4
+  #  cloud_firestore: ^5.6.9
 
   # Stockage local & Utilitaires
   shared_preferences: ^2.5.3
@@ -54,12 +54,13 @@ dependencies:
   path_provider: ^2.1.3
   path: ^1.9.1 # <-- ADD THIS
   vibration: ^3.1.3
+  geolocator: ^14.0.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
-  hive_generator:  ^2.0.1
-  build_runner:  ^2.4.15
+  hive_generator: ^2.0.1
+  build_runner: ^2.4.15
   analyzer: ^6.11.0
   flutter_launcher_icons: ^0.14.4
 
@@ -79,7 +80,7 @@ flutter:
         - asset: assets/fonts/Inter-Bold.ttf
           weight: 700
 
-# Add this section for flutter_dotenv
+  # Add this section for flutter_dotenv
   assets:
     - .env
     - assets/sounds/plop.mp3

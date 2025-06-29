@@ -127,6 +127,10 @@ func sendDirectMessage(msg Message) {
 		log.Printf("[WARN] Dropping direct message from %s: recipient 'to' field is empty.", msg.From)
 		return
 	}
+    log.Printf("Received message type '%s' from %s to %s. Text: '%s'", msg.Type, msg.From, msg.To, msg.Payload.Text)
+    if msg.Payload.Latitude != 0 && msg.Payload.Longitude != 0 { // Check if coordinates are present
+        log.Printf("Location: Lat: %f, Lon: %f", msg.Payload.Latitude, msg.Payload.Longitude)
+    }
 
 	clientsMutex.Lock()
 	recipientConns, isOnline := clients[msg.To]

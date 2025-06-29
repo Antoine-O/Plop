@@ -7,6 +7,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart'; // For debugPrint and debugPrintStack
 import 'package:flutter/material.dart'; // For Colors
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:plop/core/config/app_config.dart';
 import 'package:plop/core/services/database_service.dart';
@@ -322,7 +323,7 @@ class NotificationService {
     bool appPlayedSound = false;
 
     // If it's NOT from an external notification (e.g., direct WebSocket) AND sound is generally allowed
-    if (!fromExternalNotification && shouldAnySoundBePlayed) {
+    /*if (!fromExternalNotification && shouldAnySoundBePlayed) {
       debugPrint(
           "[NotificationService] handlePlop: Conditions met for APP to play sound (not external, not muted).");
       if (contact.customSoundPath != null &&
@@ -363,7 +364,7 @@ class NotificationService {
     } else if (!shouldAnySoundBePlayed) {
       debugPrint(
           "[NotificationService] handlePlop: Sound is muted (contact or global). App will NOT play sound.");
-    }
+    }*/
 
     // Show system notification if it's not a pending message
     bool showSystemNotification = isPending == false;
@@ -459,6 +460,23 @@ Future<void> sendFcmTokenToServer() async {
         label: "[NotificationService] FCM Token Send Network Error");
   }
 }
+
+Future<LocationPermission> initializeLocationPermission() async {
+  debugPrint(
+      "[NotificationService] initializeLocationPermission: Starting plugin initialization.");
+  // Check if location services are enabled.
+  // You might want to also prompt the user to enable them if they are off,
+  // but for this initial check, we focus on permission.
+  bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+  if (!serviceEnabled) {
+    debugPrint("[AppLauncher] Location services are disabled.");
+    // You could return a special status or handle this to show a different screen/dialog
+    // For simplicity here, we proceed to check permission, but Geolocator.requestPermission()
+    // might not show a dialog if services are off.
+  }
+  return await Geolocator.checkPermission();
+}
+
 
 Future<void> initializeNotificationPlugin() async {
   debugPrint(

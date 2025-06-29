@@ -5,13 +5,18 @@ import (
 
 	"github.com/gorilla/websocket"
 )
-
+type MessagePayload struct {
+	Text      string  `json:"text"`
+	Latitude  float64 `json:"latitude,omitempty"`  // Use omitempty if location is optional
+	Longitude float64 `json:"longitude,omitempty"`
+	// Add other fields from your payload as needed
+}
 // Message defines the structure for all real-time communications.
 type Message struct {
 	Type      string      `json:"type"`
 	To        string      `json:"to,omitempty"`
 	From      string      `json:"from,omitempty"`
-	Payload   interface{} `json:"payload"`
+	Payload   MessagePayload `json:"payload"` // Changed from interface{} or string
 	IsDefault bool        `json:"isDefault,omitempty"`
 	IsPending bool        `json:"isPending,omitempty"`
 	// SourceConn is used internally to avoid echoing messages back to the sender.

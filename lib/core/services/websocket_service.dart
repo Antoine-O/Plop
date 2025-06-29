@@ -539,40 +539,57 @@ class WebSocketService {
         '[WebSocketService] dispose: Resources disposed and ping timer cancelled.');
   }
 
-  void handlePlop(Map<String, dynamic> data,
+  void handlePlop(Map<String, dynamic> messageData,
       {bool fromExternalNotification = false}) async {
     debugPrint(
-        "[WebSocketService] handlePlop: Processing plop message. Data: $data, FromExternalNotification: $fromExternalNotification");
+        "[WebSocketService] handlePlop: Processing plop message. Data: $messageData, FromExternalNotification: $fromExternalNotification");
     try {
       // Prioritize 'senderId' from our own sendMessage, fallback to 'from' for compatibility
-      final fromUserId = data['senderId'] ?? data['from'] as String?;
+      final fromUserId = messageData['senderId'] ?? messageData['from'] as String?;
       if (fromUserId == null) {
         debugPrint(
-            "[WebSocketService] handlePlop: fromUserId is null (checked senderId and from). Aborting. Data: $data");
+            "[WebSocketService] handlePlop: fromUserId is null (checked senderId and from). Aborting. Data: $messageData");
         return;
       }
 
-      final messageText = data['payload'] as String?;
+      String messageText;
+      double? latitude;
+      double? longitude;
+
+      if (messageData['payload'] is String) {
+        // Backwards compatibility or simple text payload
+        messageText = messageData['payload'] as String;
+        debugPrint("[NotificationService] handlePlop: Received simple text payload: '$messageText'");
+      } else if (messageData['payload'] is Map) {
+        final payloadMap = messageData['payload'] as Map<String, dynamic>;
+        messageText = payloadMap['text'] as String? ?? "Nouveau message"; // Fallback
+        latitude = payloadMap['latitude'] as double?;
+        longitude = payloadMap['longitude'] as double?;
+        debugPrint("[NotificationService] handlePlop: Received structured payload. Text: '$messageText', Lat: $latitude, Lon: $longitude");
+      } else {
+        messageText = "Plop"; // Fallback for unknown payload structure
+        debugPrint("[NotificationService] handlePlop: Received unknown payload structure.");
+      }
       if (messageText == null) {
         debugPrint(
-            "[WebSocketService] handlePlop: messageText (payload) is null. Aborting. Data: $data");
+            "[WebSocketService] handlePlop: messageText (payload) is null. Aborting. Data: $messageData");
         return;
       }
 
       // Ensure boolean conversion is safe
       final isDefaultMessage =
-          (data['isDefault'] == true || data['isDefault'] == 'true');
-      final isPending = (data['IsPending'] == true ||
-          data['IsPending'] ==
+          (messageData['isDefault'] == true || messageData['isDefault'] == 'true');
+      final isPending = (messageData['IsPending'] == true ||
+          messageData['IsPending'] ==
               'true'); // Note: 'IsPending' casing from original code
-      final String? sendDateString = data['sendDate'] as String?;
+      final String? sendDateString = messageData['sendDate'] as String?;
       DateTime? sentDate;
       if (sendDateString != null) {
         sentDate = DateTime.tryParse(sendDateString);
       }
-      if (sentDate == null && data.containsKey('timestamp')) {
+      if (sentDate == null && messageData.containsKey('timestamp')) {
         // Fallback to 'timestamp' if 'sendDate' is missing/invalid
-        final dynamic ts = data['timestamp'];
+        final dynamic ts = messageData['timestamp'];
         if (ts is String) {
           sentDate = DateTime.tryParse(ts);
         } else if (ts is int) {
@@ -597,7 +614,7 @@ class WebSocketService {
           "[WebSocketService] handlePlop: Delegated to notificationService.handlePlop.");
     } catch (e, stackTrace) {
       debugPrint(
-          "[WebSocketService] handlePlop: ERROR processing plop: $e. Data: $data");
+          "[WebSocketService] handlePlop: ERROR processing plop: $e. Data: $messageData");
       debugPrintStack(
           stackTrace: stackTrace, label: '[WebSocketService] handlePlop Error');
     }

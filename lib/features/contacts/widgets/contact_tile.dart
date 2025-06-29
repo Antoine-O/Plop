@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:plop/core/config/app_config.dart';
 import 'package:plop/core/models/contact_model.dart';
 import 'package:plop/core/models/message_model.dart';
 import 'package:plop/core/services/database_service.dart';
+import 'package:plop/core/services/location_service.dart';
 import 'package:plop/core/services/websocket_service.dart';
 import 'package:plop/l10n/app_localizations.dart'; // IMPORTANT: Importez la classe de localisation
 
@@ -23,6 +25,8 @@ class _ContactTileState extends State<ContactTile>
   late Animation<double> _scaleAnimation;
   final WebSocketService _webSocketService = WebSocketService();
   final DatabaseService _databaseService = DatabaseService();
+  final LocationService _locationService =
+      LocationService(); // Instantiate your service
   StreamSubscription? _messageSubscription;
   late Contact _contact;
   bool _isMuted = false;
@@ -54,32 +58,32 @@ class _ContactTileState extends State<ContactTile>
     // This listener now correctly reloads state to show incoming messages
     _messageSubscription =
         _webSocketService.messageUpdates.listen((update) async {
-          if (!mounted) {
-            debugPrint(
-                '[ContactTile] _messageSubscription - Not mounted, skipping update for contact: ${_contact.userId}');
-            return;
-          }
+      if (!mounted) {
+        debugPrint(
+            '[ContactTile] _messageSubscription - Not mounted, skipping update for contact: ${_contact.userId}');
+        return;
+      }
+      debugPrint(
+          '[ContactTile] _messageSubscription - Received update: $update for contact: ${_contact.userId}');
+      if (update['userId'] == _contact.userId) {
+        debugPrint(
+            '[ContactTile] _messageSubscription - Update matches current contact: ${_contact.userId}');
+        final freshContact = _databaseService.getContact(_contact.userId);
+        if (freshContact != null) {
           debugPrint(
-              '[ContactTile] _messageSubscription - Received update: $update for contact: ${_contact.userId}');
-          if (update['userId'] == _contact.userId) {
-            debugPrint(
-                '[ContactTile] _messageSubscription - Update matches current contact: ${_contact.userId}');
-            final freshContact = _databaseService.getContact(_contact.userId);
-            if (freshContact != null) {
-              debugPrint(
-                  '[ContactTile] _messageSubscription - Fetched fresh contact: ${freshContact.userId} - ${freshContact.lastMessage}');
-              setState(() {
-                _contact = freshContact;
-              });
-            } else {
-              debugPrint(
-                  '[ContactTile] _messageSubscription - Could not fetch fresh contact for: ${_contact.userId}');
-            }
-            _animationController
-                .forward()
-                .then((_) => _animationController.reverse());
-          }
-        });
+              '[ContactTile] _messageSubscription - Fetched fresh contact: ${freshContact.userId} - ${freshContact.lastMessage}');
+          setState(() {
+            _contact = freshContact;
+          });
+        } else {
+          debugPrint(
+              '[ContactTile] _messageSubscription - Could not fetch fresh contact for: ${_contact.userId}');
+        }
+        _animationController
+            .forward()
+            .then((_) => _animationController.reverse());
+      }
+    });
     debugPrint(
         '[ContactTile] initState completed for contact: ${_contact.userId}');
   }
@@ -149,9 +153,38 @@ class _ContactTileState extends State<ContactTile>
     await _contact.save();
     debugPrint(
         '[ContactTile] _sendCustomMessage - Contact saved. Attempting to send message via WebSocket for: ${_contact.userId}');
+    Position? currentPosition;
     try {
+      // Pass context if you want the service to be able to show dialogs
+      currentPosition = await _locationService
+          .getCurrentPositionWithPermissionCheck(context: context);
+      if (currentPosition == null) {
+        debugPrint(
+            '[ContactTile] _sendCustomMessage - Location not available or permission denied. Sending message without location.');
+        // Optionally notify user here that location wasn't attached
+      }else{
+        debugPrint(
+            '[ContactTile] _sendCustomMessage - Location available ${currentPosition.latitude}, ${currentPosition.longitude}. Sending message with location.');
+      }
+    } catch (e) {
+      debugPrint(
+          '[ContactTile] _sendCustomMessage - Exception trying to get location: $e. Sending message without location.');
+    }
+    try {
+      Map<String, dynamic> messagePayload = {
+        'text': message, // The actual text of the message
+        // Conditionally add location data if available
+        if (currentPosition != null) 'latitude': currentPosition.latitude,
+        if (currentPosition != null) 'longitude': currentPosition.longitude,
+        if (currentPosition != null) 'altitude': currentPosition.altitude,
+        if (currentPosition != null) 'accuracy': currentPosition.accuracy,
+        if (currentPosition != null) 'speed': currentPosition.speed,
+        if (currentPosition != null) 'location_timestamp': currentPosition.timestamp?.toIso8601String(),
+        // You can add any other relevant data to the payload
+        // 'client_message_id': Uuid().v4(), // Example: a unique ID generated by the client
+      };
       _webSocketService.sendMessage(
-          type: 'plop', to: _contact.userId, payload: message, isDefault: true);
+          type: 'plop', to: _contact.userId, payload: messagePayload, isDefault: true);
       debugPrint(
           '[ContactTile] _sendCustomMessage - Message sent via WebSocket. Starting cooldown for: ${_contact.userId}');
 
@@ -267,9 +300,9 @@ class _ContactTileState extends State<ContactTile>
     final bool hasCustomAlias =
         _contact.alias.isNotEmpty && _contact.alias != _contact.originalPseudo;
     final String primaryName =
-    hasCustomAlias ? _contact.alias : _contact.originalPseudo;
+        hasCustomAlias ? _contact.alias : _contact.originalPseudo;
     final String? secondaryName =
-    hasCustomAlias ? _contact.originalPseudo : null;
+        hasCustomAlias ? _contact.originalPseudo : null;
 
     return AbsorbPointer(
       absorbing: _inCooldown,
@@ -308,13 +341,13 @@ class _ContactTileState extends State<ContactTile>
                                     animation: _cooldownProgressController,
                                     builder: (context, child) =>
                                         Positioned.fill(
-                                          child: CircularProgressIndicator(
-                                            value:
+                                      child: CircularProgressIndicator(
+                                        value:
                                             _cooldownProgressController.value,
-                                            strokeWidth: 2.0,
-                                            color: Colors.white.withAlpha(200),
-                                          ),
-                                        ),
+                                        strokeWidth: 2.0,
+                                        color: Colors.white.withAlpha(200),
+                                      ),
+                                    ),
                                   ),
                               ],
                             ),

@@ -52,6 +52,27 @@ Future<void> initializationHive() async {
   }
 }
 
+@pragma('vm:entry-point') // Recommended for AOT compilation
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // If you're going to use other Firebase services in the background, like Firestore,
+  // make sure you call `initializeApp` before using them.
+  // However, for basic message handling, initializeApp in main might be enough
+  // if it's already called before this handler is potentially triggered.
+  // To be safe, especially if you see issues:
+  // await Firebase.initializeApp(); // Consider if you need to re-initialize here
+
+  debugPrint("[FCM] Handling a background message: ${message.messageId}");
+  debugPrint("[FCM] Message data: ${message.data}");
+  if (message.notification != null) {
+    debugPrint(
+        "[FCM] Message also contained a notification: ${message.notification!
+            .title} - ${message.notification!.body}");
+  }
+  WebSocketService webSocketService =WebSocketService();
+  webSocketService.handlePlop(message.data,fromExternalNotification: true);
+
+}
+
 @pragma('vm:entry-point')
 void onStart(ServiceInstance service) async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -137,6 +158,7 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   await initializeNotificationPlugin();
+  await initializeLocationPermission();
   await initializeWebSocket();
   runApp(
     ChangeNotifierProvider(
