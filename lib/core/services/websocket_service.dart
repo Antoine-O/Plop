@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart'; // Import for debugPrint
+// Import for debugPrint
 import 'package:plop/core/models/contact_model.dart';
 import 'package:plop/core/models/message_model.dart';
 import 'package:plop/core/services/database_service.dart';
@@ -52,8 +52,9 @@ class WebSocketService {
     if (_reconnectAttempts < 60) {
       _reconnectAttempts++;
       int reconnectDelayFactor = _reconnectAttempts - 1;
-      if (reconnectDelayFactor > 8)
+      if (reconnectDelayFactor > 8) {
         reconnectDelayFactor = 8; // Cap delay factor
+      }
 
       final delay = Duration(seconds: reconnectDelayFactor);
       debugPrint(
@@ -569,11 +570,6 @@ class WebSocketService {
       } else {
         messageText = "Plop"; // Fallback for unknown payload structure
         debugPrint("[NotificationService] handlePlop: Received unknown payload structure.");
-      }
-      if (messageText == null) {
-        debugPrint(
-            "[WebSocketService] handlePlop: messageText (payload) is null. Aborting. Data: $messageData");
-        return;
       }
 
       // Ensure boolean conversion is safe

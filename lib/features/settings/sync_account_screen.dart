@@ -10,7 +10,6 @@ import 'package:plop/features/setup/import_account_screen.dart';
 import 'package:plop/l10n/app_localizations.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:plop/l10n/app_localizations.dart';
 // NEW: Import the path package
 
 class SyncAccountScreen extends StatefulWidget {

@@ -1,10 +1,8 @@
-import 'package:flutter/cupertino.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/contact_model.dart';
 import '../models/message_model.dart';
 
-import 'package:vibration/vibration.dart';
 
 class DatabaseService {
   DatabaseService._privateConstructor();
