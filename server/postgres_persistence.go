@@ -333,12 +333,12 @@ func dbSendPendingMessages(userID string, conn connection) {
 		}
 		// log.Printf("[DEBUG] Scanned pending message from %s, payload bytes length: %d", senderID, len(payloadBytes))
 
-		var payload interface{}
-		if err := json.Unmarshal(payloadBytes, &payload); err != nil {
-			log.Printf("[ERROR] Failed to unmarshal pending message payload for user %s from sender %s: %v", userID, senderID, err)
-			continue
-		}
-		messagesToSend = append(messagesToSend, Message{From: senderID, To: userID, Payload: payload, IsPending: true})
+        var msgPayload MessagePayload // Declare as the specific struct type
+        if err := json.Unmarshal(payloadBytes, &msgPayload); err != nil { // Unmarshal directly into it
+            log.Printf("[ERROR] Failed to unmarshal pending message payload for user %s from sender %s into MessagePayload: %v", userID, senderID, err)
+            continue
+        }
+		messagesToSend = append(messagesToSend, Message{From: senderID, To: userID, Payload: msgPayload, IsPending: true})
 	}
 
 	if err := rows.Err(); err != nil {

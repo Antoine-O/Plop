@@ -70,8 +70,16 @@ func handleUseInvitation(w http.ResponseWriter, r *http.Request) {
 	go dbDeleteInvitation(req.Code)
 
 	// Notify the creator that a new contact has been added
-	notificationPayload := map[string]string{"userId": req.UserID, "pseudo": req.Pseudo}
-	notificationMsg := Message{Type: "new_contact", Payload: notificationPayload}
+	// Notify the creator that a new contact has been added
+	contactPayload := MessagePayload{
+		UserID: req.UserID,
+		Pseudo: req.Pseudo,
+		// Text: fmt.Sprintf("%s (%s) has been added to your contacts!", req.Pseudo, req.UserID), // Optional: add a text field too
+	}
+	notificationMsg := Message{
+		Type:    "new_contact",
+		Payload: contactPayload, // Now using the MessagePayload struct instance
+	}
 	broadcastMessageToUser(invitation.CreatorUserID, notificationMsg, nil)
 
 	log.Printf("[HTTP] Invitation code %s successfully used by %s to connect with %s", req.Code, req.UserID, invitation.CreatorUserID)

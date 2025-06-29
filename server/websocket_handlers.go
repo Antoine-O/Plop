@@ -109,8 +109,15 @@ func handlePlopMessage(conn *websocket.Conn, msg Message) {
 		userLastMessageMutex.Unlock()
 
 		// Acknowledge the message was received and is being processed
-		ackPayload := map[string]string{"recipientId": msg.To}
-		if err := conn.WriteJSON(Message{Type: "message_ack", Payload: ackPayload}); err != nil {
+        // --- CORRECTED SECTION ---
+        ackPayload := MessagePayload{
+            RecipientID: msg.To, // Use the new field in MessagePayload
+        }
+        ackMessage := Message{
+            Type:    "message_ack",
+            Payload: ackPayload, // Assign the struct instance
+        }
+		if err := conn.WriteJSON(ackMessage); err != nil {
 			log.Printf("[ERROR] Could not send 'message_ack' to %s: %v", msg.From, err)
 		}
 		sendDirectMessage(msg)
