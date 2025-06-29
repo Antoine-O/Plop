@@ -215,5 +215,7 @@
   "statusAcknowledged": "Bestätigt",
   "statusFailed": "Fehlgeschlagen",
   "statusDistributed": "Verteilt",
-  "statusPending":"Ausstehend"
+  "statusPending":"Ausstehend",  "startByAddingContactTitle": "Beginnen Sie mit dem Hinzufügen eines Kontakts",
+  "startByAddingContactSubtitle": "Laden Sie einen Freund ein oder geben Sie dessen Code ein, um mit dem Ploppen zu beginnen.",
+  "addViaCode": "Über Code hinzufügen"
 }

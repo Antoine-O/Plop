@@ -462,4 +462,14 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get statusPending => 'In attesa';
+
+  @override
+  String get startByAddingContactTitle => 'Inizia aggiungendo un contatto';
+
+  @override
+  String get startByAddingContactSubtitle =>
+      'Invita un amico o inserisci il suo codice per iniziare a ploppare.';
+
+  @override
+  String get addViaCode => 'Aggiungi tramite codice';
 }

@@ -102,13 +102,13 @@ class _ManageContactsScreenState extends State<ManageContactsScreen> {
             Icon(Icons.people_outline, size: 80, color: Colors.grey.shade400),
             SizedBox(height: 20),
             Text(
-              'Commencez par ajouter un contact',
+              AppLocalizations.of(context)!.startByAddingContactTitle, // AFTER
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 10),
             Text(
-              'Invitez un ami ou entrez son code pour commencer à plopper.',
+              AppLocalizations.of(context)!.startByAddingContactSubtitle, // AFTER
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyLarge,
             ),
@@ -208,14 +208,14 @@ class _ManageContactsScreenState extends State<ManageContactsScreen> {
             child: const Icon(Icons.share),
             backgroundColor: Colors.blue,
             foregroundColor: Colors.white,
-            label: 'Inviter un contact',
+            label: AppLocalizations.of(context)!.inviteContact, // Localized
             onTap: _generateInvitation,
           ),
           SpeedDialChild(
             child: const Icon(Icons.group_add),
             backgroundColor: Colors.green,
             foregroundColor: Colors.white,
-            label: 'Ajouter via un code',
+            label: AppLocalizations.of(context)!.addViaCode, // Localized
             onTap: _showAddContactDialog,
           ),
         ],

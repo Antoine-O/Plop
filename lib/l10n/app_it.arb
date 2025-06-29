@@ -215,5 +215,8 @@
   "statusAcknowledged": "Ricevuto",
   "statusFailed": "Fallito",
   "statusDistributed": "Distribuito",
-  "statusPending":"In attesa"
+  "statusPending":"In attesa",
+  "startByAddingContactTitle": "Inizia aggiungendo un contatto",
+  "startByAddingContactSubtitle": "Invita un amico o inserisci il suo codice per iniziare a ploppare.",
+  "addViaCode": "Aggiungi tramite codice"
 }

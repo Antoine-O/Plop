@@ -943,6 +943,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pendiente'**
   String get statusPending;
+
+  /// No description provided for @startByAddingContactTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Start by adding a contact'**
+  String get startByAddingContactTitle;
+
+  /// No description provided for @startByAddingContactSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite a friend or enter their code to start plopping.'**
+  String get startByAddingContactSubtitle;
+
+  /// No description provided for @addViaCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Add via code'**
+  String get addViaCode;
 }
 
 class _AppLocalizationsDelegate

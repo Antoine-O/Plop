@@ -216,5 +216,8 @@
   "statusAcknowledged": "Delivered",
   "statusFailed": "Failed",
   "statusDistributed": "Distributed",
-  "statusPending":"Pendiente"
+  "statusPending":"Pendiente",
+  "startByAddingContactTitle": "Start by adding a contact",
+  "startByAddingContactSubtitle": "Invite a friend or enter their code to start plopping.",
+  "addViaCode": "Add via code"
 }

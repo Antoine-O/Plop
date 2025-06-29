@@ -215,5 +215,8 @@
   "statusAcknowledged": "Recibido",
   "statusFailed": "Error",
   "statusDistributed": "Distribuido",
-  "statusPending":"Pending"
+  "statusPending": "Pending",
+  "startByAddingContactTitle": "Empieza añadiendo un contacto",
+  "startByAddingContactSubtitle": "Invita a un amigo o introduce su código para empezar a plopear.",
+  "addViaCode": "Añadir mediante código"
 }

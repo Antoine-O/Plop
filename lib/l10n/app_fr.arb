@@ -216,5 +216,8 @@
   "statusAcknowledged": "Lu",
   "statusDistributed": "Distribué",
   "statusFailed": "Échec",
-  "statusPending":"En attente"
+  "statusPending":"En attente",
+  "startByAddingContactTitle": "Commencez par ajouter un contact",
+  "startByAddingContactSubtitle": "Invitez un ami ou entrez son code pour commencer à plopper.",
+  "addViaCode": "Ajouter via un code"
 }

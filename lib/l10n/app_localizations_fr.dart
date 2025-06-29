@@ -463,4 +463,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get statusPending => 'En attente';
+
+  @override
+  String get startByAddingContactTitle => 'Commencez par ajouter un contact';
+
+  @override
+  String get startByAddingContactSubtitle =>
+      'Invitez un ami ou entrez son code pour commencer à plopper.';
+
+  @override
+  String get addViaCode => 'Ajouter via un code';
 }

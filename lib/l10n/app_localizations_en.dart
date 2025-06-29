@@ -458,4 +458,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statusPending => 'Pendiente';
+
+  @override
+  String get startByAddingContactTitle => 'Start by adding a contact';
+
+  @override
+  String get startByAddingContactSubtitle =>
+      'Invite a friend or enter their code to start plopping.';
+
+  @override
+  String get addViaCode => 'Add via code';
 }
