@@ -11,7 +11,9 @@ import (
 )
 
 // --- HTTP Handlers ---
-
+const (
+invitationValidityMinutes = 10
+)
 // handleGenerateUserID creates and returns a new unique user ID.
 func handleGenerateUserID(w http.ResponseWriter, r *http.Request) {
 	log.Println("[HTTP] Received request for /users/generate-id")
