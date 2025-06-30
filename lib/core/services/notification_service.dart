@@ -556,10 +556,10 @@ Future<void> initializeNotificationPlugin() async {
       // For now, let's call a more specific handler for foreground:
       NotificationService().handlePlop(
           // Assuming this is the desired action
-          fromUserId: message.data['fromUserId'] as String?,
+          fromUserId: message.data['senderId'] ?? message.data['from'] as String? ,
           // Adjust based on your payload
           messageText:
-              message.notification?.body ?? message.data['body'] as String?,
+              message.notification?.body ?? message.data['body'] ?? message.data['payload']?? message.data['payload']['text'] as String?,
           isDefaultMessage: message.data['isDefaultMessage'] as bool?,
           isPending: message.data['isPending'] as bool? ?? false,
           // Default to not pending
