@@ -9,7 +9,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-const messageCooldown = 0 * time.Second
+const messageCooldown = 1 * time.Second
 
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true },
@@ -117,10 +117,8 @@ func handlePlopMessage(conn *websocket.Conn, msg Message) {
             Type:    "message_ack",
             Payload: ackPayload, // Assign the struct instance
         }
-		if err := conn.WriteJSON(ackMessage); err != nil {
-			log.Printf("[ERROR] Could not send 'message_ack' to %s: %v", msg.From, err)
-		}
-		sendDirectMessage(msg)
+        sendDirectMessage(message);
+		sendDirectMessage(ackMessage)
 	} else {
 		userLastMessageMutex.Unlock()
 		log.Printf("[WARN] Cooldown active for %s. 'plop' message ignored.", msg.From)
