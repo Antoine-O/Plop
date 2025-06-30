@@ -41,10 +41,10 @@ func extractPayloadText(payload interface{}) string {
 		if text, ok := p["text"].(string); ok {
 			return text
 		}
-		return "You received a plop!" // Default if "text" key is missing
+		return "Plop" // Default if "text" key is missing
 	case string:
 		return p
 	default:
-		return "You received a notification."
+		return "Plop"
 	}
 }
