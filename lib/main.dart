@@ -241,6 +241,7 @@ class _AppLoaderState extends State<AppLoader> {
     }
     debugPrint(
         "[AppLoader] _initializeServices: Initialisation des services terminée.");
+    await initializeLocationPermission();
     return userService;
   }
 
