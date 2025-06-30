@@ -57,6 +57,12 @@ func sendDirectMessageThroughFirebase(msg Message) {
 	}
 
 	notificationBody := extractPayloadText(msg.Payload)
+	log.Printf("[FCM] Attempting to send push notification from %s to %s with notificationBody %s.", msg.From, msg.To,notificationBody);
+
+	if notificationBody == "" {
+		notificationBody = "Plop"
+	}
+log.Printf("[FCM] Attempting to send push notification from %s to %s with notificationBody %s.", msg.From, msg.To,notificationBody);
 
 	var tokensToRemove []string
 	for _, token := range deviceTokens {
