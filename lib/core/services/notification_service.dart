@@ -20,7 +20,7 @@ import 'package:vibration/vibration.dart';
 // (e.g., in main.dart or a navigation service)
 // If not, you might need to pass navigatorKey or use a different navigation method
 
-class NotificationService {
+class NotificationService extends ChangeNotifier {
   // Private constructor
   NotificationService._privateConstructor() {
     debugPrint("[NotificationService] _privateConstructor: Instance created.");
@@ -294,8 +294,11 @@ class NotificationService {
 
     contact.lastMessage = finalMessage;
     contact.lastMessageTimestamp = sentDate?.toLocal() ?? DateTime.now();
+    debugPrint(
+        "[NotificationService] handlePlop: '$finalMessage'");
     try {
       await db.updateContact(contact);
+      notifyListeners();
       debugPrint(
           "[NotificationService] handlePlop: Contact ${contact.userId} updated in DB. LastMsg: '$finalMessage', Timestamp: ${contact.lastMessageTimestamp}");
     } catch (e, stackTrace) {
@@ -395,6 +398,7 @@ class NotificationService {
 
     _messageUpdateController
         .add({'userId': fromUserId, 'message': finalMessage});
+    notifyListeners();
     debugPrint(
         "[NotificationService] handlePlop: Message update added to stream for userId: $fromUserId.");
     debugPrint(
@@ -478,6 +482,27 @@ Future<LocationPermission> initializeLocationPermission() async {
 }
 
 
+@pragma('vm:entry-point') // Recommended for AOT compilation
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // If you're going to use other Firebase services in the background, like Firestore,
+  // make sure you call `initializeApp` before using them.
+  // However, for basic message handling, initializeApp in main might be enough
+  // if it's already called before this handler is potentially triggered.
+  // To be safe, especially if you see issues:
+  // await Firebase.initializeApp(); // Consider if you need to re-initialize here
+
+  debugPrint("[FCM] Handling a background message: ${message.messageId}");
+  debugPrint("[FCM] Message data: ${message.data}");
+  if (message.notification != null) {
+    debugPrint(
+        "[FCM] Message also contained a notification: ${message.notification!
+            .title} - ${message.notification!.body}");
+  }
+  WebSocketService webSocketService =WebSocketService();
+  webSocketService.handlePlop(message.data,fromExternalNotification: true);
+
+}
+
 Future<void> initializeNotificationPlugin() async {
   debugPrint(
       "[NotificationService] initializeNotificationPlugin: Starting plugin initialization.");
@@ -546,6 +571,7 @@ Future<void> initializeNotificationPlugin() async {
   debugPrint(
       "[NotificationService] initializeNotificationPlugin: Setting up FCM message listeners.");
   try {
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       debugPrint(
           '[NotificationService] FCM onMessage (foreground): Received message. Message ID: ${message.messageId}, Data: ${message.data}');

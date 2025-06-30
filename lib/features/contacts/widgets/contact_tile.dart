@@ -141,6 +141,7 @@ class _ContactTileState extends State<ContactTile>
       return;
     }
 
+    _startCooldown();
     debugPrint(
         '[ContactTile] _sendCustomMessage - Updating contact state before sending for: ${_contact.userId}');
     setState(() {
@@ -188,7 +189,6 @@ class _ContactTileState extends State<ContactTile>
       debugPrint(
           '[ContactTile] _sendCustomMessage - Message sent via WebSocket. Starting cooldown for: ${_contact.userId}');
 
-      _startCooldown();
 
       await Future.delayed(const Duration(seconds: 1));
       if (mounted) {
