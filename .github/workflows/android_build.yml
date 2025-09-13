@@ -31,6 +31,15 @@ jobs:
       # Cette action télécharge le code de votre dépôt sur la machine virtuelle
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Run Flutter tests
+        run: flutter test
+
       - name: Update Version
         run : |
           sed -E  -i "s/^(version: [0-9]+\.[0-9]+\.).*$/\\1${{ github.run_number }}/" pubspec.yaml

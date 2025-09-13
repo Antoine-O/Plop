@@ -1,1 +1,11 @@
-{}
+{
+  "de": [
+    "defaultImportedUsername",
+    "selectedFileDisplay",
+    "criticalStartupError"
+  ],
+
+  "es": [
+    "importAccountButtonLabel"
+  ]
+}

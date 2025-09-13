@@ -61,11 +61,16 @@ jobs:
           # 4. Écrire le contenu final dans le fichier une seule fois
           $fileContent | Set-Content -Path $targetPath
         shell: pwsh
-      # 2. Installation de Flutter sur la machine virtuelle
+      # 2. Installation et configuration de Flutter
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
+
+      - name: Run Flutter tests
+        run: flutter test
+
+
 
       # 3. Activation du support pour le bureau Windows
       - name: Enable Windows desktop support

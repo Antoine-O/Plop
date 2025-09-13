@@ -48,10 +48,13 @@ jobs:
 
 #
 #      # 2. Installation et configuration de Flutter
-#      - name: Setup Flutter
-#        uses: subosito/flutter-action@v2
-#        with:
-#          channel: 'stable'
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Run Flutter tests
+        run: flutter test
 #
 #      # 3. Installation des certificats et profils de signature
 #      # C'est l'étape cruciale qui utilise les secrets que vous avez configurés.

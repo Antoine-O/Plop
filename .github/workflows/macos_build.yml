@@ -51,11 +51,15 @@ jobs:
         shell: bash
 
       # 2. Installation et configuration de Flutter
-      # Utilise une action standard pour installer le SDK Flutter sur la machine virtuelle.
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: 'stable' # ou 'beta', 'dev'
+          channel: 'stable'
+
+      - name: Run Flutter tests
+        run: flutter test
+
+
       # 3. (CORRECTION) Forcer la recréation des fichiers de la plateforme macOS
       - name: Recreate macOS platform files
         run: |

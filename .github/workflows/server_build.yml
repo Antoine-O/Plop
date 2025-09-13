@@ -22,12 +22,26 @@ env:
   DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
 jobs:
+  test_go:
+    name: Test Go Server
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - name: Run Go tests
+        run: go test -v ./...
+        working-directory: ./server
+
   build_docker:
     # Job name that shows in the GitHub UI
     name: Build Docker Images
     # Runner to use
     runs-on: ubuntu-latest
-    #    needs: test
+    needs: test_go
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -96,5 +110,3 @@ jobs:
       # Remove the local images
       - name: Remove the Docker image with version number
         run: docker compose -f docker-compose-server.yml down --rmi all
-
-

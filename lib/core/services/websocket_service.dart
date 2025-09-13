@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 
@@ -11,6 +12,8 @@ import 'package:plop/core/services/notification_service.dart';
 import 'package:plop/core/services/user_service.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:plop/core/config/app_config.dart';
+
+enum ConnectionStatus { disconnected, connecting, connected, reconnecting }
 
 class WebSocketService {
   WebSocketService._privateConstructor() {
@@ -27,37 +30,47 @@ class WebSocketService {
       WebSocketService._privateConstructor();
 
   factory WebSocketService() {
-    // debugPrint("[WebSocketService] factory: Returning singleton instance."); // Can be verbose
     return _instance;
   }
 
   WebSocketChannel? _channel;
   final _messageUpdateController =
       StreamController<Map<String, dynamic>>.broadcast();
+  final _connectionStatusController =
+      StreamController<ConnectionStatus>.broadcast();
+
   final AudioPlayer _audioPlayer = AudioPlayer();
   Timer? _pingTimer;
+  Timer? _pongTimeoutTimer;
 
-  Stream<Map<String, dynamic>> get messageUpdates {
-    // debugPrint("[WebSocketService] messageUpdates: Stream accessed."); // Can be verbose
-    return _messageUpdateController.stream;
-  }
+  Stream<Map<String, dynamic>> get messageUpdates =>
+      _messageUpdateController.stream;
+  Stream<ConnectionStatus> get connectionStatus =>
+      _connectionStatusController.stream;
 
   int _reconnectAttempts = 0;
+  ConnectionStatus _status = ConnectionStatus.disconnected;
+
+  void _updateConnectionStatus(ConnectionStatus status) {
+    _status = status;
+    _connectionStatusController.add(status);
+    debugPrint('[WebSocketService] Connection status updated to: $status');
+  }
 
   void _handleDisconnect() {
     debugPrint(
         '[WebSocketService] _handleDisconnect: WebSocket disconnected. Current reconnect attempts: $_reconnectAttempts');
     _pingTimer?.cancel();
-    debugPrint('[WebSocketService] _handleDisconnect: Ping timer cancelled.');
+    _pongTimeoutTimer?.cancel();
+    _updateConnectionStatus(ConnectionStatus.reconnecting);
 
-    if (_reconnectAttempts < 60) {
+    if (_reconnectAttempts < 10) {
+      // Limit to 10 attempts for exponential backoff
       _reconnectAttempts++;
-      int reconnectDelayFactor = _reconnectAttempts - 1;
-      if (reconnectDelayFactor > 8) {
-        reconnectDelayFactor = 8; // Cap delay factor
-      }
+      // Exponential backoff with jitter
+      final delay = Duration(
+          seconds: pow(2, _reconnectAttempts).toInt() + Random().nextInt(5));
 
-      final delay = Duration(seconds: reconnectDelayFactor);
       debugPrint(
           '[WebSocketService] _handleDisconnect: Will attempt reconnection (attempt #$_reconnectAttempts) in $delay seconds.');
 
@@ -65,45 +78,45 @@ class WebSocketService {
         debugPrint(
             '[WebSocketService] _handleDisconnect: Attempting reconnection #$_reconnectAttempts...');
         if (_currentUserId != null && _currentUserPseudo != null) {
-          debugPrint(
-              '[WebSocketService] _handleDisconnect: Stored user ID ($_currentUserId) and pseudo ($_currentUserPseudo) found. Calling connect.');
           connect(_currentUserId!, _currentUserPseudo!);
         } else {
           debugPrint(
               '[WebSocketService] _handleDisconnect: Cannot reconnect, currentUserId or currentUserPseudo is null.');
+          _updateConnectionStatus(ConnectionStatus.disconnected);
         }
       });
     } else {
       debugPrint(
           '[WebSocketService] _handleDisconnect: Maximum reconnection attempts reached. Stopping reconnection attempts.');
-      // Informer l'utilisateur ou arrêter les tentatives
+      _updateConnectionStatus(ConnectionStatus.disconnected);
+      // Optionally inform the user
     }
   }
 
   void connect(String userId, String userPseudo) {
-    debugPrint(
-        '[WebSocketService] connect: Attempting to connect for userId: $userId, pseudo: $userPseudo');
-    if (_channel != null && _channel?.closeCode == null) {
-      // Check if already connected and open
+    if (_status == ConnectionStatus.connected ||
+        _status == ConnectionStatus.connecting) {
       debugPrint(
-          '[WebSocketService] connect: Channel already exists and seems open. Aborting new connection.');
+          '[WebSocketService] connect: Already connected or connecting. Aborting.');
       return;
     }
+
+    _updateConnectionStatus(ConnectionStatus.connecting);
+    _currentUserId = userId;
+    _currentUserPseudo = userPseudo;
+
     try {
-      _currentUserId = userId;
-      _currentUserPseudo = userPseudo;
-      debugPrint(
-          '[WebSocketService] connect: Stored _currentUserId: $_currentUserId, _currentUserPseudo: $_currentUserPseudo');
       final uri =
           Uri.parse('$_baseUrl/connect?userId=$userId&pseudo=$userPseudo');
       debugPrint('[WebSocketService] connect: Connecting to URI: $uri');
       _channel = WebSocketChannel.connect(uri);
+      _updateConnectionStatus(ConnectionStatus.connected);
+      _reconnectAttempts = 0; // Reset on successful connection
       debugPrint(
           '[WebSocketService] connect: WebSocketChannel created. Listening to stream.');
+
       _channel!.stream.listen(
         (message) {
-          // _handleMessage renamed to message for clarity in this scope
-          // debugPrint('[WebSocketService] connect: Raw message received on stream: $message'); // Can be very verbose
           _handleMessage(message);
         },
         onDone: () {
@@ -118,108 +131,83 @@ class WebSocketService {
         },
         cancelOnError: true,
       );
-      _reconnectAttempts =
-          0; // Reset on successful connection attempt initiation
-      debugPrint('[WebSocketService] connect: Reconnect attempts reset to 0.');
+
       _startPing();
-      debugPrint('[WebSocketService] connect: Connection process initiated.');
     } catch (e, stackTrace) {
       debugPrint(
           '[WebSocketService] connect: ERROR during connection attempt: $e');
       debugPrintStack(
           stackTrace: stackTrace, label: '[WebSocketService] connect Error');
+      _handleDisconnect();
     }
   }
 
   void _startPing() {
-    debugPrint(
-        '[WebSocketService] _startPing: Attempting to start ping timer.');
     _pingTimer?.cancel();
-    debugPrint(
-        '[WebSocketService] _startPing: Previous ping timer (if any) cancelled.');
-
-    _pingTimer = Timer.periodic(const Duration(seconds: 30), (timer) async {
-      // Marked async for userService.init()
-      // debugPrint('[WebSocketService] _startPing: Ping timer ticked.'); // Can be verbose
-      if (userService.userId == null) {
-        debugPrint(
-            '[WebSocketService] _startPing: userService.userId is null. Initializing userService.');
-        await userService.init(); // Assuming init might be async
-      }
-      final String? userId = userService.userId;
-      final String? username = userService.username;
-      final Map<String, dynamic> pingData = {
-        'type': 'ping',
-        'timestamp': DateTime.now().toIso8601String(),
-      };
-      if (userId != null) {
-        pingData['userId'] = userId;
-        pingData['pseudo'] =
-            username; // Assuming username corresponds to pseudo for ping
-      }
-      final String jsonPing = jsonEncode(pingData);
-      debugPrint('[WebSocketService] _startPing: Sending ping: $jsonPing');
-      try {
-        if (_channel != null && _channel?.closeCode == null) {
+    _pingTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+      if (_status == ConnectionStatus.connected) {
+        final Map<String, dynamic> pingData = {
+          'type': 'ping',
+          'timestamp': DateTime.now().toIso8601String(),
+        };
+        final String jsonPing = jsonEncode(pingData);
+        debugPrint('[WebSocketService] _startPing: Sending ping: $jsonPing');
+        try {
           _channel!.sink.add(jsonPing);
-          // debugPrint('[WebSocketService] _startPing: Ping message added to sink.'); // Can be verbose
-        } else {
-          debugPrint(
-              '[WebSocketService] _startPing: Cannot send ping, channel is null or closed.');
+          // Start a timer to wait for a pong
+          _pongTimeoutTimer?.cancel();
+          _pongTimeoutTimer = Timer(const Duration(seconds: 5), () {
+            debugPrint(
+                "[WebSocketService] Pong timeout! Didn't receive a pong in time.");
+            _handleDisconnect();
+          });
+        } catch (e, stackTrace) {
+          debugPrint('[WebSocketService] _startPing: ERROR sending ping: $e');
+          debugPrintStack(
+              stackTrace: stackTrace,
+              label: '[WebSocketService] _startPing Error');
+          _handleDisconnect(); // Trigger reconnect if ping fails
         }
-      } catch (e, stackTrace) {
-        debugPrint('[WebSocketService] _startPing: ERROR sending ping: $e');
-        debugPrintStack(
-            stackTrace: stackTrace,
-            label: '[WebSocketService] _startPing Error');
-        // Optionally, handle specific errors like broken pipe by attempting to reconnect
       }
     });
-    debugPrint(
-        '[WebSocketService] _startPing: Ping timer started. Interval: 30 seconds.');
   }
 
   void _handleMessage(dynamic message) {
-    debugPrint(
-        '[WebSocketService] _handleMessage: Handling raw message: $message');
     try {
       final decoded = jsonDecode(message);
       final String type = decoded['type'];
       debugPrint(
-          '[WebSocketService] _handleMessage: Decoded message type: $type. Full decoded: $decoded');
+          '[WebSocketService] _handleMessage: Decoded message type: $type.');
+
+      if (type == 'pong') {
+        _pongTimeoutTimer?.cancel();
+        debugPrint("[WebSocketService] Pong received!");
+        return; // Handled, no further processing needed
+      }
 
       switch (type) {
         case 'plop':
-          debugPrint('[WebSocketService] _handleMessage: Matched type "plop".');
           handlePlop(decoded);
           break;
         case 'message_ack':
-          debugPrint(
-              '[WebSocketService] _handleMessage: Matched type "message_ack".');
           _handleMessageAck(decoded['payload']);
           break;
         case 'new_contact':
-          debugPrint(
-              '[WebSocketService] _handleMessage: Matched type "new_contact".');
           _handleNewContact(decoded['payload']);
           break;
         case 'sync_request':
-          debugPrint(
-              '[WebSocketService] _handleMessage: Matched type "sync_request".');
           _handleSyncRequest();
           break;
         case 'sync_data_broadcast':
-          debugPrint(
-              '[WebSocketService] _handleMessage: Matched type "sync_data_broadcast".');
           _handleSyncDataBroadcast(decoded['payload']);
           break;
         default:
           debugPrint(
-              '[WebSocketService] _handleMessage: Unknown message type: $type. Message: $message');
+              '[WebSocketService] _handleMessage: Unknown message type: $type.');
       }
     } catch (e, stackTrace) {
       debugPrint(
-          '[WebSocketService] _handleMessage: ERROR processing message: $e. Original message: $message');
+          '[WebSocketService] _handleMessage: ERROR processing message: $e.');
       debugPrintStack(
           stackTrace: stackTrace,
           label: '[WebSocketService] _handleMessage Error');
@@ -449,25 +437,23 @@ class WebSocketService {
       bool isDefault = false}) {
     debugPrint(
         '[WebSocketService] sendMessage: Attempting to send message. Type: $type, To: $to, IsDefault: $isDefault, Payload: $payload');
-    ensureConnected(); // This has its own logs
-    if (_channel != null && _channel?.closeCode == null) {
+    ensureConnected();
+    if (_status == ConnectionStatus.connected) {
       final message = {
         'type': type,
         'to': to,
         'payload': payload,
         'isDefault': isDefault,
-        'senderId': _currentUserId, // Automatically add senderId
-        'senderPseudo': _currentUserPseudo, // Automatically add senderPseudo
-        'sendDate': DateTime.now().toIso8601String(), // Add send date
+        'senderId': _currentUserId,
+        'senderPseudo': _currentUserPseudo,
+        'sendDate': DateTime.now().toIso8601String(),
       };
       final jsonMessage = jsonEncode(message);
-      // debugPrint('[WebSocketService] sendMessage: Full JSON message to send: $jsonMessage'); // Can be verbose
 
       try {
         _channel!.sink.add(jsonMessage);
         debugPrint(
             '[WebSocketService] sendMessage: Message added to sink. Type: $type, To: $to');
-        // Update local contact state for sending (optimistic update)
         if (to != null) {
           final db = DatabaseService();
           final contact = db.getContact(to);
@@ -475,8 +461,6 @@ class WebSocketService {
             contact.lastMessageSentStatus = MessageStatus.sending;
             contact.lastMessageSentTimestamp = DateTime.now();
             contact.save();
-            debugPrint(
-                '[WebSocketService] sendMessage: Contact $to status updated to sending.');
             _messageUpdateController
                 .add({'userId': to, 'type': 'status_update'});
           }
@@ -486,59 +470,42 @@ class WebSocketService {
         debugPrintStack(
             stackTrace: stackTrace,
             label: '[WebSocketService] sendMessage Sink Error');
-        // If send fails, potentially revert status or queue message
         if (to != null) {
           final db = DatabaseService();
           final contact = db.getContact(to);
           if (contact != null &&
               contact.lastMessageSentStatus == MessageStatus.sending) {
-            contact.lastMessageSentStatus =
-                MessageStatus.failed; // Or some other appropriate status
+            contact.lastMessageSentStatus = MessageStatus.failed;
             contact.save();
-            debugPrint(
-                '[WebSocketService] sendMessage: Contact $to status updated to failed due to send error.');
             _messageUpdateController
                 .add({'userId': to, 'type': 'status_update'});
           }
         }
-        // Not rethrowing, as the primary path for disconnect handling is via stream.onError/onDone
       }
     } else {
       debugPrint(
-          '[WebSocketService] sendMessage: Cannot send message, channel is null or closed.');
-      // Potentially queue message or throw custom error
+          '[WebSocketService] sendMessage: Cannot send message, channel is not connected.');
     }
   }
 
   void disconnect() {
-    debugPrint(
-        '[WebSocketService] disconnect: Method called. Closing channel sink.');
-    try {
-      _channel?.sink.close();
-      debugPrint('[WebSocketService] disconnect: Sink closed.');
-    } catch (e, stackTrace) {
-      debugPrint('[WebSocketService] disconnect: ERROR closing sink: $e');
-      debugPrintStack(
-          stackTrace: stackTrace,
-          label: '[WebSocketService] disconnect Sink Close Error');
-    }
-    _channel = null;
+    debugPrint('[WebSocketService] disconnect: Method called.');
+    _reconnectAttempts = 0; // Reset on manual disconnect
     _pingTimer?.cancel();
+    _pongTimeoutTimer?.cancel();
+    _channel?.sink.close();
+    _channel = null;
     _currentUserId = null;
     _currentUserPseudo = null;
-    _reconnectAttempts = 0; // Reset attempts on manual disconnect
-    debugPrint(
-        '[WebSocketService] disconnect: Channel set to null, ping timer cancelled, user info cleared, reconnect attempts reset.');
+    _updateConnectionStatus(ConnectionStatus.disconnected);
   }
 
   void dispose() {
-    debugPrint(
-        '[WebSocketService] dispose: Method called. Closing stream controller and disposing audio player.');
+    debugPrint('[WebSocketService] dispose: Method called.');
     _messageUpdateController.close();
+    _connectionStatusController.close();
     _audioPlayer.dispose();
-    _pingTimer?.cancel(); // Ensure ping timer is also cancelled on dispose
-    debugPrint(
-        '[WebSocketService] dispose: Resources disposed and ping timer cancelled.');
+    disconnect();
   }
 
   void handlePlop(Map<String, dynamic> messageData) async {
@@ -641,109 +608,31 @@ class WebSocketService {
   void ensureConnected() {
     debugPrint(
         "[WebSocketService] ensureConnected: Checking connection status.");
-    if (_channel == null || _channel!.closeCode != null) {
+    if (_status != ConnectionStatus.connected) {
       debugPrint(
-          "[WebSocketService] ensureConnected: Connection is down (channel is null or closeCode is set: ${_channel?.closeCode}). Attempting to re-establish.");
-      _reconnectAttempts =
-          0; // Reset attempts for a "manual" reconnection trigger
+          "[WebSocketService] ensureConnected: Connection is down. Attempting to re-establish.");
+      _reconnectAttempts = 0; // Reset for a "manual" trigger
       if (_currentUserId != null && _currentUserPseudo != null) {
-        debugPrint(
-            "[WebSocketService] ensureConnected: User details found. Clearing old channel and calling connect.");
-        _channel = null; // Explicitly nullify before reconnecting
         connect(_currentUserId!, _currentUserPseudo!);
       } else {
         debugPrint(
-            "[WebSocketService] ensureConnected: Cannot reconnect: currentUserId or currentUserPseudo is missing.");
+            "[WebSocketService] ensureConnected: Cannot reconnect: user details missing.");
       }
     } else {
       debugPrint(
-          "[WebSocketService] ensureConnected: Connection is already active. Close code: ${_channel?.closeCode}");
+          "[WebSocketService] ensureConnected: Connection is active.");
     }
   }
 }
 
-// This function seems to be part of an initialization sequence outside the class
-// It was present in the original context, so I'm including logs for it too.
 Future<void> initializeWebSocket() async {
   debugPrint(
       "[initializeWebSocket] Global function called: Initializing WebSocket service and listener.");
-  // Initialisation des services
-  final webSocketService = WebSocketService(); // Gets singleton instance
-  // final databaseService = DatabaseService(); // Not used in this function scope
-  // final notificationService = NotificationService(); // Not directly used in this listen, but NotificationService().handlePlop is used by the class
+  final webSocketService = WebSocketService();
 
-  // Lancer l'écouteur UNE SEULE FOIS pour toute l'application
   webSocketService.messageUpdates.listen((data) {
     debugPrint(
         "[initializeWebSocket] messageUpdates.listen: Received data from stream: $data");
-
-    // This section seems to duplicate logic from WebSocketService._handleMessageAck or _handleNewContact or handlePlop.
-    // The `messageUpdates` stream in the current class design seems more for UI updates based on specific events
-    // rather than re-processing raw message types.
-    // If the stream is intended for generic UI updates, the data structure should reflect that.
-    // If it's for re-handling messages, it might lead to duplicate processing.
-    // For now, I'm logging based on the existing structure.
-
-    final String? updateType = data['type']
-        as String?; // Expecting a 'type' field to differentiate updates
-    final String? userIdForUpdate = data['userId'] as String?;
-
-    debugPrint(
-        "[initializeWebSocket] messageUpdates.listen: Update type: $updateType, User ID for update: $userIdForUpdate");
-
-    if (userIdForUpdate == 'sync_completed') {
-      debugPrint(
-          "[initializeWebSocket] messageUpdates.listen: Sync completed event received. UI should refresh related data.");
-      // Potentially trigger UI rebuilds related to sync
-    } else if (userIdForUpdate == 'new_contact_added') {
-      debugPrint(
-          "[initializeWebSocket] messageUpdates.listen: New contact added event received. New contact ID: ${data['newContactId']}. UI should refresh contact list.");
-      // Potentially trigger UI rebuild for contact list
-    } else if (updateType == 'ack' && userIdForUpdate != null) {
-      debugPrint(
-          "[initializeWebSocket] messageUpdates.listen: Message acknowledgement event for user $userIdForUpdate. UI should update message status.");
-      // Potentially trigger UI update for this specific contact's message status
-    } else if (updateType == 'status_update' && userIdForUpdate != null) {
-      debugPrint(
-          "[initializeWebSocket] messageUpdates.listen: Message status update event for user $userIdForUpdate. UI should update message status.");
-    }
-    // The original code below for `handlePlop` call inside this global listener seems problematic
-    // as `handlePlop` is already called inside `_handleMessage`.
-    // If `messageUpdates` stream is meant to *re-trigger* plop handling, that's a design concern.
-    // I'm commenting it out as it's likely redundant or an error.
-    /*
-    final fromUserId = data['senderId'] ?? data['from']; // Assuming original data structure
-    if (fromUserId == null) {
-      debugPrint("[initializeWebSocket] messageUpdates.listen: fromUserId is null in data. Cannot call handlePlop.");
-      return;
-    }
-
-    final messageText = data['payload'] as String?; // Assuming original data structure
-    if (messageText == null) {
-      debugPrint("[initializeWebSocket] messageUpdates.listen: payload (messageText) is null. Cannot call handlePlop.");
-      return;
-    }
-    final bool isDefaultMessage = (data['isDefault'] == 'true' || data['isDefault'] == true);
-    final bool isPending = (data['IsPending'] == 'true' || data['IsPending'] == true);
-    final String? sendDateString = data['sendDate'] as String?;
-    DateTime? sentDate;
-    if(sendDateString != null) sentDate = DateTime.tryParse(sendDateString);
-    sentDate ??= DateTime.now();
-
-
-    debugPrint("[initializeWebSocket] messageUpdates.listen: Data seems to be a plop. Calling notificationService.handlePlop. fromUserId: $fromUserId, message: $messageText");
-    // Directly calling notificationService.handlePlop here means the WebSocketService.handlePlop
-    // which has more logic (like contact checks) might be bypassed if the stream data is a raw message.
-    // This is generally not advisable. The stream should ideally carry processed/specific update events.
-    NotificationService().handlePlop(
-        fromUserId:fromUserId as String,
-        messageText:messageText,
-        isDefaultMessage: isDefaultMessage,
-        isPending:isPending,
-        sentDate: sentDate, // Assuming data['sendDate'] exists
-        fromExternalNotification:false // This is an internal app update
-    );
-    */
   }, onError: (error, stackTrace) {
     debugPrint(
         "[initializeWebSocket] messageUpdates.listen: ERROR in stream: $error");
@@ -752,6 +641,13 @@ Future<void> initializeWebSocket() async {
   }, onDone: () {
     debugPrint("[initializeWebSocket] messageUpdates.listen: Stream is done.");
   });
+
+  webSocketService.connectionStatus.listen((status) {
+    debugPrint(
+        "[initializeWebSocket] connectionStatus.listen: Connection status changed to: $status");
+    // You can add logic here to react to connection status changes in your UI
+  });
+
   debugPrint(
-      "[initializeWebSocket] Global function: WebSocket service listener attached.");
+      "[initializeWebSocket] Global function: WebSocket service listeners attached.");
 }

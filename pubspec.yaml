@@ -28,13 +28,13 @@ dependencies:
   # Sauvegarde / Restauration
   encrypt: 5.0.3
   file_picker: ^10.2.0
-  share_plus: ^11.0.0
+  share_plus: ^12.0.0
   hive_flutter: ^1.1.0
 
   # État et Utilitaires
   provider: ^6.1.5 # Utile pour la gestion d'état simple
 
-  flutter_dotenv: ^5.2.1
+  flutter_dotenv: ^6.0.0
 
   intl: ^0.20.2
   logger: ^2.5.0
@@ -48,8 +48,8 @@ dependencies:
 
   web_socket_channel: ^3.0.3
   flutter_background_service: ^5.1.0
-  firebase_core: ^3.14.0
-  firebase_messaging: ^15.2.7
+  firebase_core: ^4.1.0
+  firebase_messaging: ^16.0.1
 
   path_provider: ^2.1.3
   path: ^1.9.1 # <-- ADD THIS
@@ -60,10 +60,11 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^6.0.0
   hive_generator: ^2.0.1
-  build_runner: ^2.4.15
-  analyzer: ^6.11.0
+  build_runner: ^2.4.13
   flutter_launcher_icons: ^0.14.4
-
+  mockito: ^5.4.4
+  source_helper: ^1.3.5
+  hive_test: ^1.0.1
 flutter:
   uses-material-design: true
   generate: true
