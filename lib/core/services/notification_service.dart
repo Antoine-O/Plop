@@ -4,6 +4,7 @@ import 'dart:io' show Platform; // Specific import for Platform
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+
 // For debugPrint and debugPrintStack
 import 'package:flutter/material.dart'; // For Colors
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -192,7 +193,7 @@ class NotificationService extends ChangeNotifier {
     );
 
     const LinuxNotificationDetails linuxPlatformChannelSpecifics =
-    LinuxNotificationDetails(
+        LinuxNotificationDetails(
       defaultActionName: 'Ouvrir',
     );
     debugPrint(
@@ -294,8 +295,7 @@ class NotificationService extends ChangeNotifier {
 
     contact.lastMessage = finalMessage;
     contact.lastMessageTimestamp = sentDate?.toLocal() ?? DateTime.now();
-    debugPrint(
-        "[NotificationService] handlePlop: '$finalMessage'");
+    debugPrint("[NotificationService] handlePlop: '$finalMessage'");
     try {
       await db.updateContact(contact);
       notifyListeners();
@@ -481,7 +481,6 @@ Future<LocationPermission> initializeLocationPermission() async {
   return await Geolocator.checkPermission();
 }
 
-
 @pragma('vm:entry-point') // Recommended for AOT compilation
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // If you're going to use other Firebase services in the background, like Firestore,
@@ -495,12 +494,25 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   debugPrint("[FCM] Message data: ${message.data}");
   if (message.notification != null) {
     debugPrint(
-        "[FCM] Message also contained a notification: ${message.notification!
-            .title} - ${message.notification!.body}");
+        "[FCM] Message also contained a notification: ${message.notification!.title} - ${message.notification!.body}");
   }
-  WebSocketService webSocketService =WebSocketService();
-  webSocketService.handlePlop(message.data,fromExternalNotification: true);
-
+  NotificationService notificationService = NotificationService();
+  notificationService.handlePlop(
+    // Assuming this is the desired action
+      fromUserId:
+      message.data['senderId'] ?? message.data['from'] as String?,
+      // Adjust based on your payload
+      messageText: message.notification?.body ??
+          message.data['body'] ??
+          message.data['payload'] ??
+          message.data['payload']['text'] as String?,
+      isDefaultMessage: message.data['isDefaultMessage'] as bool?,
+      isPending: message.data['isPending'] as bool? ?? false,
+      // Default to not pending
+      sentDate: message.sentTime,
+      fromExternalNotification:
+      true // It's from FCM, so it's "external" to app's direct sound play
+  );
 }
 
 Future<void> initializeNotificationPlugin() async {
@@ -582,10 +594,13 @@ Future<void> initializeNotificationPlugin() async {
       // For now, let's call a more specific handler for foreground:
       NotificationService().handlePlop(
           // Assuming this is the desired action
-          fromUserId: message.data['senderId'] ?? message.data['from'] as String? ,
+          fromUserId:
+              message.data['senderId'] ?? message.data['from'] as String?,
           // Adjust based on your payload
-          messageText:
-              message.notification?.body ?? message.data['body'] ?? message.data['payload']?? message.data['payload']['text'] as String?,
+          messageText: message.notification?.body ??
+              message.data['body'] ??
+              message.data['payload'] ??
+              message.data['payload']['text'] as String?,
           isDefaultMessage: message.data['isDefaultMessage'] as bool?,
           isPending: message.data['isPending'] as bool? ?? false,
           // Default to not pending
@@ -707,7 +722,22 @@ void handleNotificationTap(RemoteMessage message) {
   message.data['sendDate'] = sentTimestamp;
   debugPrint(
       "[handleNotificationTap] Date d'envoi ajoutée aux données du message: $sentTimestamp");
-  webSocketService.handlePlop(message.data, fromExternalNotification: true);
+  NotificationService().handlePlop(
+    // Assuming this is the desired action
+      fromUserId:
+      message.data['senderId'] ?? message.data['from'] as String?,
+      // Adjust based on your payload
+      messageText: message.notification?.body ??
+          message.data['body'] ??
+          message.data['payload'] ??
+          message.data['payload']['text'] as String?,
+      isDefaultMessage: message.data['isDefaultMessage'] as bool?,
+      isPending: message.data['isPending'] as bool? ?? false,
+      // Default to not pending
+      sentDate: message.sentTime,
+      fromExternalNotification:
+      true // It's from FCM, so it's "external" to app's direct sound play
+  );
   debugPrint("[handleNotificationTap] Méthode handlePlop appelée.");
 
   // Vous pouvez ajouter d'autres 'if' pour d'autres types de notifications

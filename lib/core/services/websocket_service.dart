@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+
 // Import for debugPrint
 import 'package:plop/core/models/contact_model.dart';
 import 'package:plop/core/models/message_model.dart';
@@ -540,13 +541,14 @@ class WebSocketService {
         '[WebSocketService] dispose: Resources disposed and ping timer cancelled.');
   }
 
-  void handlePlop(Map<String, dynamic> messageData,
-      {bool fromExternalNotification = false}) async {
+  void handlePlop(Map<String, dynamic> messageData) async {
+    bool fromExternalNotification = false;
     debugPrint(
         "[WebSocketService] handlePlop: Processing plop message. Data: $messageData, FromExternalNotification: $fromExternalNotification");
     try {
       // Prioritize 'senderId' from our own sendMessage, fallback to 'from' for compatibility
-      final fromUserId = messageData['senderId'] ?? messageData['from'] as String?;
+      final fromUserId =
+          messageData['senderId'] ?? messageData['from'] as String?;
       if (fromUserId == null) {
         debugPrint(
             "[WebSocketService] handlePlop: fromUserId is null (checked senderId and from). Aborting. Data: $messageData");
@@ -560,21 +562,25 @@ class WebSocketService {
       if (messageData['payload'] is String) {
         // Backwards compatibility or simple text payload
         messageText = messageData['payload'] as String;
-        debugPrint("[NotificationService] handlePlop: Received simple text payload: '$messageText'");
+        debugPrint(
+            "[NotificationService] handlePlop: Received simple text payload: '$messageText'");
       } else if (messageData['payload'] is Map) {
         final payloadMap = messageData['payload'] as Map<String, dynamic>;
-        messageText = payloadMap['text'] as String? ?? "Nouveau message"; // Fallback
+        messageText =
+            payloadMap['text'] as String? ?? "Nouveau message"; // Fallback
         latitude = payloadMap['latitude'] as double?;
         longitude = payloadMap['longitude'] as double?;
-        debugPrint("[NotificationService] handlePlop: Received structured payload. Text: '$messageText', Lat: $latitude, Lon: $longitude");
+        debugPrint(
+            "[NotificationService] handlePlop: Received structured payload. Text: '$messageText', Lat: $latitude, Lon: $longitude");
       } else {
         messageText = "Plop"; // Fallback for unknown payload structure
-        debugPrint("[NotificationService] handlePlop: Received unknown payload structure.");
+        debugPrint(
+            "[NotificationService] handlePlop: Received unknown payload structure.");
       }
 
       // Ensure boolean conversion is safe
-      final isDefaultMessage =
-          (messageData['isDefault'] == true || messageData['isDefault'] == 'true');
+      final isDefaultMessage = (messageData['isDefault'] == true ||
+          messageData['isDefault'] == 'true');
       final isPending = (messageData['IsPending'] == true ||
           messageData['IsPending'] ==
               'true'); // Note: 'IsPending' casing from original code
