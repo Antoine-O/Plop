@@ -1,4 +1,9 @@
 services:
+  flutter-test:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+      target: test
   site:
     image: registry.profluens.com/plop_site:local
     build:

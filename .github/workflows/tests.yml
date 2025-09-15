@@ -1,0 +1,30 @@
+name: Run Tests
+
+on: [push]
+
+jobs:
+  flutter-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Flutter
+        run: |
+          git clone https://github.com/flutter/flutter.git --depth 1 --branch stable /opt/flutter
+          /opt/flutter/bin/flutter --version
+      - name: Install dependencies
+        run: /opt/flutter/bin/flutter pub get
+      - name: Run tests
+        run: /opt/flutter/bin/flutter test
+
+  go-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.22
+      - name: Run tests
+        run: |
+          cd server
+          go test -v
