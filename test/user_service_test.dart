@@ -17,7 +17,7 @@ void main() {
 
     setUp(() {
       mockClient = MockClient();
-      userService = UserService();
+      userService = UserService(client: mockClient);
       SharedPreferences.setMockInitialValues({});
     });
 
