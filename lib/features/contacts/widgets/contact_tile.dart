@@ -16,10 +16,10 @@ class ContactTile extends StatefulWidget {
   const ContactTile({super.key, required this.contact});
 
   @override
-  _ContactTileState createState() => _ContactTileState();
+  ContactTileState createState() => ContactTileState();
 }
 
-class _ContactTileState extends State<ContactTile>
+class ContactTileState extends State<ContactTile>
     with TickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
@@ -156,6 +156,7 @@ class _ContactTileState extends State<ContactTile>
         '[ContactTile] _sendCustomMessage - Contact saved. Attempting to send message via WebSocket for: ${_contact.userId}');
     Position? currentPosition;
     try {
+      if (!mounted) return;
       // Pass context if you want the service to be able to show dialogs
       currentPosition = await _locationService
           .getCurrentPositionWithPermissionCheck(context: context);
@@ -420,9 +421,9 @@ class _ContactTileState extends State<ContactTile>
     // debugPrint('[ContactTile] _buildMessageBubble for contact: ${_contact.userId}, message: ${_contact.lastMessage}');
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: Colors.white70,
-        borderRadius: const BorderRadius.all(Radius.circular(12)),
+        borderRadius: BorderRadius.all(Radius.circular(12)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,

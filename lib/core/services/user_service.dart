@@ -15,14 +15,20 @@ class UserService extends ChangeNotifier {
   String? username;
   bool isGlobalMute = false;
 
+  final DatabaseService _db;
   final http.Client _client;
 
-  UserService({http.Client? client}) : _client = client ?? http.Client();
+  @visibleForTesting
+  UserService.internal(this._db, this._client);
 
-  Future<void> init() async {
+  UserService()
+      : _db = DatabaseService(),
+        _client = http.Client();
+
+  Future<void> init({SharedPreferences? prefs}) async {
     debugPrint("[UserService] init: Initializing UserService...");
     try {
-      _prefs = await SharedPreferences.getInstance();
+      _prefs = prefs ?? await SharedPreferences.getInstance();
       debugPrint("[UserService] init: SharedPreferences instance obtained.");
 
       userId = _prefs.getString('userId');
@@ -53,7 +59,7 @@ class UserService extends ChangeNotifier {
     final String url = '$_baseUrl/users/generate-id';
     debugPrint("[UserService] createUser: Requesting URL: |$url|");
     try {
-      final response = await _client.get(Uri.parse(url));
+      final response = await _client.post(Uri.parse(url));
       debugPrint(
           "[UserService] createUser: Response status: ${response.statusCode}, body: ${response.body}");
 
@@ -91,12 +97,13 @@ class UserService extends ChangeNotifier {
     return false;
   }
 
-  Future<void> updateUsername(String newUsername) async {
+  Future<void> updateUsername(String newUsername, {SharedPreferences? prefs}) async {
+    final prefs0 = prefs ?? await SharedPreferences.getInstance();
     debugPrint(
         "[UserService] updateUsername: Attempting to update username to: '$newUsername'. Current username: $username");
     username = newUsername;
     try {
-      await _prefs.setString('username', username!);
+      await prefs0.setString('username', username!);
       debugPrint(
           "[UserService] updateUsername: Username '$newUsername' saved to SharedPreferences.");
       notifyListeners();
@@ -127,13 +134,14 @@ class UserService extends ChangeNotifier {
     }
   }
 
-  Future<void> toggleGlobalMute() async {
+  Future<void> toggleGlobalMute({SharedPreferences? prefs}) async {
+    final prefs0 = prefs ?? await SharedPreferences.getInstance();
     final bool oldMuteState = isGlobalMute;
     isGlobalMute = !isGlobalMute;
     debugPrint(
         "[UserService] toggleGlobalMute: Toggling global mute from $oldMuteState to $isGlobalMute.");
     try {
-      await _prefs.setBool(_globalMuteKey, isGlobalMute);
+      await prefs0.setBool(_globalMuteKey, isGlobalMute);
       debugPrint(
           "[UserService] toggleGlobalMute: Global mute state ($isGlobalMute) saved to SharedPreferences.");
       notifyListeners();
@@ -177,15 +185,13 @@ class UserService extends ChangeNotifier {
         debugPrint(
             "[UserService] syncContactsPseudos: Received remote pseudos: $remotePseudos");
 
-        final db =
-            DatabaseService(); // Assuming DatabaseService is a singleton or correctly instantiated
         for (var contact in localContacts) {
           if (remotePseudos.containsKey(contact.userId) &&
               contact.originalPseudo != remotePseudos[contact.userId]) {
             debugPrint(
                 "[UserService] syncContactsPseudos: Updating contact ${contact.userId}. Old pseudo: '${contact.originalPseudo}', New pseudo: '${remotePseudos[contact.userId]}'");
             contact.originalPseudo = remotePseudos[contact.userId]!;
-            await db.updateContact(
+            await _db.updateContact(
                 contact); // Assuming updateContact handles DB operations
             hasBeenUpdated = true;
           } else if (!remotePseudos.containsKey(contact.userId)) {

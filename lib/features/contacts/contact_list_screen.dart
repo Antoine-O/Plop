@@ -18,10 +18,10 @@ class ContactListScreen extends StatefulWidget {
   const ContactListScreen({super.key});
 
   @override
-  _ContactListScreenState createState() => _ContactListScreenState();
+  ContactListScreenState createState() => ContactListScreenState();
 }
 
-class _ContactListScreenState extends State<ContactListScreen> {
+class ContactListScreenState extends State<ContactListScreen> {
   final DatabaseService _databaseService = DatabaseService();
   final InvitationService _invitationService = InvitationService();
   final UserService _userService = UserService();
@@ -92,7 +92,8 @@ class _ContactListScreenState extends State<ContactListScreen> {
     if (_userService.userId == null || _userService.username == null) return;
     final invitationData = await _invitationService.createInvitationCode(
         _userService.userId!, _userService.username!);
-    if (invitationData != null && mounted) {
+    if (!mounted) return;
+    if (invitationData != null) {
       showDialog(
         context: context,
         builder: (context) => InvitationDialog(

@@ -18,10 +18,10 @@ class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  _SettingsScreenState createState() => _SettingsScreenState();
+  SettingsScreenState createState() => SettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
+class SettingsScreenState extends State<SettingsScreen> {
   // Services et contrôleurs
   final DatabaseService _databaseService = DatabaseService();
   final UserService _userService = UserService();
@@ -38,7 +38,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String? _userId;
   bool _isLoading = true;
 
-  final String _backupFileName = 'plop_config_backup.json';
+  // final String _backupFileName = 'plop_config_backup.json';
 
   @override
   void initState() {
@@ -82,6 +82,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         _messages = _databaseService.getAllMessages();
       });
     } else if (_messages.length >= 10) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppLocalizations.of(context)!.maxTenMessages)),
       );
@@ -99,9 +100,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final newUsername = _usernameController.text.trim();
     if (newUsername.isNotEmpty && newUsername != _userService.username) {
       await _userService.updateUsername(newUsername);
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content:  Text(AppLocalizations.of(context)!.usernameUpdated)),
       );
+      if (!mounted) return;
       FocusScope.of(context).unfocus(); // Ferme le clavier
     }
   }
@@ -159,6 +162,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   // }
 
   Future<void> _resetApp() async {
+    if (!mounted) return;
     final bool? confirm = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
@@ -171,7 +175,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: Text(AppLocalizations.of(context)!.cancel)),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: Text(AppLocalizations.of(context)!.resetButtonAction, style: TextStyle(color: Colors.red)),
+              child: Text(AppLocalizations.of(context)!.resetButtonAction, style: const TextStyle(color: Colors.red)),
             ),
           ],
         );
@@ -191,7 +195,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (!mounted) return;
 
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => SetupScreen()),
+        MaterialPageRoute(builder: (context) => const SetupScreen()),
         (Route<dynamic> route) => false,
       );
     }
@@ -216,7 +220,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: Text(AppLocalizations.of(context)!.settings),
       ),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -225,28 +229,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   // --- Section Compte Utilisateur ---
                   Text(AppLocalizations.of(context)!.myAccount,
                       style: Theme.of(context).textTheme.titleLarge),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   TextField(
                     controller: _usernameController,
                     decoration: InputDecoration(
                       labelText: AppLocalizations.of(context)!.myUsername,
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
                       suffixIcon: IconButton(
-                        icon: Icon(Icons.save_alt),
+                        icon: const Icon(Icons.save_alt),
                         onPressed: _saveUsername,
                         tooltip: AppLocalizations.of(context)!.saveUsername,
                       ),
                     ),
                     maxLength: 20,
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   if (_userId != null)
                     ListTile(
                       contentPadding: EdgeInsets.zero,
                       title: Text(AppLocalizations.of(context)!.myUserId ),
                       subtitle: Text(_userId!),
                       trailing: IconButton(
-                        icon: Icon(Icons.copy),
+                        icon: const Icon(Icons.copy),
                         onPressed: () {
                           Clipboard.setData(ClipboardData(text: _userId!));
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -257,14 +261,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         },
                       ),
                     ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   if (_userId != null)
                     ListTile(
                       contentPadding: EdgeInsets.zero,
                       title: Text(AppLocalizations.of(context)!.wsServerTitle),
                       subtitle: Text(dotenv.env['WEBSOCKET_URL']!),
                     ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   if (_userId != null)
                     ListTile(
                       contentPadding: EdgeInsets.zero,
@@ -272,7 +276,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       subtitle: Text(dotenv.env['BASE_URL']!),
                     ),
 
-                  Divider(height: 40),
+                  const Divider(height: 40),
 
 // --- Section Langue ---
                   Text(AppLocalizations.of(context)!.language,
@@ -282,7 +286,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     children: [
                       Expanded(
                         child: DropdownButtonFormField<Locale?>(
-                          value: _selectedLocale,
+                          initialValue: _selectedLocale,
                           items: [
                             DropdownMenuItem(
                               value: null,
@@ -332,19 +336,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ],
                   ),
 
-                  Divider(height: 40),
+                  const Divider(height: 40),
                   // --- Section Messages Rapides ---
                   Text(AppLocalizations.of(context)!.quickMessages,
                       style: Theme.of(context).textTheme.titleLarge),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   TextField(
                     controller: _messageController,
                     decoration: InputDecoration(
                       labelText:
                           AppLocalizations.of(context)!.addNewQuickMessage,
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
                       suffixIcon: IconButton(
-                        icon: Icon(Icons.add_circle),
+                        icon: const Icon(Icons.add_circle),
                         onPressed: _addMessage,
                         tooltip: AppLocalizations.of(context)!.add,
                       ),
@@ -352,16 +356,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     maxLength: 20,
                     inputFormatters: [LengthLimitingTextInputFormatter(20)],
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   Text(
                       AppLocalizations.of(context)!
                           .yourMessages(_messages.length),
                       style: Theme.of(context).textTheme.titleMedium),
-                  Divider(),
+                  const Divider(),
                   ..._messages.map((message) => ListTile(
                         title: Text(message.text),
                         trailing: IconButton(
-                          icon: Icon(Icons.delete_outline, color: Colors.red),
+                          icon: const Icon(Icons.delete_outline, color: Colors.red),
                           onPressed: () => _deleteMessage(message.id),
                           tooltip: AppLocalizations.of(context)!.delete,
                         ),
@@ -381,8 +385,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.warning_amber_rounded),
-                        SizedBox(width: 8),
+                        const Icon(Icons.warning_amber_rounded),
+                        const SizedBox(width: 8),
                         Text(AppLocalizations.of(context)!.resetApp),
                       ],
                     ),

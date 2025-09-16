@@ -7,9 +7,10 @@ void main() {
   group('LocaleProvider', () {
     late LocaleProvider localeProvider;
 
-    setUp(() {
+    setUp(() async {
       SharedPreferences.setMockInitialValues({});
       localeProvider = LocaleProvider();
+      await localeProvider.init();
     });
 
     test('initial locale is null', () {
@@ -44,10 +45,8 @@ void main() {
 
     test('loads locale from shared preferences on initialization', () async {
       SharedPreferences.setMockInitialValues({'language_code': 'es'});
-      // The LocaleProvider's constructor calls _loadLocale, which is async.
-      // We need to allow that future to complete.
       final newLocaleProvider = LocaleProvider();
-      await Future.delayed(Duration.zero);
+      await newLocaleProvider.init();
       expect(newLocaleProvider.locale, Locale('es'));
     });
   });

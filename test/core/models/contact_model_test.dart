@@ -1,4 +1,3 @@
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:plop/core/models/contact_model.dart';
 
@@ -55,16 +54,22 @@ void main() {
       expect(contactFromJson.isMuted, contact.isMuted);
       expect(contactFromJson.type, contact.type);
       expect(contactFromJson.lastMessage, contact.lastMessage);
-      expect(contactFromJson.lastMessageTimestamp, contact.lastMessageTimestamp);
+      expect(
+          contactFromJson.lastMessageTimestamp, contact.lastMessageTimestamp);
       expect(contactFromJson.isBlocked, contact.isBlocked);
       expect(contactFromJson.customSoundPath, contact.customSoundPath);
-      expect(contactFromJson.defaultMessageOverride, contact.defaultMessageOverride);
+      expect(contactFromJson.defaultMessageOverride,
+          contact.defaultMessageOverride);
       expect(contactFromJson.isHidden, contact.isHidden);
-      expect(contactFromJson.lastMessageSentTimestamp, contact.lastMessageSentTimestamp);
+      expect(contactFromJson.lastMessageSentTimestamp,
+          contact.lastMessageSentTimestamp);
       expect(contactFromJson.lastMessageSent, contact.lastMessageSent);
-      expect(contactFromJson.lastMessageSentDefault, contact.lastMessageSentDefault);
-      expect(contactFromJson.lastMessageSentStatus, contact.lastMessageSentStatus);
-      expect(contactFromJson.lastMessageSentError, contact.lastMessageSentError);
+      expect(contactFromJson.lastMessageSentDefault,
+          contact.lastMessageSentDefault);
+      expect(
+          contactFromJson.lastMessageSentStatus, contact.lastMessageSentStatus);
+      expect(
+          contactFromJson.lastMessageSentError, contact.lastMessageSentError);
     });
 
     test('toJson creates a valid JSON map', () {
@@ -88,7 +93,8 @@ void main() {
       expect(MessageStatus.fromJson('sending'), MessageStatus.sending);
       expect(MessageStatus.fromJson('sent'), MessageStatus.sent);
       expect(MessageStatus.fromJson('distributed'), MessageStatus.distributed);
-      expect(MessageStatus.fromJson('acknowledged'), MessageStatus.acknowledged);
+      expect(
+          MessageStatus.fromJson('acknowledged'), MessageStatus.acknowledged);
       expect(MessageStatus.fromJson('failed'), MessageStatus.failed);
       expect(MessageStatus.fromJson('unknown'), MessageStatus.unknown);
       expect(MessageStatus.fromJson('invalid'), MessageStatus.unknown);

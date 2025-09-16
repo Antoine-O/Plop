@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:firebase_messaging/firebase_messaging.dart';
+// import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -152,10 +152,10 @@ class AppLoader extends StatefulWidget {
   const AppLoader({super.key});
 
   @override
-  _AppLoaderState createState() => _AppLoaderState();
+  AppLoaderState createState() => AppLoaderState();
 }
 
-class _AppLoaderState extends State<AppLoader> {
+class AppLoaderState extends State<AppLoader> {
   late Future<UserService> _initializationFuture;
 
   @override
@@ -329,7 +329,7 @@ class MyApp extends StatelessWidget {
                 primarySwatch: Colors.blue,
                 visualDensity: VisualDensity.adaptivePlatformDensity,
               ),
-              home: userService.hasUser() ? ContactListScreen() : SetupScreen(),
+              home: userService.hasUser() ? const ContactListScreen() : const SetupScreen(),
             );
           },
         ));

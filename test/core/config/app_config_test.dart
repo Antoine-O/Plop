@@ -1,14 +1,7 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
 import 'package:plop/core/config/app_config.dart';
-import 'package.provider/provider.dart';
-import 'package:plop/core/services/locale_provider.dart';
-
-class MockBuildContext extends Mock implements BuildContext {}
-class MockLocaleProvider extends Mock implements LocaleProvider {}
 
 void main() {
   group('AppConfig', () {
@@ -31,81 +24,36 @@ void main() {
     });
 
     test('getDefaultPlopMessage returns correct value for French', () {
-      final mockContext = MockBuildContext();
-      final mockLocaleProvider = MockLocaleProvider();
-      when(mockLocaleProvider.locale).thenReturn(const Locale('fr'));
-
-      final widget = ChangeNotifierProvider<LocaleProvider>.value(
-        value: mockLocaleProvider,
-        child: Builder(
-          builder: (context) {
-            expect(AppConfig.getDefaultPlopMessage(context), 'Salut !');
-            return Container();
-          },
-        ),
+      expect(
+        AppConfig.getDefaultPlopMessage(null, locale: const Locale('fr')),
+        'Salut !',
       );
-
-      final TestWidgetsFlutterBinding binding = TestWidgetsFlutterBinding.ensureInitialized();
-      binding.render(widget, renderView: false);
     });
 
     test('getDefaultPlopMessage returns correct value for Spanish', () {
-      final mockContext = MockBuildContext();
-      final mockLocaleProvider = MockLocaleProvider();
-      when(mockLocaleProvider.locale).thenReturn(const Locale('es'));
-
-      final widget = ChangeNotifierProvider<LocaleProvider>.value(
-        value: mockLocaleProvider,
-        child: Builder(
-          builder: (context) {
-            expect(AppConfig.getDefaultPlopMessage(context), '¡Hola!');
-            return Container();
-          },
-        ),
+      expect(
+        AppConfig.getDefaultPlopMessage(null, locale: const Locale('es')),
+        '¡Hola!',
       );
-      final TestWidgetsFlutterBinding binding = TestWidgetsFlutterBinding.ensureInitialized();
-      binding.render(widget, renderView: false);
     });
 
     test('getDefaultPlopMessage returns correct value for English', () {
-      final mockContext = MockBuildContext();
-      final mockLocaleProvider = MockLocaleProvider();
-      when(mockLocaleProvider.locale).thenReturn(const Locale('en'));
-
-      final widget = ChangeNotifierProvider<LocaleProvider>.value(
-        value: mockLocaleProvider,
-        child: Builder(
-          builder: (context) {
-            expect(AppConfig.getDefaultPlopMessage(context), 'Hello!');
-            return Container();
-          },
-        ),
+      expect(
+        AppConfig.getDefaultPlopMessage(null, locale: const Locale('en')),
+        'Hello!',
       );
-
-      final TestWidgetsFlutterBinding binding = TestWidgetsFlutterBinding.ensureInitialized();
-      binding.render(widget, renderView: false);
     });
 
-    test('getDefaultPlopMessage returns default value for unsupported language', () {
-      final mockContext = MockBuildContext();
-      final mockLocaleProvider = MockLocaleProvider();
-      when(mockLocaleProvider.locale).thenReturn(const Locale('de'));
-
-      final widget = ChangeNotifierProvider<LocaleProvider>.value(
-        value: mockLocaleProvider,
-        child: Builder(
-          builder: (context) {
-            expect(AppConfig.getDefaultPlopMessage(context), 'Hello!');
-            return Container();
-          },
-        ),
+    test('getDefaultPlopMessage returns default value for unsupported language',
+        () {
+      expect(
+        AppConfig.getDefaultPlopMessage(null, locale: const Locale('de')),
+        'Hello!',
       );
-
-      final TestWidgetsFlutterBinding binding = TestWidgetsFlutterBinding.ensureInitialized();
-      binding.render(widget, renderView: false);
     });
 
-    test('getDefaultPlopMessage returns default value when context is null', () {
+    test('getDefaultPlopMessage returns default value when context is null',
+        () {
       expect(AppConfig.getDefaultPlopMessage(null), 'Hello!');
     });
   });

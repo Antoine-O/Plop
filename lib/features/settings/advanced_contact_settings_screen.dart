@@ -10,11 +10,11 @@ class AdvancedContactSettingsScreen extends StatefulWidget {
   const AdvancedContactSettingsScreen({super.key, required this.contactKey});
 
   @override
-  _AdvancedContactSettingsScreenState createState() =>
-      _AdvancedContactSettingsScreenState();
+  AdvancedContactSettingsScreenState createState() =>
+      AdvancedContactSettingsScreenState();
 }
 
-class _AdvancedContactSettingsScreenState
+class AdvancedContactSettingsScreenState
     extends State<AdvancedContactSettingsScreen> {
   final DatabaseService _dbService = DatabaseService();
   final _aliasController = TextEditingController();
@@ -108,7 +108,7 @@ class _AdvancedContactSettingsScreenState
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(// Before:
+        ScaffoldMessenger.of(context).showSnackBar( // Before:
           SnackBar(content: Text(AppLocalizations.of(context)!.errorDuringDeletion(e.toString()))),
 
         );
@@ -123,14 +123,14 @@ class _AdvancedContactSettingsScreenState
         title: Text(AppLocalizations.of(context)!.advancedSettings),
         actions: [
           IconButton(
-            icon: Icon(Icons.save),
+            icon: const Icon(Icons.save),
             onPressed: _saveSettings,
             tooltip: AppLocalizations.of(context)!.save,
           )
         ],
       ),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : ListView(
               padding: const EdgeInsets.all(16.0),
               children: [
@@ -138,18 +138,18 @@ class _AdvancedContactSettingsScreenState
                   controller: _aliasController,
                   decoration: InputDecoration(
                       labelText: AppLocalizations.of(context)!.contactNameAlias,
-                      border: OutlineInputBorder()),
+                      border: const OutlineInputBorder()),
                   maxLength: 20,
                 ),
 
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
 
                 // NOUVEAU : Le sélecteur de couleur
                 Text(
                   AppLocalizations.of(context)!.chooseAColor,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: _availableColors.map((color) {
@@ -157,21 +157,21 @@ class _AdvancedContactSettingsScreenState
                       onTap: () {
                         // On met à jour la couleur directement dans l'objet _contact
                         // et on rafraîchit l'interface pour afficher la coche.
-                        setState(() => _contact.colorValue = color.value);
+                        setState(() => _contact.colorValue = color.toARGB32());
                       },
                       child: CircleAvatar(
                         backgroundColor: color,
                         radius: 20,
                         // On affiche la coche si la couleur du contact correspond
-                        child: _contact.colorValue == color.value
-                            ? Icon(Icons.check, color: Colors.white)
+                        child: _contact.colorValue == color.toARGB32()
+                            ? const Icon(Icons.check, color: Colors.white)
                             : null,
                       ),
                     );
                   }).toList(),
                 ),
 
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 SwitchListTile(
                   title:
                       Text(AppLocalizations.of(context)!.ignoreNotifications),
@@ -197,22 +197,22 @@ class _AdvancedContactSettingsScreenState
                     setState(() => _contact.isBlocked = value);
                   },
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 ListTile(
                   title: Text(AppLocalizations.of(context)!.notificationSound),
                   subtitle: Text(_contact.customSoundPath ??
                       AppLocalizations.of(context)!.defaultSound),
-                  trailing: Icon(Icons.audiotrack),
+                  trailing: const Icon(Icons.audiotrack),
                   onTap: _pickSound,
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 TextField(
                   controller: _overrideController,
                   decoration: InputDecoration(
                     labelText:
                         AppLocalizations.of(context)!.overrideDefaultMessage,
                     hintText: AppLocalizations.of(context)!.exampleNewPlop,
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
                   ),
                   maxLength: 20,
                 ), // AJOUT : Section pour la suppression

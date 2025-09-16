@@ -8,16 +8,17 @@ class ImportAccountScreen extends StatefulWidget {
   const ImportAccountScreen({super.key});
 
   @override
-  _ImportAccountScreenState createState() => _ImportAccountScreenState();
+  ImportAccountScreenState createState() => ImportAccountScreenState();
 }
 
-class _ImportAccountScreenState extends State<ImportAccountScreen> {
+class ImportAccountScreenState extends State<ImportAccountScreen> {
   final SyncService _syncService = SyncService();
   final TextEditingController _codeController = TextEditingController();
   bool _isLoading = false;
 
   Future<void> _importAccount() async {
     if (_codeController.text.trim().isEmpty) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             content: Text(AppLocalizations.of(context)!.pleaseEnterSyncCode)),
@@ -27,20 +28,23 @@ class _ImportAccountScreenState extends State<ImportAccountScreen> {
     setState(() => _isLoading = true);
     final syncData =
         await _syncService.useSyncCode(_codeController.text.trim());
-    if (syncData != null && mounted) {
+    if (!mounted) return;
+    if (syncData != null) {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('userId', syncData['userId']!);
+      if (!mounted) return;
       if (syncData['pseudo'] != null && syncData['pseudo']!.isNotEmpty) {
         await prefs.setString('username', syncData['pseudo']!);
       } else {
         await prefs.setString('username', AppLocalizations.of(context)!.defaultImportedUsername);
       }
-
+      if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => ContactListScreen()),
+        MaterialPageRoute(builder: (context) => const ContactListScreen()),
         (route) => false,
       );
     } else {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             content: Text(AppLocalizations.of(context)!.invalidOrExpiredCode)),
@@ -63,7 +67,7 @@ class _ImportAccountScreenState extends State<ImportAccountScreen> {
               children: [
                 Icon(Icons.download_for_offline_outlined,
                     size: 80, color: Theme.of(context).primaryColor),
-                SizedBox(height: 24),
+                const SizedBox(height: 24),
                 Text(
                   AppLocalizations.of(context)!.syncYourAccount,
                   style: Theme.of(context)
@@ -72,29 +76,29 @@ class _ImportAccountScreenState extends State<ImportAccountScreen> {
                       ?.copyWith(fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Text(
                   AppLocalizations.of(context)!.importAccountBody,
                   textAlign: TextAlign.center,
                 ),
-                SizedBox(height: 32),
+                const SizedBox(height: 32),
                 TextField(
                   controller: _codeController,
                   decoration: InputDecoration(
                     labelText: AppLocalizations.of(context)!.syncCode,
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
                   ),
                   maxLength: 20,
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 _isLoading
-                    ? Center(child: CircularProgressIndicator())
+                    ? const Center(child: CircularProgressIndicator())
                     : ElevatedButton.icon(
                         onPressed: _importAccount,
-                        icon: Icon(Icons.sync),
+                        icon: const Icon(Icons.sync),
                         label: Text(AppLocalizations.of(context)!.import),
                         style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(vertical: 16),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
                       ),
               ],

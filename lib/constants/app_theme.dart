@@ -26,12 +26,16 @@ class AppTheme {
       foregroundColor: Colors.black, // Couleur du titre et des icônes
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: _primaryColor,
-        foregroundColor: Colors.white, // Couleur du texte du bouton
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+      style: ButtonStyle(
+        backgroundColor: WidgetStateProperty.all<Color>(_primaryColor),
+        foregroundColor: WidgetStateProperty.all<Color>(Colors.white),
+        padding: WidgetStateProperty.all<EdgeInsetsGeometry>(
+          const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        ),
+        shape: WidgetStateProperty.all<OutlinedBorder>(
+          RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       ),
     ),
@@ -51,12 +55,16 @@ class AppTheme {
       centerTitle: true,
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: _primaryColor,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+      style: ButtonStyle(
+        backgroundColor: WidgetStateProperty.all<Color>(_primaryColor),
+        foregroundColor: WidgetStateProperty.all<Color>(Colors.white),
+        padding: WidgetStateProperty.all<EdgeInsetsGeometry>(
+          const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        ),
+        shape: WidgetStateProperty.all<OutlinedBorder>(
+          RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       ),
     ),

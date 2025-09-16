@@ -1,25 +1,20 @@
-
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
-import 'package:plop/core/models/contact_model.dart';
-import 'package:plop/core/models/message_model.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:plop/core/services/backup_service.dart';
 import 'package:plop/core/services/database_service.dart';
 import 'package:plop/core/services/user_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class MockUserService extends Mock implements UserService {}
-class MockDatabaseService extends Mock implements DatabaseService {}
-class MockFilePicker extends Mock implements FilePicker {}
-class MockSharedPreferences extends Mock implements SharedPreferences {}
+import 'backup_service_test.mocks.dart';
 
+@GenerateMocks([UserService, DatabaseService, FilePicker, SharedPreferences])
 void main() {
   group('BackupService', () {
     late BackupService backupService;
@@ -33,12 +28,15 @@ void main() {
     });
 
     group('saveBackup', () {
-      test('should return null on successful backup to user selected location', () async {
+      test('should return null on successful backup to user selected location',
+          () async {
         when(mockUserService.username).thenReturn('testuser');
         when(mockUserService.userId).thenReturn('123');
         when(mockDatabaseService.getAllMessages()).thenReturn([]);
-        when(mockDatabaseService.getAllContactsOrdered()).thenAnswer((_) async => []);
-        when(mockDatabaseService.getContactsOrder()).thenAnswer((_) async => []);
+        when(mockDatabaseService.getAllContactsOrdered())
+            .thenAnswer((_) async => []);
+        when(mockDatabaseService.getContactsOrder())
+            .thenAnswer((_) async => []);
 
         final result = await backupService.saveBackup(
           userService: mockUserService,
@@ -49,7 +47,8 @@ void main() {
         expect(result, isNull);
       });
 
-      test('should return null on successful backup to internal directory', () async {
+      test('should return null on successful backup to internal directory',
+          () async {
         final directory = await getApplicationDocumentsDirectory();
         final filePath = p.join(directory.path, 'plop_config_backup.json');
         final file = File(filePath);
@@ -57,8 +56,10 @@ void main() {
         when(mockUserService.username).thenReturn('testuser');
         when(mockUserService.userId).thenReturn('123');
         when(mockDatabaseService.getAllMessages()).thenReturn([]);
-        when(mockDatabaseService.getAllContactsOrdered()).thenAnswer((_) async => []);
-        when(mockDatabaseService.getContactsOrder()).thenAnswer((_) async => []);
+        when(mockDatabaseService.getAllContactsOrdered())
+            .thenAnswer((_) async => []);
+        when(mockDatabaseService.getContactsOrder())
+            .thenAnswer((_) async => []);
 
         final result = await backupService.saveBackup(
           userService: mockUserService,
@@ -72,7 +73,8 @@ void main() {
         await file.delete();
       });
 
-      test('should return error message when user data is not available', () async {
+      test('should return error message when user data is not available',
+          () async {
         when(mockUserService.username).thenReturn(null);
         when(mockUserService.userId).thenReturn(null);
 
@@ -125,16 +127,18 @@ void main() {
           type: FileType.custom,
           allowedExtensions: ['json'],
         )).thenAnswer((_) async => FilePickerResult([
-          PlatformFile(
-            name: 'plop_config_backup.json',
-            bytes: fileBytes,
-            size: fileBytes.length,
-          ),
-        ]));
+              PlatformFile(
+                name: 'plop_config_backup.json',
+                bytes: fileBytes,
+                size: fileBytes.length,
+              ),
+            ]));
 
         final mockSharedPreferences = MockSharedPreferences();
-        when(mockSharedPreferences.setString('userId', '123')).thenAnswer((_) async => true);
-        when(mockSharedPreferences.setString('username', 'testuser')).thenAnswer((_) async => true);
+        when(mockSharedPreferences.setString('userId', '123'))
+            .thenAnswer((_) async => true);
+        when(mockSharedPreferences.setString('username', 'testuser'))
+            .thenAnswer((_) async => true);
 
         final result = await backupService.restoreFromBackup();
 
@@ -163,12 +167,12 @@ void main() {
           type: FileType.custom,
           allowedExtensions: ['json'],
         )).thenAnswer((_) async => FilePickerResult([
-          PlatformFile(
-            name: 'plop_config_backup.json',
-            bytes: fileBytes,
-            size: fileBytes.length,
-          ),
-        ]));
+              PlatformFile(
+                name: 'plop_config_backup.json',
+                bytes: fileBytes,
+                size: fileBytes.length,
+              ),
+            ]));
 
         final result = await backupService.restoreFromBackup();
 

@@ -24,15 +24,19 @@ void main() {
     });
 
     test('addContact adds a contact to the database', () async {
-      final contact = Contact(userId: '1', originalPseudo: 'test', alias: 'test', colorValue: 1);
+      final contact = Contact(
+          userId: '1', originalPseudo: 'test', alias: 'test', colorValue: 1);
       await databaseService.addContact(contact);
       final result = databaseService.getContact('1');
       expect(result, equals(contact));
     });
 
-    test('getAllContactsOrdered returns contacts in the correct order', () async {
-      final contact1 = Contact(userId: '1', originalPseudo: 'test1', alias: 'test1', colorValue: 1);
-      final contact2 = Contact(userId: '2', originalPseudo: 'test2', alias: 'test2', colorValue: 2);
+    test('getAllContactsOrdered returns contacts in the correct order',
+        () async {
+      final contact1 = Contact(
+          userId: '1', originalPseudo: 'test1', alias: 'test1', colorValue: 1);
+      final contact2 = Contact(
+          userId: '2', originalPseudo: 'test2', alias: 'test2', colorValue: 2);
       await databaseService.addContact(contact1);
       await databaseService.addContact(contact2);
 

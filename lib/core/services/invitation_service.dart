@@ -5,12 +5,10 @@ import 'package:flutter/foundation.dart'; // Import for debugPrint
 
 class InvitationService {
   final String _baseUrl = AppConfig.baseUrl;
-  final http.Client _client;
-
-  InvitationService({http.Client? client}) : _client = client ?? http.Client();
 
   Future<Map<String, dynamic>?> createInvitationCode(
-      String userId, String userPseudo) async {
+      String userId, String userPseudo, {http.Client? client}) async {
+        final client0 = client ?? http.Client();
     debugPrint(
         "[InvitationService] createInvitationCode: Attempting to create invitation code for userId: $userId, pseudo: $userPseudo");
     try {
@@ -19,7 +17,7 @@ class InvitationService {
       debugPrint(
           "[InvitationService] createInvitationCode: Requesting URL: $url");
 
-      final response = await _client.get(url);
+      final response = await client0.post(url);
       debugPrint(
           "[InvitationService] createInvitationCode: Response status code: ${response.statusCode}");
       debugPrint(
@@ -49,7 +47,8 @@ class InvitationService {
   }
 
   Future<Map<String, String>?> useInvitationCode(
-      String code, String myUserId, String myPseudo) async {
+      String code, String myUserId, String myPseudo, {http.Client? client}) async {
+        final client0 = client ?? http.Client();
     debugPrint(
         "[InvitationService] useInvitationCode: Attempting to use invitation code: $code for userId: $myUserId, pseudo: $myPseudo");
     try {
@@ -62,7 +61,7 @@ class InvitationService {
       debugPrint("[InvitationService] useInvitationCode: Requesting URL: $url");
       debugPrint("[InvitationService] useInvitationCode: Request body: $body");
 
-      final response = await _client.post(
+      final response = await client0.post(
         url,
         headers: {'Content-Type': 'application/json'},
         body: body,

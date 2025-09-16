@@ -12,10 +12,10 @@ class AddContactDialog extends StatefulWidget {
       {super.key, required this.myUserId, required this.myPseudo});
 
   @override
-  _AddContactDialogState createState() => _AddContactDialogState();
+  AddContactDialogState createState() => AddContactDialogState();
 }
 
-class _AddContactDialogState extends State<AddContactDialog> {
+class AddContactDialogState extends State<AddContactDialog> {
   final _codeController = TextEditingController();
   final _aliasController = TextEditingController();
   final _dbService = DatabaseService();
@@ -43,7 +43,7 @@ class _AddContactDialogState extends State<AddContactDialog> {
         originalPseudo: serverResponse['pseudo']!,
         // Si l'alias est vide, on utilise le pseudo du contact
         alias: alias.isNotEmpty ? alias : serverResponse['pseudo']!,
-        colorValue: _selectedColor.value,
+        colorValue: _selectedColor.toARGB32(),
       );
       await _dbService.addContact(newContact);
       if (mounted) Navigator.of(context).pop();
@@ -74,7 +74,7 @@ class _AddContactDialogState extends State<AddContactDialog> {
                 labelText: AppLocalizations.of(context)!.contactNameOptional),
             maxLength: 20,
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           Text(AppLocalizations.of(context)!.chooseAColor),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -90,7 +90,7 @@ class _AddContactDialogState extends State<AddContactDialog> {
                       child: CircleAvatar(
                         backgroundColor: color,
                         child: _selectedColor == color
-                            ? Icon(Icons.check, color: Colors.white)
+                            ? const Icon(Icons.check, color: Colors.white)
                             : null,
                       ),
                     ))
@@ -105,7 +105,7 @@ class _AddContactDialogState extends State<AddContactDialog> {
         ElevatedButton(
           onPressed: _isLoading ? null : _addContact,
           child: _isLoading
-              ? SizedBox(
+              ? const SizedBox(
                   height: 20,
                   width: 20,
                   child: CircularProgressIndicator(color: Colors.white))

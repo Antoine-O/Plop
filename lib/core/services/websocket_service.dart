@@ -258,7 +258,7 @@ class WebSocketService {
         alias: payload['pseudo']!,
         colorValue: Colors
             .primaries[payload['pseudo']!.hashCode % Colors.primaries.length]
-            .value, // Use .value for ARGB32
+            .toARGB32(), // Use .toARGB32() for ARGB32
       );
       debugPrint(
           '[WebSocketService] _handleNewContact: Created new Contact object for userId: ${newContact.userId}');
@@ -321,7 +321,7 @@ class WebSocketService {
         'messages': messagesJson,
       };
 
-      final jsonPayloadString = jsonEncode(syncPayload);
+      // final jsonPayloadString = jsonEncode(syncPayload);
       // debugPrint("[WebSocketService] _handleSyncRequest: Sending sync_data_broadcast with payload: $jsonPayloadString"); // Can be very verbose
       debugPrint(
           "[WebSocketService] _handleSyncRequest: Sending sync_data_broadcast. Contacts: ${contactsJson.length}, Messages: ${messagesJson.length}");
@@ -407,6 +407,8 @@ class WebSocketService {
         debugPrint(
             "[WebSocketService] _handleSyncDataBroadcast: No 'messages' field or invalid format in sync data.");
       }
+
+
 
       _messageUpdateController
           .add({'userId': 'sync_completed', 'changesMade': hasChanged});

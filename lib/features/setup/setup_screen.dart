@@ -12,10 +12,10 @@ class SetupScreen extends StatefulWidget {
   const SetupScreen({super.key});
 
   @override
-  _SetupScreenState createState() => _SetupScreenState();
+  SetupScreenState createState() => SetupScreenState();
 }
 
-class _SetupScreenState extends State<SetupScreen> {
+class SetupScreenState extends State<SetupScreen> {
   final PageController _pageController = PageController();
   final TextEditingController _usernameController = TextEditingController();
   final UserService _userService = UserService();
@@ -38,7 +38,7 @@ class _SetupScreenState extends State<SetupScreen> {
 
     if (success) {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => ContactListScreen()),
+        MaterialPageRoute(builder: (context) => const ContactListScreen()),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

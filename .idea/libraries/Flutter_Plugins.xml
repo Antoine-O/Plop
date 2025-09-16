@@ -32,7 +32,6 @@
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/shared_preferences_android-2.4.12" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/path_provider_foundation-2.4.2" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/flutter_background_service_android-6.3.1" />
-      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/url_launcher_android-6.3.21" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/url_launcher-6.3.2" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/geolocator_android-5.0.2" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/url_launcher_ios-6.3.4" />
@@ -44,6 +43,7 @@
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/firebase_messaging_web-4.0.1" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/share_plus-12.0.0" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/firebase_messaging-16.0.1" />
+      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/url_launcher_android-6.3.22" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

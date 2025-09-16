@@ -4,16 +4,16 @@ import 'dart:io' show Platform;
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart';
+// import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:geolocator/geolocator.dart';
+// import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:plop/core/config/app_config.dart';
 import 'package:plop/core/services/database_service.dart';
 import 'package:plop/core/services/user_service.dart';
-import 'package:plop/core/services/websocket_service.dart';
-import 'package:plop/main.dart';
+// import 'package:plop/core/services/websocket_service.dart';
+// import 'package:plop/main.dart';
 import 'package:vibration/vibration.dart';
 
 // A data class to safely parse notification payloads.
@@ -194,7 +194,7 @@ class NotificationService extends ChangeNotifier {
     );
 
     if (playSystemSound) {
-      if (await Vibration.hasVibrator() ?? false) {
+      if (await Vibration.hasVibrator()) {
         Vibration.vibrate(duration: 200);
       }
     }
@@ -270,7 +270,7 @@ class NotificationService extends ChangeNotifier {
         } else {
           await _audioPlayer.play(AssetSource('sounds/plop.mp3'));
         }
-        if (await Vibration.hasVibrator() ?? false) {
+        if (await Vibration.hasVibrator()) {
           Vibration.vibrate(duration: 200);
         }
         appPlayedSound = true;

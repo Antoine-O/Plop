@@ -13,10 +13,10 @@ class ManageContactsScreen extends StatefulWidget {
   const ManageContactsScreen({super.key});
 
   @override
-  _ManageContactsScreenState createState() => _ManageContactsScreenState();
+  ManageContactsScreenState createState() => ManageContactsScreenState();
 }
 
-class _ManageContactsScreenState extends State<ManageContactsScreen> {
+class ManageContactsScreenState extends State<ManageContactsScreen> {
   final DatabaseService _databaseService = DatabaseService();
   final InvitationService _invitationService = InvitationService();
   final UserService _userService = UserService();
@@ -85,7 +85,8 @@ class _ManageContactsScreenState extends State<ManageContactsScreen> {
   void _generateInvitation() async {
     final invitationData = await _invitationService.createInvitationCode(
         _userService.userId!, _userService.username!);
-    if (invitationData != null && mounted) {
+    if (!mounted) return;
+    if (invitationData != null) {
       showDialog(
         context: context,
         builder: (context) => InvitationDialog(
@@ -107,7 +108,7 @@ class _ManageContactsScreenState extends State<ManageContactsScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.people_outline, size: 80, color: Colors.grey.shade400),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Text(
               AppLocalizations.of(context)!.startByAddingContactTitle, // AFTER
               style: Theme.of(context)
@@ -116,30 +117,32 @@ class _ManageContactsScreenState extends State<ManageContactsScreen> {
                   ?.copyWith(fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Text(
               AppLocalizations.of(context)!.startByAddingContactSubtitle,
               // AFTER
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyLarge,
             ),
-            SizedBox(height: 40),
+            const SizedBox(height: 40),
             ElevatedButton.icon(
               onPressed: _generateInvitation,
-              icon: Icon(Icons.share),
+              icon: const Icon(Icons.share),
               label: Text(AppLocalizations.of(context)!.shareMyCode),
               style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                 textStyle: Theme.of(context).textTheme.titleMedium,
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             OutlinedButton.icon(
               onPressed: _showAddContactDialog,
-              icon: Icon(Icons.group_add_outlined),
+              icon: const Icon(Icons.group_add_outlined),
               label: Text(AppLocalizations.of(context)!.enterInvitationCode),
               style: OutlinedButton.styleFrom(
-                padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                 textStyle: Theme.of(context).textTheme.titleMedium,
               ),
             ),
@@ -156,7 +159,7 @@ class _ManageContactsScreenState extends State<ManageContactsScreen> {
         title: Text(AppLocalizations.of(context)!.manageContacts),
       ),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : _contacts.isEmpty
               ? _buildEmptyState()
               : ReorderableListView(
@@ -184,7 +187,8 @@ class _ManageContactsScreenState extends State<ManageContactsScreen> {
                               : '?'),
                         ),
                         title: Text(primaryName,
-                            style: TextStyle(fontWeight: FontWeight.bold)),
+                            style:
+                                const TextStyle(fontWeight: FontWeight.bold)),
                         subtitle: secondaryName != null
                             ? Text("($secondaryName)",
                                 style: TextStyle(
@@ -200,7 +204,8 @@ class _ManageContactsScreenState extends State<ManageContactsScreen> {
                                       : Icons.volume_up,
                                   color: Colors.grey),
                               onPressed: () => _toggleMute(contact),
-                              tooltip:  AppLocalizations.of(context)!.tooltipMuteContact,
+                              tooltip:
+                                  AppLocalizations.of(context)!.tooltipMuteContact,
                             ),
                             IconButton(
                               icon: Icon(
@@ -209,13 +214,15 @@ class _ManageContactsScreenState extends State<ManageContactsScreen> {
                                       : Icons.visibility,
                                   color: Colors.grey),
                               onPressed: () => _toggleHidden(contact),
-                              tooltip:  AppLocalizations.of(context)!.tooltipHideContact,
+                              tooltip: AppLocalizations.of(context)!
+                                  .tooltipHideContact,
                             ),
                             IconButton(
                               icon: Icon(Icons.edit_note,
                                   color: Theme.of(context).primaryColor),
                               onPressed: () => _openAdvancedSettings(contact),
-                              tooltip:  AppLocalizations.of(context)!.advancedSettings,
+                              tooltip:
+                                  AppLocalizations.of(context)!.advancedSettings,
                             ),
                           ],
                         ),

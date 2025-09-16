@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:plop/core/models/message_model.dart';
 import 'package:plop/core/services/backup_service.dart';
 import 'package:plop/core/services/database_service.dart';
 import 'package:plop/core/services/sync_service.dart';
@@ -16,19 +15,16 @@ class SyncAccountScreen extends StatefulWidget {
   const SyncAccountScreen({super.key});
 
   @override
-  _SyncAccountScreenState createState() => _SyncAccountScreenState();
+  SyncAccountScreenState createState() => SyncAccountScreenState();
 }
 
-class _SyncAccountScreenState extends State<SyncAccountScreen> {
+class SyncAccountScreenState extends State<SyncAccountScreen> {
   final SyncService _syncService = SyncService();
   final UserService _userService = UserService();
   final DatabaseService _databaseService = DatabaseService();
-  final TextEditingController _messageController = TextEditingController();
-  final TextEditingController _usernameController = TextEditingController();
   final BackupService _backupService = BackupService(); // AJOUT
   String? _generatedCode;
   bool _isLoadingExport = false;
-  final String _backupFileName = 'plop_config_backup.json';
 
   @override
   void initState() {
@@ -46,6 +42,7 @@ class _SyncAccountScreenState extends State<SyncAccountScreen> {
   }
 
   Future<void> _clearDataAndNavigateToImport() async {
+    if (!mounted) return;
     final bool? confirm = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
@@ -59,7 +56,7 @@ class _SyncAccountScreenState extends State<SyncAccountScreen> {
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
               child: Text(AppLocalizations.of(context)!.import,
-                  style: TextStyle(color: Colors.red)),
+                  style: const TextStyle(color: Colors.red)),
             ),
           ],
         );
@@ -133,38 +130,27 @@ class _SyncAccountScreenState extends State<SyncAccountScreen> {
       if (errorMessage == null) {
         await _loadAllData();
         // Succès : naviguer vers l'écran principal
+        if (!mounted) return;
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const ContactListScreen()),
           (route) => false,
         );
       } else {
         // Échec : afficher le message d'erreur
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(errorMessage)),
         );
       }
     }
-
-    // S'assurer que l'indicateur de chargement est toujours enlevé
-    if (mounted) {
-      setState(() => _isLoading = false);
-    }
   }
 
-  late List<MessageModel> _messages;
-
-  // List<Contact> _contacts = [];
-  String? _userId;
-  bool _isLoading = true;
-
   Future<void> _loadAllData() async {
-    setState(() => _isLoading = true);
     await _userService.init();
-    _messages = _databaseService.getAllMessages();
-    // _contacts = await _databaseService.getAllContactsOrdered();
-    _usernameController.text = _userService.username ?? '';
-    _userId = _userService.userId;
-    setState(() => _isLoading = false);
+    _databaseService.getAllMessages();
+    await _databaseService.getAllContactsOrdered();
+    _userService.username;
+    _userService.userId;
   }
 
   @override
@@ -247,13 +233,13 @@ class _SyncAccountScreenState extends State<SyncAccountScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),
             ),
-            Divider(height: 40),
+            const Divider(height: 40),
             // CHANGED: UI texts updated to reflect new behavior
             Text(AppLocalizations.of(context)!.backupAndRestore,
                 style: Theme.of(context).textTheme.titleLarge),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             ListTile(
-              leading: Icon(Icons.save_alt),
+              leading: const Icon(Icons.save_alt),
               title: Text(AppLocalizations.of(context)!.saveConfiguration),
               subtitle: Text(AppLocalizations.of(context)!
                   .saveConfigurationDescriptionLocal),
@@ -261,7 +247,7 @@ class _SyncAccountScreenState extends State<SyncAccountScreen> {
               onTap: _handleSaveBackup,
             ),
             ListTile(
-              leading: Icon(Icons.settings_backup_restore),
+              leading: const Icon(Icons.settings_backup_restore),
               title: Text(AppLocalizations.of(context)!.loadConfiguration),
               subtitle: Text(AppLocalizations.of(context)!
                   .loadConfigurationDescriptionLocal),
@@ -269,7 +255,7 @@ class _SyncAccountScreenState extends State<SyncAccountScreen> {
               onTap: _handleRestoreBackup,
             ),
 
-            Divider(height: 40),
+            const Divider(height: 40),
           ],
         ),
       ),

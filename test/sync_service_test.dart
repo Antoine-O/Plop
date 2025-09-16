@@ -19,7 +19,7 @@ void main() {
     setUp(() {
       mockClient = MockClient();
       mockWebSocketService = MockWebSocketService();
-      syncService = SyncService(client: mockClient, webSocketService: mockWebSocketService);
+      syncService = SyncService();
     });
 
     test('createSyncCode returns a code on success', () async {
@@ -27,9 +27,11 @@ void main() {
       final url = Uri.parse('http://localhost:8080/sync/create?userId=$userId');
       final response = {'code': 'test-code'};
 
-      when(mockClient.get(url)).thenAnswer((_) async => http.Response(jsonEncode(response), 200));
+      when(mockClient.get(url))
+          .thenAnswer((_) async => http.Response(jsonEncode(response), 200));
 
-      final result = await syncService.createSyncCode(userId);
+      final result = await syncService.createSyncCode(userId,
+          client: mockClient, webSocketService: mockWebSocketService);
 
       expect(result, equals('test-code'));
     });
@@ -38,12 +40,17 @@ void main() {
       final code = 'test-code';
       final url = Uri.parse('http://localhost:8080/sync/use');
       final requestBody = jsonEncode({'code': code});
-      final response = {'userId': 'other-user-id', 'pseudo': 'other-user-pseudo'};
+      final response = {
+        'userId': 'other-user-id',
+        'pseudo': 'other-user-pseudo'
+      };
 
-      when(mockClient.post(url, headers: {'Content-Type': 'application/json'}, body: requestBody))
+      when(mockClient.post(url,
+              headers: {'Content-Type': 'application/json'}, body: requestBody))
           .thenAnswer((_) async => http.Response(jsonEncode(response), 200));
 
-      final result = await syncService.useSyncCode(code);
+      final result = await syncService.useSyncCode(code,
+          client: mockClient, webSocketService: mockWebSocketService);
 
       expect(result, equals(response));
     });

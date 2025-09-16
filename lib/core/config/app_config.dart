@@ -14,14 +14,16 @@ class AppConfig {
     return dotenv.env['WEBSOCKET_URL'] ?? 'ws://localhost:8080';
   }
 
-  static String getDefaultPlopMessage(BuildContext? context) {
+  static String getDefaultPlopMessage(BuildContext? context, {Locale? locale}) {
     // Récupère la langue du système (ex: "fr_FR" -> "fr")
     String languageCode;
 
-    if (context != null) {
-      final locale = Provider.of<LocaleProvider>(context, listen: false).locale;
+    if (locale != null) {
+      languageCode = locale.languageCode;
+    } else if (context != null) {
+      final localeProvider = Provider.of<LocaleProvider>(context, listen: false);
       languageCode =
-          locale?.languageCode ?? Platform.localeName.split('_').first;
+          localeProvider.locale?.languageCode ?? Platform.localeName.split('_').first;
     } else {
       languageCode = Platform.localeName.split('_').first;
     }

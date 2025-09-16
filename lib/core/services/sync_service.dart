@@ -6,20 +6,17 @@ import 'package:plop/core/services/websocket_service.dart';
 
 class SyncService {
   final String _baseUrl = AppConfig.baseUrl;
-  final http.Client _client;
-  final WebSocketService _webSocketService;
 
-  SyncService({http.Client? client, WebSocketService? webSocketService})
-      : _client = client ?? http.Client(),
-        _webSocketService = webSocketService ?? WebSocketService();
-
-  Future<String?> createSyncCode(String userId) async {
+  Future<String?> createSyncCode(String userId,
+      {http.Client? client, WebSocketService? webSocketService}) async {
+    final client0 = client ?? http.Client();
+    final webSocketService0 = webSocketService ?? WebSocketService();
     debugPrint(
         "[SyncService] createSyncCode: Attempting to create sync code for userId: $userId");
     try {
       debugPrint(
           "[SyncService] createSyncCode: Ensuring WebSocket is connected.");
-      _webSocketService
+      webSocketService0
           .ensureConnected(); // Assuming this is synchronous or you don't need to await its completion before HTTP
       debugPrint(
           "[SyncService] createSyncCode: WebSocket connection check complete.");
@@ -27,7 +24,7 @@ class SyncService {
       final url = Uri.parse('$_baseUrl/sync/create?userId=$userId');
       debugPrint("[SyncService] createSyncCode: Requesting URL: $url");
 
-      final response = await _client.get(url);
+      final response = await client0.get(url);
       debugPrint(
           "[SyncService] createSyncCode: Response status code: ${response.statusCode}");
       debugPrint(
@@ -60,11 +57,14 @@ class SyncService {
     return null;
   }
 
-  Future<Map<String, String>?> useSyncCode(String code) async {
+  Future<Map<String, String>?> useSyncCode(String code,
+      {http.Client? client, WebSocketService? webSocketService}) async {
+    final client0 = client ?? http.Client();
+    final webSocketService0 = webSocketService ?? WebSocketService();
     debugPrint("[SyncService] useSyncCode: Attempting to use sync code: $code");
     try {
       debugPrint("[SyncService] useSyncCode: Ensuring WebSocket is connected.");
-      _webSocketService.ensureConnected(); // Assuming this is synchronous
+      webSocketService0.ensureConnected(); // Assuming this is synchronous
       debugPrint(
           "[SyncService] useSyncCode: WebSocket connection check complete.");
 
@@ -73,7 +73,7 @@ class SyncService {
       debugPrint(
           "[SyncService] useSyncCode: Requesting URL: $url with body: $body");
 
-      final response = await _client.post(
+      final response = await client0.post(
         url,
         headers: {'Content-Type': 'application/json'},
         body: body,

@@ -1,6 +1,4 @@
-
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hive_test/hive_test.dart';
 import 'package:plop/core/models/contact_model.dart';
 import 'package:plop/core/models/message_model.dart';
@@ -22,8 +20,10 @@ void main() {
       await tearDownTestHive();
     });
 
-    final contact1 = Contact(userId: '1', originalPseudo: 'a', alias: 'a', colorValue: 1);
-    final contact2 = Contact(userId: '2', originalPseudo: 'b', alias: 'b', colorValue: 2);
+    final contact1 =
+        Contact(userId: '1', originalPseudo: 'a', alias: 'a', colorValue: 1);
+    final contact2 =
+        Contact(userId: '2', originalPseudo: 'b', alias: 'b', colorValue: 2);
     final message1 = MessageModel(id: '1', text: 'a');
     final message2 = MessageModel(id: '2', text: 'b');
 
@@ -39,7 +39,8 @@ void main() {
       expect(databaseService.getContact('1'), contact1);
     });
 
-    test('getAllContactsOrdered retrieves contacts in the correct order', () async {
+    test('getAllContactsOrdered retrieves contacts in the correct order',
+        () async {
       await databaseService.addContact(contact1);
       await databaseService.addContact(contact2);
       await databaseService.saveContactOrder(['2', '1']);
