@@ -6,7 +6,12 @@ import 'package:plop/core/services/websocket_service.dart';
 
 class SyncService {
   final String _baseUrl = AppConfig.baseUrl;
-  final WebSocketService _webSocketService = WebSocketService();
+  final http.Client _client;
+  final WebSocketService _webSocketService;
+
+  SyncService({http.Client? client, WebSocketService? webSocketService})
+      : _client = client ?? http.Client(),
+        _webSocketService = webSocketService ?? WebSocketService();
 
   Future<String?> createSyncCode(String userId) async {
     debugPrint(
@@ -22,7 +27,7 @@ class SyncService {
       final url = Uri.parse('$_baseUrl/sync/create?userId=$userId');
       debugPrint("[SyncService] createSyncCode: Requesting URL: $url");
 
-      final response = await http.get(url);
+      final response = await _client.get(url);
       debugPrint(
           "[SyncService] createSyncCode: Response status code: ${response.statusCode}");
       debugPrint(
@@ -68,7 +73,7 @@ class SyncService {
       debugPrint(
           "[SyncService] useSyncCode: Requesting URL: $url with body: $body");
 
-      final response = await http.post(
+      final response = await _client.post(
         url,
         headers: {'Content-Type': 'application/json'},
         body: body,

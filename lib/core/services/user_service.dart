@@ -15,6 +15,10 @@ class UserService extends ChangeNotifier {
   String? username;
   bool isGlobalMute = false;
 
+  final http.Client _client;
+
+  UserService({http.Client? client}) : _client = client ?? http.Client();
+
   Future<void> init() async {
     debugPrint("[UserService] init: Initializing UserService...");
     try {
@@ -49,7 +53,7 @@ class UserService extends ChangeNotifier {
     final String url = '$_baseUrl/users/generate-id';
     debugPrint("[UserService] createUser: Requesting URL: |$url|");
     try {
-      final response = await http.get(Uri.parse(url));
+      final response = await _client.get(Uri.parse(url));
       debugPrint(
           "[UserService] createUser: Response status: ${response.statusCode}, body: ${response.body}");
 
@@ -163,7 +167,7 @@ class UserService extends ChangeNotifier {
       debugPrint(
           "[UserService] syncContactsPseudos: Requesting URL: $url with body: $body");
 
-      final response = await http.post(url, headers: headers, body: body);
+      final response = await _client.post(url, headers: headers, body: body);
       debugPrint(
           "[UserService] syncContactsPseudos: Response status: ${response.statusCode}");
       // debugPrint("[UserService] syncContactsPseudos: Response body: ${response.body}"); // Can be verbose

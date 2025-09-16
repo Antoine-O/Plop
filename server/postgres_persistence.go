@@ -372,3 +372,7 @@ func dbSendPendingMessages(userID string, conn connection) {
 type connection interface {
 	WriteJSON(v interface{}) error
 }
+
+func setDB(newDB *sql.DB) {
+	db = newDB
+}

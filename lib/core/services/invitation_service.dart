@@ -5,6 +5,9 @@ import 'package:flutter/foundation.dart'; // Import for debugPrint
 
 class InvitationService {
   final String _baseUrl = AppConfig.baseUrl;
+  final http.Client _client;
+
+  InvitationService({http.Client? client}) : _client = client ?? http.Client();
 
   Future<Map<String, dynamic>?> createInvitationCode(
       String userId, String userPseudo) async {
@@ -16,7 +19,7 @@ class InvitationService {
       debugPrint(
           "[InvitationService] createInvitationCode: Requesting URL: $url");
 
-      final response = await http.get(url);
+      final response = await _client.get(url);
       debugPrint(
           "[InvitationService] createInvitationCode: Response status code: ${response.statusCode}");
       debugPrint(
@@ -59,7 +62,7 @@ class InvitationService {
       debugPrint("[InvitationService] useInvitationCode: Requesting URL: $url");
       debugPrint("[InvitationService] useInvitationCode: Request body: $body");
 
-      final response = await http.post(
+      final response = await _client.post(
         url,
         headers: {'Content-Type': 'application/json'},
         body: body,
