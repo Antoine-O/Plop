@@ -1,0 +1,7 @@
+services:
+  test-runner:
+    image: golang:1.24-alpine
+    working_dir: /app
+    volumes:
+      - ./server:/app
+    command: sh -c "go mod tidy && go test -v ./..."
