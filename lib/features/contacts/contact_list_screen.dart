@@ -6,6 +6,7 @@ import 'package:plop/core/services/database_service.dart';
 import 'package:plop/core/services/invitation_service.dart';
 import 'package:plop/core/services/user_service.dart';
 import 'package:plop/core/services/websocket_service.dart';
+// import 'package:plop/features/chat/chat_screen.dart';
 import 'package:plop/features/contacts/widgets/add_contact_dialog.dart';
 import 'package:plop/features/contacts/widgets/contact_tile.dart';
 import 'package:plop/features/contacts/widgets/invitation_dialog.dart';
@@ -13,6 +14,7 @@ import 'package:plop/features/settings/manage_contacts_screen.dart';
 import 'package:plop/features/settings/settings_screen.dart';
 import 'package:plop/features/settings/sync_account_screen.dart';
 import 'package:plop/l10n/app_localizations.dart';
+import 'package:provider/provider.dart';
 
 class ContactListScreen extends StatefulWidget {
   const ContactListScreen({super.key});
@@ -22,11 +24,10 @@ class ContactListScreen extends StatefulWidget {
 }
 
 class ContactListScreenState extends State<ContactListScreen> {
-  final DatabaseService _databaseService = DatabaseService();
-  final InvitationService _invitationService = InvitationService();
-  final UserService _userService = UserService();
-  final WebSocketService _webSocketService = WebSocketService();
-  StreamSubscription? _messageUpdateSubscription;
+  late final DatabaseService _databaseService;
+  late final InvitationService _invitationService;
+  late final UserService _userService;
+  late final WebSocketService _webSocketService;
 
   List<Contact> _contacts = [];
   bool _isLoading = true;
@@ -35,16 +36,15 @@ class ContactListScreenState extends State<ContactListScreen> {
   @override
   void initState() {
     super.initState();
+    _databaseService = Provider.of<DatabaseService>(context, listen: false);
+    _invitationService = Provider.of<InvitationService>(context, listen: false);
+    _userService = Provider.of<UserService>(context, listen: false);
+    _webSocketService = Provider.of<WebSocketService>(context, listen: false);
     _loadDataAndSync();
-    _messageUpdateSubscription =
-        _webSocketService.messageUpdates.listen((update) {
-      _loadContacts();
-    });
   }
 
   @override
   void dispose() {
-    _messageUpdateSubscription?.cancel();
     // _webSocketService.disconnect();
     super.dispose();
   }
@@ -54,7 +54,7 @@ class ContactListScreenState extends State<ContactListScreen> {
     await _userService.init();
     _isGlobalMute = _userService.isGlobalMute;
     if (_userService.userId != null && _userService.username != null) {
-      _webSocketService.connect(_userService.userId!, _userService.username!);
+      _webSocketService.connect();
     }
 
     final localContacts = await _databaseService.getAllContactsOrdered();
@@ -109,9 +109,6 @@ class ContactListScreenState extends State<ContactListScreen> {
 
   void _toggleGlobalMute() async {
     await _userService.toggleGlobalMute();
-    if (_userService.isGlobalMute) {
-      await _webSocketService.stopCurrentSound();
-    }
     setState(() => _isGlobalMute = _userService.isGlobalMute);
   }
 
@@ -127,6 +124,16 @@ class ContactListScreenState extends State<ContactListScreen> {
           .then((_) => _loadDataAndSync());
     }
   }
+
+  // void _navigateToChatScreen(Contact contact) {
+  //   Navigator.of(context)
+  //       .push(
+  //     MaterialPageRoute(
+  //       builder: (context) => ChatScreen(contact: contact),
+  //     ),
+  //   )
+  //       .then((_) => _loadContacts());
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -151,28 +158,28 @@ class ContactListScreenState extends State<ContactListScreen> {
             tooltip: AppLocalizations.of(context)!.manageContacts,
           ),
           PopupMenuButton<String>(
-            icon: Icon(Icons.more_vert),
+            icon: const Icon(Icons.more_vert),
             onSelected: _onMenuSelection,
             itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-              PopupMenuItem<String>(
+              const PopupMenuItem<String>(
                 value: "settings",
                 child: ListTile(
                     leading: Icon(Icons.settings),
-                    title: Text(AppLocalizations.of(context)!.settings)),
+                    title: Text('Settings' /*AppLocalizations.of(context)!.settings*/)),
               ),
-              PopupMenuItem<String>(
+              const PopupMenuItem<String>(
                 // NOUVEAU
                 value: 'sync',
                 child: ListTile(
                     leading: Icon(Icons.sync),
-                    title: Text(AppLocalizations.of(context)!.syncTitle)),
+                    title: Text('Sync' /*AppLocalizations.of(context)!.syncTitle*/)),
               ),
             ],
           ),
         ],
       ),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
               onRefresh: _loadDataAndSync,
               child: _contacts.isEmpty
@@ -205,7 +212,10 @@ class ContactListScreenState extends State<ContactListScreen> {
                                     tileWidth, // Set the calculated width for each tile
                                 height:
                                     110, // Set the calculated width for each tile
-                                child: ContactTile(contact: contact),
+                                child: ContactTile(
+                                  contact: contact,
+                                  onTap: () {} // () => _navigateToChatScreen(contact),
+                                ),
                               );
                             }).toList(),
                           );

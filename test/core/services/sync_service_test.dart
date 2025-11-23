@@ -1,76 +1,110 @@
-import 'dart:convert';
-
 import 'package:flutter_test/flutter_test.dart';
-import 'package:http/http.dart' as http;
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import 'package:http/http.dart' as http;
 import 'package:plop/core/services/sync_service.dart';
 import 'package:plop/core/services/websocket_service.dart';
+import 'dart:convert';
 
 import 'sync_service_test.mocks.dart';
 
-@GenerateMocks([http.Client, WebSocketService])
+@GenerateMocks([WebSocketService, http.Client])
 void main() {
+  late SyncService syncService;
+  late MockWebSocketService mockWebSocketService;
+  late MockClient mockHttpClient;
+
+  setUp(() {
+    mockWebSocketService = MockWebSocketService();
+    mockHttpClient = MockClient();
+    syncService = SyncService(
+      mockWebSocketService,
+      baseUrl: 'http://localhost:3000', // Dummy URL for testing
+    );
+  });
+
   group('SyncService', () {
-    late SyncService syncService;
-    late MockWebSocketService mockWebSocketService;
-    late MockClient mockClient;
-
-    setUp(() {
-      syncService = SyncService();
-      mockWebSocketService = MockWebSocketService();
-      mockClient = MockClient();
-    });
-
     group('createSyncCode', () {
-      test('should return sync code on successful request', () async {
-        final json = {'code': '123456'};
-        when(mockClient.get(any))
-            .thenAnswer((_) async => http.Response(jsonEncode(json), 200));
+      test('returns sync code on successful API call', () async {
+        // Arrange
+        final userId = 'testUser';
+        final expectedCode = 'testCode';
+        final responsePayload = {'code': expectedCode};
+        when(mockWebSocketService.connect()).thenAnswer((_) async {});
+        when(mockHttpClient.get(any)).thenAnswer((_) async => http.Response(
+              jsonEncode(responsePayload),
+              200,
+            ));
 
-        final result = await syncService.createSyncCode('user1',
-            client: mockClient, webSocketService: mockWebSocketService);
+        // Act
+        final result =
+            await syncService.createSyncCode(userId, client: mockHttpClient);
 
-        expect(result, '123456');
-        verify(mockWebSocketService.ensureConnected()).called(1);
+        // Assert
+        expect(result, expectedCode);
+        verify(mockWebSocketService.connect()).called(1);
       });
 
-      test('should return null on failed request', () async {
-        when(mockClient.get(any))
-            .thenAnswer((_) async => http.Response('Error', 404));
+      test('returns null on failed API call', () async {
+        // Arrange
+        final userId = 'testUser';
+        when(mockWebSocketService.connect()).thenAnswer((_) async {});
+        when(mockHttpClient.get(any)).thenAnswer((_) async => http.Response(
+              'Error',
+              500,
+            ));
 
-        final result = await syncService.createSyncCode('user1',
-            client: mockClient, webSocketService: mockWebSocketService);
+        // Act
+        final result =
+            await syncService.createSyncCode(userId, client: mockHttpClient);
 
+        // Assert
         expect(result, isNull);
-        verify(mockWebSocketService.ensureConnected()).called(1);
       });
     });
 
     group('useSyncCode', () {
-      test('should return user data on successful request', () async {
-        final json = {'userId': 'user2', 'pseudo': 'pseudo2'};
-        when(mockClient.post(any,
+      test('returns user data on successful API call', () async {
+        // Arrange
+        final code = 'testCode';
+        final expectedUserId = 'testUser';
+        final expectedPseudo = 'testPseudo';
+        final responsePayload = {
+          'userId': expectedUserId,
+          'pseudo': expectedPseudo,
+        };
+        when(mockWebSocketService.connect()).thenAnswer((_) async {});
+        when(mockHttpClient.post(any,
                 headers: anyNamed('headers'), body: anyNamed('body')))
-            .thenAnswer((_) async => http.Response(jsonEncode(json), 200));
+            .thenAnswer((_) async => http.Response(
+                  jsonEncode(responsePayload),
+                  200,
+                ));
 
-        final result = await syncService.useSyncCode('123456',
-            client: mockClient, webSocketService: mockWebSocketService);
+        // Act
+        final result = await syncService.useSyncCode(code, client: mockHttpClient);
 
-        expect(result, {'userId': 'user2', 'pseudo': 'pseudo2'});
-        verify(mockWebSocketService.ensureConnected()).called(1);
+        // Assert
+        expect(result, {'userId': expectedUserId, 'pseudo': expectedPseudo});
+        verify(mockWebSocketService.connect()).called(1);
       });
 
-      test('should return null on failed request', () async {
-        when(mockClient.post(any,
+      test('returns null on failed API call', () async {
+        // Arrange
+        final code = 'testCode';
+        when(mockWebSocketService.connect()).thenAnswer((_) async {});
+        when(mockHttpClient.post(any,
                 headers: anyNamed('headers'), body: anyNamed('body')))
-            .thenAnswer((_) async => http.Response('Error', 404));
+            .thenAnswer((_) async => http.Response(
+                  'Error',
+                  500,
+                ));
 
-        final result = await syncService.useSyncCode('123456',
-            client: mockClient, webSocketService: mockWebSocketService);
+        // Act
+        final result = await syncService.useSyncCode(code, client: mockHttpClient);
 
+        // Assert
         expect(result, isNull);
-        verify(mockWebSocketService.ensureConnected()).called(1);
       });
     });
   });

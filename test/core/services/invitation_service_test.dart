@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:mockito/annotations.dart';
@@ -10,6 +11,9 @@ import 'invitation_service_test.mocks.dart';
 
 @GenerateMocks([http.Client])
 void main() {
+  setUpAll(() async {
+    await dotenv.load();
+  });
   group('InvitationService', () {
     late InvitationService invitationService;
     late MockClient mockClient;

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:plop/core/services/sync_service.dart';
 import 'package:plop/features/contacts/contact_list_screen.dart';
 import 'package:plop/l10n/app_localizations.dart';
@@ -12,11 +13,11 @@ class ImportAccountScreen extends StatefulWidget {
 }
 
 class ImportAccountScreenState extends State<ImportAccountScreen> {
-  final SyncService _syncService = SyncService();
   final TextEditingController _codeController = TextEditingController();
   bool _isLoading = false;
 
   Future<void> _importAccount() async {
+    final syncService = Provider.of<SyncService>(context, listen: false);
     if (_codeController.text.trim().isEmpty) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -27,7 +28,7 @@ class ImportAccountScreenState extends State<ImportAccountScreen> {
     }
     setState(() => _isLoading = true);
     final syncData =
-        await _syncService.useSyncCode(_codeController.text.trim());
+        await syncService.useSyncCode(_codeController.text.trim());
     if (!mounted) return;
     if (syncData != null) {
       final prefs = await SharedPreferences.getInstance();

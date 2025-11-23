@@ -44,13 +44,15 @@ class ManageContactsScreenState extends State<ManageContactsScreen> {
   }
 
   Future<void> _toggleMute(Contact contact) async {
-    setState(() => contact.isMuted = !(contact.isMuted ?? false));
-    await _databaseService.updateContact(contact);
+    contact.isMuted = !(contact.isMuted ?? false);
+    await _databaseService.contactsBox.put(contact.key, contact);
+    setState(() {});
   }
 
   Future<void> _toggleHidden(Contact contact) async {
-    setState(() => contact.isHidden = !(contact.isHidden ?? false));
-    await _databaseService.updateContact(contact);
+    contact.isHidden = !(contact.isHidden ?? false);
+    await _databaseService.contactsBox.put(contact.key, contact);
+    setState(() {});
   }
 
   void _reorderContacts(int oldIndex, int newIndex) {
@@ -59,7 +61,7 @@ class ManageContactsScreenState extends State<ManageContactsScreen> {
       final Contact item = _contacts.removeAt(oldIndex);
       _contacts.insert(newIndex, item);
       final List<String> orderedIds = _contacts.map((c) => c.userId).toList();
-      _databaseService.saveContactOrder(orderedIds);
+      _databaseService.settingsBox.put('contactOrder', orderedIds);
     });
   }
 

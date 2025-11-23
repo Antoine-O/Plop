@@ -24,20 +24,20 @@ void main() {
         notified = true;
       });
 
-      localeProvider.setLocale(locale);
+      await localeProvider.setLocale(locale);
 
       expect(localeProvider.locale, locale);
       expect(notified, isTrue);
     });
 
     test('setLocale with null removes locale and notifies listeners', () async {
-      localeProvider.setLocale(Locale('fr'));
+      await localeProvider.setLocale(Locale('fr'));
       var notified = false;
       localeProvider.addListener(() {
         notified = true;
       });
 
-      localeProvider.setLocale(null);
+      await localeProvider.setLocale(null);
 
       expect(localeProvider.locale, isNull);
       expect(notified, isTrue);

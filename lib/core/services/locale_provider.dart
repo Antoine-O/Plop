@@ -19,7 +19,10 @@ class LocaleProvider extends ChangeNotifier {
     }
   }
 
-  void setLocale(Locale? locale) async {
+  Future<bool> setLocale(Locale? locale) async {
+    if (_locale?.languageCode == locale?.languageCode) {
+      return false;
+    }
     _locale = locale;
     final prefs = await SharedPreferences.getInstance();
     if (locale == null) {
@@ -28,5 +31,6 @@ class LocaleProvider extends ChangeNotifier {
       await prefs.setString('language_code', locale.languageCode);
     }
     notifyListeners();
+    return true;
   }
 }

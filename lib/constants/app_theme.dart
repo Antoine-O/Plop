@@ -17,6 +17,7 @@ class AppTheme {
     colorScheme: ColorScheme.fromSeed(
       seedColor: _primaryColor,
       brightness: Brightness.light,
+      primary: _primaryColor,
       secondary: _secondaryColor,
     ),
     appBarTheme: const AppBarTheme(
@@ -48,6 +49,7 @@ class AppTheme {
     colorScheme: ColorScheme.fromSeed(
       seedColor: _primaryColor,
       brightness: Brightness.dark, // Active le mode sombre
+      primary: _primaryColor,
       secondary: _secondaryColor,
     ),
     appBarTheme: const AppBarTheme(

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:plop/core/models/contact_model.dart';
+import 'package:plop/core/models/user_model.dart';
 import 'package:plop/core/services/database_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:plop/core/config/app_config.dart';
@@ -191,8 +192,7 @@ class UserService extends ChangeNotifier {
             debugPrint(
                 "[UserService] syncContactsPseudos: Updating contact ${contact.userId}. Old pseudo: '${contact.originalPseudo}', New pseudo: '${remotePseudos[contact.userId]}'");
             contact.originalPseudo = remotePseudos[contact.userId]!;
-            await _db.updateContact(
-                contact); // Assuming updateContact handles DB operations
+            await _db.contactsBox.put(contact.userId, contact);
             hasBeenUpdated = true;
           } else if (!remotePseudos.containsKey(contact.userId)) {
             debugPrint(
@@ -222,5 +222,24 @@ class UserService extends ChangeNotifier {
     debugPrint(
         "[UserService] syncContactsPseudos: Sync process finished. Has been updated: $hasBeenUpdated");
     return hasBeenUpdated;
+  }
+
+  Future<User?> getUser() async {
+    if (userId != null && username != null) {
+      return User(userId: userId!, username: username!);
+    }
+    return null;
+  }
+
+  Future<void> saveUser(User user) async {
+    userId = user.userId;
+    username = user.username;
+    await _prefs.setString('userId', userId!);
+    await _prefs.setString('username', username!);
+    notifyListeners();
+  }
+
+  Future<String?> getFcmToken() async {
+    return _prefs.getString('fcmToken');
   }
 }

@@ -1,29 +1,63 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:plop/core/models/contact_model.dart';
 import 'package:plop/core/models/message_model.dart';
 
 void main() {
   group('MessageModel', () {
-    final messageJson = {
-      'id': '123',
-      'text': 'Hello',
-    };
+    test('toJson returns correct map', () {
+      // Arrange
+      final timestamp = DateTime.parse('2025-09-24T15:09:06.319052');
+      final message = MessageModel(
+        id: '123',
+        text: 'Hello',
+        senderId: 'sender456',
+        receiverId: 'receiver789',
+        timestamp: timestamp,
+        // senderUsername is null by default
+        // status is MessageStatus.sent by default
+      );
 
-    final message = MessageModel(
-      id: '123',
-      text: 'Hello',
-    );
+      // Act
+      final result = message.toJson();
 
-    test('fromJson creates a valid MessageModel object', () {
-      final messageFromJson = MessageModel.fromJson(messageJson);
+      // Assert
+      final expectedMap = {
+        'id': '123',
+        'text': 'Hello',
+        'senderId': 'sender456',
+        'senderUsername': null,
+        'receiverId': 'receiver789',
+        'timestamp': '2025-09-24T15:09:06.319052',
+        'status': 'sent',
+      };
 
-      expect(messageFromJson.id, message.id);
-      expect(messageFromJson.text, message.text);
+      expect(result, expectedMap);
     });
 
-    test('toJson creates a valid JSON map', () {
-      final jsonFromMessage = message.toJson();
+    test('fromJson returns correct MessageModel', () {
+      // Arrange
+      final timestamp = DateTime.parse('2025-09-24T15:09:06.319052');
+      final jsonMap = {
+        'id': '123',
+        'text': 'Hello',
+        'senderId': 'sender456',
+        'senderUsername': 'sender',
+        'receiverId': 'receiver789',
+        'timestamp': '2025-09-24T15:09:06.319052',
+        'status': 'distributed',
+      };
 
-      expect(jsonFromMessage, messageJson);
+      // Act
+      final result = MessageModel.fromJson(jsonMap);
+
+      // Assert
+      expect(result.id, '123');
+      expect(result.text, 'Hello');
+      expect(result.senderId, 'sender456');
+      expect(result.senderUsername, 'sender');
+      expect(result.receiverId, 'receiver789');
+      expect(result.timestamp, timestamp);
+      expect(result.status, MessageStatus.distributed);
     });
   });
 }

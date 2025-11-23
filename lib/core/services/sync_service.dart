@@ -5,19 +5,20 @@ import 'package:plop/core/config/app_config.dart';
 import 'package:plop/core/services/websocket_service.dart';
 
 class SyncService {
-  final String _baseUrl = AppConfig.baseUrl;
+  final String _baseUrl;
+  final WebSocketService _webSocketService;
 
-  Future<String?> createSyncCode(String userId,
-      {http.Client? client, WebSocketService? webSocketService}) async {
+  SyncService(this._webSocketService, {String? baseUrl})
+      : _baseUrl = baseUrl ?? AppConfig.baseUrl;
+
+  Future<String?> createSyncCode(String userId, {http.Client? client}) async {
     final client0 = client ?? http.Client();
-    final webSocketService0 = webSocketService ?? WebSocketService();
     debugPrint(
         "[SyncService] createSyncCode: Attempting to create sync code for userId: $userId");
     try {
       debugPrint(
           "[SyncService] createSyncCode: Ensuring WebSocket is connected.");
-      webSocketService0
-          .ensureConnected(); // Assuming this is synchronous or you don't need to await its completion before HTTP
+      _webSocketService.connect();
       debugPrint(
           "[SyncService] createSyncCode: WebSocket connection check complete.");
 
@@ -58,13 +59,12 @@ class SyncService {
   }
 
   Future<Map<String, String>?> useSyncCode(String code,
-      {http.Client? client, WebSocketService? webSocketService}) async {
+      {http.Client? client}) async {
     final client0 = client ?? http.Client();
-    final webSocketService0 = webSocketService ?? WebSocketService();
     debugPrint("[SyncService] useSyncCode: Attempting to use sync code: $code");
     try {
       debugPrint("[SyncService] useSyncCode: Ensuring WebSocket is connected.");
-      webSocketService0.ensureConnected(); // Assuming this is synchronous
+      _webSocketService.connect();
       debugPrint(
           "[SyncService] useSyncCode: WebSocket connection check complete.");
 

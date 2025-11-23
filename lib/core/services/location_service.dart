@@ -35,6 +35,10 @@ class LocationService {
       return LocationPermissionStatus.deniedForever;
     }
 
+    if (permission == LocationPermission.unableToDetermine) {
+      return LocationPermissionStatus.unknown;
+    }
+
     if (permission == LocationPermission.whileInUse ||
         permission == LocationPermission.always) {
       return LocationPermissionStatus.granted;

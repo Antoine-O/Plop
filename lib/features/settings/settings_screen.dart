@@ -6,6 +6,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:plop/core/models/message_model.dart';
 import 'package:plop/core/services/database_service.dart';
 import 'package:plop/core/services/locale_provider.dart';
+import 'package:plop/core/services/notification_service.dart';
 import 'package:plop/core/services/user_service.dart';
 import 'package:plop/features/setup/setup_screen.dart';
 import 'package:plop/l10n/app_localizations.dart';
@@ -65,7 +66,7 @@ class SettingsScreenState extends State<SettingsScreen> {
   Future<void> _loadAllData() async {
     setState(() => _isLoading = true);
     await _userService.init();
-    _messages = _databaseService.getAllMessages();
+    _messages = _databaseService.messagesBox.values.toList();
     // _contacts = await _databaseService.getAllContactsOrdered();
     _usernameController.text = _userService.username ?? '';
     _userId = _userService.userId;
@@ -75,11 +76,14 @@ class SettingsScreenState extends State<SettingsScreen> {
   void _addMessage() async {
     final text = _messageController.text.trim();
     if (text.isNotEmpty && _messages.length < 10) {
-      final newMessage = MessageModel(id: _uuid.v4(), text: text);
-      await _databaseService.addMessage(newMessage);
+      final newMessage = MessageModel(
+          id: _uuid.v4(),
+          text: text,
+          timestamp: DateTime.now());
+      await _databaseService.messagesBox.put(newMessage.id, newMessage);
       _messageController.clear();
       setState(() {
-        _messages = _databaseService.getAllMessages();
+        _messages = _databaseService.messagesBox.values.toList();
       });
     } else if (_messages.length >= 10) {
       if (!mounted) return;
@@ -90,9 +94,9 @@ class SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _deleteMessage(String id) async {
-    await _databaseService.deleteMessage(id);
+    await _databaseService.messagesBox.delete(id);
     setState(() {
-      _messages = _databaseService.getAllMessages();
+      _messages = _databaseService.messagesBox.values.toList();
     });
   }
 
@@ -190,12 +194,16 @@ class SettingsScreenState extends State<SettingsScreen> {
       final db = DatabaseService();
       await db.contactsBox.clear();
       await db.messagesBox.clear();
-      await db.saveContactOrder([]);
+      await db.settingsBox.put('contactOrder', []);
 
       if (!mounted) return;
 
+      final notificationService =
+          Provider.of<NotificationService>(context, listen: false);
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const SetupScreen()),
+        MaterialPageRoute(
+            builder: (context) =>
+                SetupScreen(notificationService: notificationService)),
         (Route<dynamic> route) => false,
       );
     }

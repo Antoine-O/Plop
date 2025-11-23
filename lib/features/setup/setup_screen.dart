@@ -9,7 +9,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:plop/features/setup/restore_backup_screen.dart';
 
 class SetupScreen extends StatefulWidget {
-  const SetupScreen({super.key});
+  final NotificationService notificationService;
+  const SetupScreen({super.key, required this.notificationService});
 
   @override
   SetupScreenState createState() => SetupScreenState();
@@ -21,6 +22,11 @@ class SetupScreenState extends State<SetupScreen> {
   final UserService _userService = UserService();
   int _currentPage = 0;
   bool _isLoading = false;
+
+  Future<void> sendFcmTokenToServer() async {
+    final token = await _userService.getFcmToken();
+    await widget.notificationService.sendFcmTokenToServer(token ?? '');
+  }
 
   void _createUser() async {
     if (_isLoading || _usernameController.text.isEmpty) return;
@@ -216,7 +222,8 @@ class SetupScreenState extends State<SetupScreen> {
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => const RestoreBackupScreen()));
+                        builder: (context) => const RestoreBackupScreen(
+                            )));
                   },
                   child: Text(AppLocalizations.of(context)!.restoreFromBackup),
                 ),
@@ -276,7 +283,7 @@ class SetupScreenState extends State<SetupScreen> {
           // Bouton Suivant
           if (_currentPage < 3)
             ElevatedButton.icon(
-              onPressed: () => _pageController.nextPage(
+              onPressed: () => _pageController..nextPage(
                   duration: Duration(milliseconds: 300), curve: Curves.easeIn),
               label: Text(_currentPage == 2
                   ? AppLocalizations.of(context)!.finish

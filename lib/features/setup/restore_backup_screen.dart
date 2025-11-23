@@ -1,10 +1,11 @@
-// features/setup/restore_backup_screen.dart
+import 'dart:convert';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:plop/core/services/backup_service.dart'; // AJOUT : Importer le nouveau service
+import 'package:plop/core/services/backup_service.dart';
+import 'package:plop/core/services/database_service.dart';
 import 'package:plop/features/contacts/contact_list_screen.dart';
 import 'package:plop/l10n/app_localizations.dart';
-// Les autres imports (file_picker, dart:io, etc.) ne sont plus nécessaires ici.
 
 class RestoreBackupScreen extends StatefulWidget {
   const RestoreBackupScreen({super.key});
@@ -14,38 +15,47 @@ class RestoreBackupScreen extends StatefulWidget {
 }
 
 class _RestoreBackupScreenState extends State<RestoreBackupScreen> {
-  // AJOUT : Instancier le service
-  final BackupService _backupService = BackupService();
+  late final BackupService _backupService;
   bool _isLoading = false;
 
-  // MODIFICATION : La fonction est maintenant un "contrôleur" qui appelle la logique métier.
+  @override
+  void initState() {
+    super.initState();
+    _backupService = BackupService(DatabaseService());
+  }
 
-  // MODIFICATION : La fonction est maintenant un "contrôleur" qui appelle la logique métier.
   Future<void> _handleRestore() async {
     setState(() => _isLoading = true);
 
-    // Appel de la logique métier extraite dans le service
-    final String? errorMessage = await _backupService.restoreFromBackup();
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['json'],
+    );
 
-    // La logique de l'interface réagit au résultat
-    if (mounted) {
-      if (errorMessage == null) {
-        // Succès : naviguer vers l'écran principal
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const ContactListScreen()),
-          (route) => false,
-        );
-      } else {
-        // Échec : afficher le message d'erreur
+    if (result == null || result.files.single.bytes == null) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMessage)),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.cancel),
+          ),
         );
+        setState(() => _isLoading = false);
       }
+      return;
     }
 
-    // S'assurer que l'indicateur de chargement est toujours enlevé
+    final jsonString = utf8.decode(result.files.single.bytes!);
+    await _backupService.importBackup(jsonString);
+
     if (mounted) {
-      setState(() => _isLoading = false);
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const ContactListScreen()),
+        (route) => false,
+      );
+    } else {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -82,7 +92,6 @@ class _RestoreBackupScreenState extends State<RestoreBackupScreen> {
                 _isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : ElevatedButton.icon(
-                        // MODIFICATION : Appelle la nouvelle fonction de "contrôle"
                         onPressed: _handleRestore,
                         icon: const Icon(Icons.folder_open),
                         label: Text(
