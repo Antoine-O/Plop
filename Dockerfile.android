@@ -6,7 +6,7 @@ FROM dart:stable AS builder
 # 1. Installation des dépendances système
 # On installe Java (requis par Android), git, unzip, et wget.
 RUN apt-get update && apt-get install -y \
-    openjdk-17-jdk \
+    openjdk-21-jdk \
     git \
     unzip \
     wget \
