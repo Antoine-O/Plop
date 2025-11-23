@@ -8,7 +8,7 @@ part of 'contact_model.dart';
 
 class ContactAdapter extends TypeAdapter<Contact> {
   @override
-  final int typeId = 0;
+  final typeId = 0;
 
   @override
   Contact read(BinaryReader reader) {
@@ -20,15 +20,15 @@ class ContactAdapter extends TypeAdapter<Contact> {
       userId: fields[0] as String,
       originalPseudo: fields[1] as String,
       alias: fields[2] as String,
-      colorValue: fields[3] as int,
-      isMuted: fields[4] as bool?,
-      type: fields[5] as String,
+      colorValue: (fields[3] as num).toInt(),
+      isMuted: fields[4] == null ? false : fields[4] as bool?,
+      type: fields[5] == null ? 'user' : fields[5] as String,
       lastMessage: fields[6] as String?,
       lastMessageTimestamp: fields[7] as DateTime?,
-      isBlocked: fields[8] as bool?,
+      isBlocked: fields[8] == null ? false : fields[8] as bool?,
       customSoundPath: fields[9] as String?,
       defaultMessageOverride: fields[10] as String?,
-      isHidden: fields[11] as bool?,
+      isHidden: fields[11] == null ? false : fields[11] as bool?,
       lastMessageSentTimestamp: fields[12] as DateTime?,
       lastMessageSent: fields[13] as String?,
       lastMessageSentDefault: fields[14] as bool?,
@@ -90,7 +90,7 @@ class ContactAdapter extends TypeAdapter<Contact> {
 
 class MessageStatusAdapter extends TypeAdapter<MessageStatus> {
   @override
-  final int typeId = 2;
+  final typeId = 2;
 
   @override
   MessageStatus read(BinaryReader reader) {
@@ -117,22 +117,16 @@ class MessageStatusAdapter extends TypeAdapter<MessageStatus> {
     switch (obj) {
       case MessageStatus.sending:
         writer.writeByte(0);
-        break;
       case MessageStatus.sent:
         writer.writeByte(1);
-        break;
       case MessageStatus.distributed:
         writer.writeByte(2);
-        break;
       case MessageStatus.acknowledged:
         writer.writeByte(3);
-        break;
       case MessageStatus.failed:
         writer.writeByte(4);
-        break;
       case MessageStatus.unknown:
         writer.writeByte(5);
-        break;
     }
   }
 

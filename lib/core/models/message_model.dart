@@ -1,4 +1,4 @@
-import 'package:hive/hive.dart';
+import 'package:hive_ce/hive.dart';
 import 'package:plop/core/models/contact_model.dart'; // Assuming MessageStatus is here or in its own file
 
 @HiveType(typeId: 1)

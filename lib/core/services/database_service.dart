@@ -1,4 +1,5 @@
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hive_ce_flutter/hive_flutter.dart';
+import 'package:hive_ce/hive.dart';
 import 'package:plop/core/models/contact_model.dart';
 import 'package:plop/core/models/message_model.dart';
 
