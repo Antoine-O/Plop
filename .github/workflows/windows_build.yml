@@ -40,7 +40,7 @@ jobs:
           # 1. Renommer le fichier template
           $templatePath = "lib\firebase_options.template.dart"
           $targetPath = "lib\firebase_options.dart"
-          Move-Item -Path $templatePath -Destination $targetPath
+          Move-Item -Path $templatePath -Destination $targetPath -Force
           
           # 2. Lire le contenu du fichier une seule fois
           $fileContent = Get-Content -Path $targetPath -Raw
