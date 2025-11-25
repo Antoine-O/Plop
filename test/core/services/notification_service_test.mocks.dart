@@ -16,7 +16,7 @@ import 'package:flutter_local_notifications/src/notification_details.dart'
     as _i8;
 import 'package:flutter_local_notifications/src/platform_specifics/android/schedule_mode.dart'
     as _i10;
-import 'package:flutter_local_notifications/src/types.dart' as _i11;
+// import 'package:flutter_local_notifications/src/types.dart' as _i11;
 import 'package:flutter_local_notifications_platform_interface/flutter_local_notifications_platform_interface.dart'
     as _i7;
 import 'package:hive_ce_flutter/hive_flutter.dart' as _i2;
@@ -27,7 +27,7 @@ import 'package:plop/core/models/message_model.dart' as _i14;
 import 'package:plop/core/services/database_service.dart' as _i12;
 import 'package:plop/core/services/user_service.dart' as _i15;
 import 'package:shared_preferences/shared_preferences.dart' as _i16;
-import 'package:timezone/timezone.dart' as _i9;
+// import 'package:timezone/timezone.dart' as _i9;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -159,76 +159,76 @@ class MockFlutterLocalNotificationsPlugin extends _i1.Mock
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
-
-  @override
-  _i4.Future<void> cancelAllPendingNotifications() => (super.noSuchMethod(
-        Invocation.method(
-          #cancelAllPendingNotifications,
-          [],
-        ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
-
-  @override
-  _i4.Future<void> zonedSchedule(
-    int? id,
-    String? title,
-    String? body,
-    _i9.TZDateTime? scheduledDate,
-    _i8.NotificationDetails? notificationDetails, {
-    required _i10.AndroidScheduleMode? androidScheduleMode,
-    String? payload,
-    _i11.DateTimeComponents? matchDateTimeComponents,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #zonedSchedule,
-          [
-            id,
-            title,
-            body,
-            scheduledDate,
-            notificationDetails,
-          ],
-          {
-            #androidScheduleMode: androidScheduleMode,
-            #payload: payload,
-            #matchDateTimeComponents: matchDateTimeComponents,
-          },
-        ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
-
-  @override
-  _i4.Future<void> periodicallyShow(
-    int? id,
-    String? title,
-    String? body,
-    _i7.RepeatInterval? repeatInterval,
-    _i8.NotificationDetails? notificationDetails, {
-    required _i10.AndroidScheduleMode? androidScheduleMode,
-    String? payload,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #periodicallyShow,
-          [
-            id,
-            title,
-            body,
-            repeatInterval,
-            notificationDetails,
-          ],
-          {
-            #androidScheduleMode: androidScheduleMode,
-            #payload: payload,
-          },
-        ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
+  //
+  // @override
+  // _i4.Future<void> cancelAllPendingNotifications() => (super.noSuchMethod(
+  //       Invocation.method(
+  //         #cancelAllPendingNotifications,
+  //         [],
+  //       ),
+  //       returnValue: _i4.Future<void>.value(),
+  //       returnValueForMissingStub: _i4.Future<void>.value(),
+  //     ) as _i4.Future<void>);
+  //
+  // @override
+  // _i4.Future<void> zonedSchedule(
+  //   int? id,
+  //   String? title,
+  //   String? body,
+  //   _i9.TZDateTime? scheduledDate,
+  //   _i8.NotificationDetails? notificationDetails, {
+  //   required _i10.AndroidScheduleMode? androidScheduleMode,
+  //   String? payload,
+  //   _i11.DateTimeComponents? matchDateTimeComponents,
+  // }) =>
+  //     (super.noSuchMethod(
+  //       Invocation.method(
+  //         #zonedSchedule,
+  //         [
+  //           id,
+  //           title,
+  //           body,
+  //           scheduledDate,
+  //           notificationDetails,
+  //         ],
+  //         {
+  //           #androidScheduleMode: androidScheduleMode,
+  //           #payload: payload,
+  //           #matchDateTimeComponents: matchDateTimeComponents,
+  //         },
+  //       ),
+  //       returnValue: _i4.Future<void>.value(),
+  //       returnValueForMissingStub: _i4.Future<void>.value(),
+  //     ) as _i4.Future<void>);
+  //
+  // @override
+  // _i4.Future<void> periodicallyShow(
+  //   int? id,
+  //   String? title,
+  //   String? body,
+  //   _i7.RepeatInterval? repeatInterval,
+  //   _i8.NotificationDetails? notificationDetails, {
+  //   required _i10.AndroidScheduleMode? androidScheduleMode,
+  //   String? payload,
+  // }) =>
+  //     (super.noSuchMethod(
+  //       Invocation.method(
+  //         #periodicallyShow,
+  //         [
+  //           id,
+  //           title,
+  //           body,
+  //           repeatInterval,
+  //           notificationDetails,
+  //         ],
+  //         {
+  //           #androidScheduleMode: androidScheduleMode,
+  //           #payload: payload,
+  //         },
+  //       ),
+  //       returnValue: _i4.Future<void>.value(),
+  //       returnValueForMissingStub: _i4.Future<void>.value(),
+  //     ) as _i4.Future<void>);
 
   @override
   _i4.Future<void> periodicallyShowWithDuration(
