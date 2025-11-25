@@ -1,15 +1,11 @@
-// import 'package:firebase_messaging/firebase_messaging.dart';
 import 'dart:io';
-
-
+// import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
-import 'package:hive_ce/hive.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:plop/core/config/app_config.dart';
-import 'package:plop/core/services/sync_service.dart';
 import 'package:plop/core/services/websocket_service.dart';
 import 'package:plop/firebase_options.dart';
 import 'package:plop/l10n/app_localizations.dart';
@@ -56,6 +52,7 @@ Future<void> initializationHive() async {
   }
 }
 
+
 @pragma('vm:entry-point')
 void onStart(ServiceInstance service) async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -63,14 +60,8 @@ void onStart(ServiceInstance service) async {
 
   debugPrint("[Background Service] Démarré et initialisé.");
 
-  final dbService = DatabaseService();
+  final WebSocketService webSocketService = WebSocketService();
   final userService = UserService();
-  final localNotifications = FlutterLocalNotificationsPlugin();
-  final notificationService =
-      NotificationService(dbService, localNotifications);
-
-  final WebSocketService webSocketService =
-      WebSocketService(notificationService);
 
 // Maintenant, les données sont disponibles dans cette instance de userService
   if (userService.hasUser()) {
@@ -79,7 +70,7 @@ void onStart(ServiceInstance service) async {
 
     // On appelle la méthode connect du WebSocketService
     // La méthode ensureConnected est mieux car elle contient la logique de vérification
-    webSocketService.connect();
+    webSocketService.ensureConnected();
   } else {
     debugPrint(
         "[Background Service] Aucun utilisateur trouvé, pas de connexion WebSocket.");
@@ -143,34 +134,22 @@ Future<void> main() async {
   // HttpOverrides.global = MyHttpOverrides();
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
-  try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-  } catch (e) {
-    debugPrint("Firebase initialization failed (expected on Linux/Windows if not configured): $e");
-  }
-
-  final dbService = DatabaseService();
-  final localNotifications = FlutterLocalNotificationsPlugin();
-  final notificationService =
-      NotificationService(dbService, localNotifications);
-  await notificationService.init();
-
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  await initializeNotificationPlugin();
+  await initializeWebSocket();
   runApp(
     ChangeNotifierProvider(
       create: (context) => LocaleProvider(),
-      child: AppLoader(
-        notificationService: notificationService,
-      ),
+      child: const AppLoader(),
     ),
   );
 }
 
 // Ce widget gère l'initialisation des services.
 class AppLoader extends StatefulWidget {
-  final NotificationService notificationService;
-  const AppLoader({super.key, required this.notificationService});
+  const AppLoader({super.key});
 
   @override
   AppLoaderState createState() => AppLoaderState();
@@ -209,6 +188,9 @@ class AppLoaderState extends State<AppLoader> {
     // Initialisation des services
     await DatabaseService().init();
     debugPrint("[AppLoader] _initializeServices: DatabaseService initialisé.");
+    await NotificationService().init();
+    debugPrint(
+        "[AppLoader] _initializeServices: NotificationService initialisé.");
     final userService = UserService();
     await userService.init();
     debugPrint(
@@ -226,11 +208,10 @@ class AppLoaderState extends State<AppLoader> {
     if (userService.hasUser()) {
       debugPrint(
           "[AppLoader] _initializeServices: Utilisateur trouvé. Vérification des notifications et envoi du token FCM.");
-      await widget.notificationService.checkNotificationFromTerminatedState();
+      await checkNotificationFromTerminatedState();
       debugPrint(
           "[AppLoader] _initializeServices: Vérification des notifications depuis l'état terminé, terminée.");
-      // TODO: Get the actual token
-      await widget.notificationService.sendFcmTokenToServer('');
+      await sendFcmTokenToServer();
       debugPrint(
           "[AppLoader] _initializeServices: Envoi du token FCM au serveur terminé.");
     } else {
@@ -263,11 +244,11 @@ class AppLoaderState extends State<AppLoader> {
               body: Center(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
-                  child: Text(
+                  child:  Text(
                     AppLocalizations.of(context)!.criticalStartupError(
                         snapshot.error.toString(), // Ensure error is a String
                         snapshot.stackTrace.toString() // Ensure stackTrace is a String
-                        ),
+                    ),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -280,32 +261,7 @@ class AppLoaderState extends State<AppLoader> {
           debugPrint(
               "[AppLoader] FutureBuilder: Connexion terminée. Snapshot has data: ${snapshot.hasData}");
           // Si on arrive ici, snapshot.hasData est forcément vrai, car on a déjà géré le cas d'erreur.
-          final userService = snapshot.data!;
-          final notificationService = widget.notificationService;
-
-          return MultiProvider(
-            providers: [
-              ChangeNotifierProvider<UserService>.value(value: userService),
-              Provider<NotificationService>.value(value: notificationService),
-              Provider<DatabaseService>(create: (_) => DatabaseService()),
-              Provider<WebSocketService>(
-                create: (_) {
-                  debugPrint(
-                      "[MyApp] MultiProvider: Création de WebSocketService.");
-                  return WebSocketService(notificationService);
-                },
-                dispose: (_, service) {
-                  debugPrint(
-                      "[MyApp] MultiProvider: Suppression de WebSocketService.");
-                  service.dispose();
-                },
-              ),
-              ProxyProvider<WebSocketService, SyncService>(
-                update: (_, webSocketService, __) => SyncService(webSocketService),
-              ),
-            ],
-            child: const MyApp(),
-          );
+          return MyApp(userService: snapshot.data!);
         }
 
         // Affiche un écran de chargement pendant l'initialisation
@@ -325,40 +281,57 @@ class AppLoaderState extends State<AppLoader> {
 
 // Le widget principal de l'application, maintenant lancé après l'initialisation
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final UserService userService;
+
+  const MyApp({super.key, required this.userService});
 
   @override
   Widget build(BuildContext context) {
-    // Les services sont maintenant fournis par un MultiProvider qui englobe MyApp.
-    final userService = Provider.of<UserService>(context);
-    final notificationService = Provider.of<NotificationService>(context);
-
     debugPrint(
         "[MyApp] build: Construction de l'interface utilisateur principale. L'utilisateur a des données: ${userService.hasUser()}");
-    
-    return Consumer<LocaleProvider>(
-      builder: (context, localeProvider, child) {
-        debugPrint(
-            "[MyApp] Consumer<LocaleProvider>: Construction de MaterialApp avec locale: ${localeProvider.locale}.");
-        return MaterialApp(
-          title: AppLocalizations.of(context)?.appName ?? "Plop",
-          locale: localeProvider.locale,
-          localizationsDelegates: const [
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: AppLocalizations.supportedLocales,
-          theme: ThemeData(
-            primarySwatch: Colors.blue,
-            visualDensity: VisualDensity.adaptivePlatformDensity,
+    return MultiProvider(
+        providers: [
+          // On fournit l'instance de UserService qui a été initialisée dans AppLoader
+          ChangeNotifierProvider<UserService>.value(value: userService),
+
+          // On fournit aussi le LocaleProvider comme vous le faisiez déjà
+          ChangeNotifierProvider<LocaleProvider>(
+              create: (_) => LocaleProvider()),
+          Provider<WebSocketService>(
+            create: (_) {
+              debugPrint(
+                  "[MyApp] MultiProvider: Création de WebSocketService.");
+              return WebSocketService();
+            },
+            // La méthode `dispose` du Provider appellera la méthode `dispose` de votre service.
+            dispose: (_, service) {
+              debugPrint(
+                  "[MyApp] MultiProvider: Suppression de WebSocketService.");
+              service.dispose();
+            },
           ),
-          home: userService.hasUser()
-              ? const ContactListScreen()
-              : SetupScreen(notificationService: notificationService),
-        );
-      },
-    );
+        ],
+        child: Consumer<LocaleProvider>(
+          builder: (context, localeProvider, child) {
+            debugPrint(
+                "[MyApp] Consumer<LocaleProvider>: Construction de MaterialApp avec locale: ${localeProvider.locale}.");
+            return MaterialApp(
+              title: AppLocalizations.of(context)?.appName ?? "Plop",
+              locale: localeProvider.locale,
+              localizationsDelegates: const [
+                AppLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              supportedLocales: AppLocalizations.supportedLocales,
+              theme: ThemeData(
+                primarySwatch: Colors.blue,
+                visualDensity: VisualDensity.adaptivePlatformDensity,
+              ),
+              home: userService.hasUser() ? const ContactListScreen() : const SetupScreen(),
+            );
+          },
+        ));
   }
 }

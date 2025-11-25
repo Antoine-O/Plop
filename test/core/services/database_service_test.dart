@@ -1,125 +1,143 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hive_ce/hive.dart';
-import 'package:mockito/annotations.dart';
-import 'package:mockito/mockito.dart';
+import 'package:hive_ce_test/hive_ce_test.dart';
 import 'package:plop/core/models/contact_model.dart';
 import 'package:plop/core/models/message_model.dart';
 import 'package:plop/core/services/database_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import 'database_service_test.mocks.dart';
-
-@GenerateMocks([Box])
 void main() {
-  late DatabaseService databaseService;
-  late MockBox<Contact> mockContactsBox;
-  late MockBox<MessageModel> mockMessagesBox;
-  late MockBox mockSettingsBox;
-
-  setUp(() {
-    mockContactsBox = MockBox<Contact>();
-    mockMessagesBox = MockBox<MessageModel>();
-    mockSettingsBox = MockBox();
-
-    // Instantiate the service and inject the mocks directly.
-    // This is the correct way to test the service, avoiding the need for
-    // the real Hive.init() and ensuring the service uses our mocks.
-    databaseService = DatabaseService(
-      contactsBox: mockContactsBox,
-      messagesBox: mockMessagesBox,
-      settingsBox: mockSettingsBox,
-    );
-  });
-
   group('DatabaseService', () {
-    test('addContact should add a contact to the contacts box', () async {
-      final contact = Contact(
-        userId: '1',
-        originalPseudo: 'test',
-        alias: 'Testy',
-        colorValue: 0,
-      );
-      when(mockContactsBox.put(contact.userId, contact))
-          .thenAnswer((_) async => Future.value());
-      await databaseService.addContact(contact);
-      verify(mockContactsBox.put('1', contact)).called(1);
+    late DatabaseService databaseService;
+
+    setUp(() async {
+      await setUpTestHive();
+      databaseService = DatabaseService();
+      await databaseService.init();
+      SharedPreferences.setMockInitialValues({});
     });
 
-    test('addMessage should add a message to the messages box', () async {
-      final message = MessageModel(
-        id: '1',
-        senderId: '2',
-        receiverId: '3',
-        text: 'Hello',
-        timestamp: DateTime.now(),
-      );
-      when(mockMessagesBox.put(message.id, message))
-          .thenAnswer((_) async => Future.value());
-      await databaseService.addMessage(message);
-      verify(mockMessagesBox.put('1', message)).called(1);
+    tearDown(() async {
+      await tearDownTestHive();
     });
 
-    test('getContact should retrieve a contact from the contacts box', () async {
-      final contact = Contact(
-        userId: '1',
-        originalPseudo: 'test',
-        alias: 'Testy',
-        colorValue: 0,
-      );
-      when(mockContactsBox.get('1')).thenReturn(contact);
-      final result = await databaseService.getContact('1');
-      expect(result, contact);
+    final contact1 =
+        Contact(userId: '1', originalPseudo: 'a', alias: 'a', colorValue: 1);
+    final contact2 =
+        Contact(userId: '2', originalPseudo: 'b', alias: 'b', colorValue: 2);
+    final message1 = MessageModel(id: '1', text: 'a');
+    final message2 = MessageModel(id: '2', text: 'b');
+
+    test('addContact adds a contact and updates order', () async {
+      await databaseService.addContact(contact1);
+      expect(databaseService.getContact('1'), contact1);
+      final order = await databaseService.getContactsOrder();
+      expect(order, ['1']);
     });
 
-    test('getAllContacts should return a list of all contacts', () async {
-      final contacts = [
-        Contact(
-          userId: '1',
-          originalPseudo: 'test1',
-          alias: 'Testy1',
-          colorValue: 0,
-        ),
-        Contact(
-          userId: '2',
-          originalPseudo: 'test2',
-          alias: 'Testy2',
-          colorValue: 1,
-        ),
-      ];
-      when(mockContactsBox.values).thenReturn(contacts);
-      final result = await databaseService.getAllContacts();
-      expect(result, contacts);
+    test('getContact retrieves a contact', () async {
+      await databaseService.addContact(contact1);
+      expect(databaseService.getContact('1'), contact1);
     });
 
-    test('getMessagesForContact should return all messages for a contact',
+    test('getAllContactsOrdered retrieves contacts in the correct order',
         () async {
-      final messages = [
-        MessageModel(
-          id: '1',
-          senderId: 'contact1',
-          receiverId: 'me',
-          text: 'Hello',
-          timestamp: DateTime.now(),
-        ),
-        MessageModel(
-          id: '2',
-          senderId: 'me',
-          receiverId: 'contact1',
-          text: 'Hi',
-          timestamp: DateTime.now(),
-        ),
-        MessageModel(
-          id: '3',
-          senderId: 'contact2',
-          receiverId: 'me',
-          text: 'Another conversation',
-          timestamp: DateTime.now(),
-        ),
-      ];
-      when(mockMessagesBox.values).thenReturn(messages);
-      final result = await databaseService.getMessagesForContact('contact1');
-      expect(result.length, 2);
-      expect(result[0].senderId, 'contact1');
-      expect(result[1].receiverId, 'contact1');
+      await databaseService.addContact(contact1);
+      await databaseService.addContact(contact2);
+      await databaseService.saveContactOrder(['2', '1']);
+      final contacts = await databaseService.getAllContactsOrdered();
+      expect(contacts, [contact2, contact1]);
+    });
+
+    test('updateContact updates a contact', () async {
+      await databaseService.addContact(contact1);
+      contact1.alias = 'c';
+      await databaseService.updateContact(contact1);
+      expect(databaseService.getContact('1')?.alias, 'c');
+    });
+
+    test('deleteContact deletes a contact and updates order', () async {
+      await databaseService.addContact(contact1);
+      await databaseService.addContact(contact2);
+      await databaseService.deleteContact('1');
+      expect(databaseService.getContact('1'), isNull);
+      final order = await databaseService.getContactsOrder();
+      expect(order, ['2']);
+    });
+
+    test('saveContactOrder saves the contact order', () async {
+      await databaseService.saveContactOrder(['2', '1']);
+      final order = await databaseService.getContactsOrder();
+      expect(order, ['2', '1']);
+    });
+
+    test('addMessage adds a message', () async {
+      await databaseService.addMessage(message1);
+      expect(databaseService.getAllMessages(), [message1]);
+    });
+
+    test('getAllMessages retrieves all messages', () async {
+      await databaseService.addMessage(message1);
+      await databaseService.addMessage(message2);
+      expect(databaseService.getAllMessages(), [message1, message2]);
+    });
+
+    test('deleteMessage deletes a message', () async {
+      await databaseService.addMessage(message1);
+      await databaseService.addMessage(message2);
+      await databaseService.deleteMessage('1');
+      expect(databaseService.getAllMessages(), [message2]);
+    });
+
+    test('replaceAllContacts replaces all contacts and their order', () async {
+      await databaseService.addContact(contact1);
+      await databaseService.replaceAllContacts([contact2]);
+      expect(databaseService.getContact('1'), isNull);
+      expect(databaseService.getContact('2'), contact2);
+      final order = await databaseService.getContactsOrder();
+      expect(order, ['2']);
+    });
+
+    test('mergeContacts merges new contacts', () async {
+      await databaseService.addContact(contact1);
+      final hasChanged = await databaseService.mergeContacts([contact2]);
+      expect(hasChanged, isTrue);
+      expect(databaseService.getContact('1'), contact1);
+      expect(databaseService.getContact('2'), contact2);
+      final order = await databaseService.getContactsOrder();
+      expect(order, ['1', '2']);
+    });
+
+    test('replaceAllMessages replaces all messages', () async {
+      await databaseService.addMessage(message1);
+      await databaseService.replaceAllMessages([message2]);
+      expect(databaseService.getAllMessages(), [message2]);
+    });
+
+    test('mergeMessages merges new messages', () async {
+      await databaseService.addMessage(message1);
+      final hasChanged = await databaseService.mergeMessages([message2]);
+      expect(hasChanged, isTrue);
+      expect(databaseService.getAllMessages(), [message1, message2]);
+    });
+
+    test('clearContacts clears all contacts and their order', () async {
+      await databaseService.addContact(contact1);
+      await databaseService.clearContacts();
+      expect(databaseService.contactsBox.isEmpty, isTrue);
+      final order = await databaseService.getContactsOrder();
+      expect(order, isEmpty);
+    });
+
+    test('setContactOrder sets the contact order', () async {
+      await databaseService.setContactOrder(['2', '1']);
+      final order = await databaseService.getContactsOrder();
+      expect(order, ['2', '1']);
+    });
+
+    test('clearMessages clears all messages', () async {
+      await databaseService.addMessage(message1);
+      await databaseService.clearMessages();
+      expect(databaseService.messagesBox.isEmpty, isTrue);
     });
   });
 }
