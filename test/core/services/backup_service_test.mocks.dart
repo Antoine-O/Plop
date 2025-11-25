@@ -9,7 +9,7 @@ import 'dart:ui' as _i7;
 
 import 'package:file_picker/src/file_picker.dart' as _i10;
 import 'package:file_picker/src/file_picker_result.dart' as _i11;
-import 'package:hive_flutter/hive_flutter.dart' as _i2;
+import 'package:hive_ce_flutter/hive_flutter.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:plop/core/models/contact_model.dart' as _i6;
 import 'package:plop/core/models/message_model.dart' as _i9;

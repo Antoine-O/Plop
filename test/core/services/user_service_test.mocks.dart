@@ -7,7 +7,7 @@ import 'dart:async' as _i5;
 import 'dart:convert' as _i9;
 import 'dart:typed_data' as _i11;
 
-import 'package:hive_flutter/hive_flutter.dart' as _i2;
+import 'package:hive_ce_flutter/hive_flutter.dart' as _i2;
 import 'package:http/http.dart' as _i3;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i10;
