@@ -72,7 +72,7 @@ jobs:
       # Cette étape génère tous les fichiers nécessaires pour les plateformes natives.
       - name: Get Flutter dependencies
         run: flutter pub get
-    # 4. (NOUVEAU) Étape de débogage pour lister les fichiers
+      # 4. (NOUVEAU) Étape de débogage pour lister les fichiers
       - name: List files for debugging
         run: ls -laR
         shell: bash
