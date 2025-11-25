@@ -194,7 +194,7 @@ class NotificationService extends ChangeNotifier {
     );
 
     if (playSystemSound) {
-      if (await Vibration.hasVibrator()) {
+      if (await Vibration.hasVibrator() ?? false) {
         Vibration.vibrate(duration: 200);
       }
     }
@@ -270,7 +270,7 @@ class NotificationService extends ChangeNotifier {
         } else {
           await _audioPlayer.play(AssetSource('sounds/plop.mp3'));
         }
-        if (await Vibration.hasVibrator()) {
+        if (await Vibration.hasVibrator() ?? false) {
           Vibration.vibrate(duration: 200);
         }
         appPlayedSound = true;

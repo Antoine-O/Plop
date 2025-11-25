@@ -26,16 +26,16 @@ class InvitationDialog extends StatelessWidget {
             AppLocalizations.of(context)!.invitationDialogBody(validityMinutes),
             textAlign: TextAlign.center,
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: Colors.grey.shade200,
               borderRadius: BorderRadius.circular(8),
             ),
             child: SelectableText(
               invitationCode,
-              style: TextStyle(
+              style: const TextStyle(
                   fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 2),
             ),
           ),
@@ -51,8 +51,7 @@ class InvitationDialog extends StatelessWidget {
           child: Text(AppLocalizations.of(context)!.copy),
         ),
         ElevatedButton(
-          onPressed: () =>
-              SharePlus.instance.share(ShareParams(text: shareText)),
+          onPressed: () => Share.share(shareText),
           child: Text(AppLocalizations.of(context)!.share),
         ),
       ],

@@ -195,9 +195,8 @@ class SyncAccountScreenState extends State<SyncAccountScreen> {
                       IconButton(
                         icon: const Icon(Icons.share),
                         onPressed: () {
-                          SharePlus.instance.share(ShareParams(
-                              text:
-                              AppLocalizations.of(context)!.syncCodeShareText(_generatedCode!)));
+                          Share.share(
+                              AppLocalizations.of(context)!.syncCodeShareText(_generatedCode!));
                         },
                       ),
                     ],

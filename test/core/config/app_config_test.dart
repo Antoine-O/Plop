@@ -6,7 +6,7 @@ import 'package:plop/core/config/app_config.dart';
 void main() {
   group('AppConfig', () {
     setUp(() async {
-      dotenv.loadFromString(envString: '''
+      dotenv.testLoad(fileInput: '''
         BASE_URL=https://api.example.com
         WEBSOCKET_URL=wss://api.example.com/ws
         DEFAULT_PLOP_FR=Salut !
