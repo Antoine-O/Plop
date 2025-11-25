@@ -38,7 +38,6 @@ dependencies:
 
   intl: any
   logger: any
-  flutter_secure_storage: any
   hive_ce: any
   flutter_local_notifications: any
   audioplayers: any
@@ -55,6 +54,7 @@ dependencies:
   path: any
   vibration: any
   geolocator: any
+  flutter_secure_storage: any
 dev_dependencies:
   flutter_test:
     sdk: flutter
