@@ -1,9 +1,5 @@
-import 'dart:convert';
-
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
 import 'package:plop/core/services/backup_service.dart';
 import 'package:plop/core/services/database_service.dart';
 import 'package:plop/core/services/sync_service.dart';
@@ -23,19 +19,17 @@ class SyncAccountScreen extends StatefulWidget {
 }
 
 class SyncAccountScreenState extends State<SyncAccountScreen> {
-  late final SyncService _syncService;
+  final SyncService _syncService = SyncService();
   final UserService _userService = UserService();
   final DatabaseService _databaseService = DatabaseService();
-  late final BackupService _backupService;
+  final BackupService _backupService = BackupService(); // AJOUT
   String? _generatedCode;
   bool _isLoadingExport = false;
 
   @override
   void initState() {
     super.initState();
-    _syncService = Provider.of<SyncService>(context, listen: false);
     _userService.init();
-    _backupService = BackupService(_databaseService);
   }
 
   Future<void> _generateCode() async {
@@ -78,7 +72,7 @@ class SyncAccountScreenState extends State<SyncAccountScreen> {
     final db = DatabaseService();
     await db.contactsBox.clear();
     await db.messagesBox.clear();
-    await db.settingsBox.put('contactOrder', []);
+    await db.saveContactOrder([]);
 
     debugPrint("[SyncScreen] Données locales réinitialisées.");
 
@@ -93,12 +87,16 @@ class SyncAccountScreenState extends State<SyncAccountScreen> {
 
   // NOUVELLE MÉTHODE DE CONTRÔLE POUR LA SAUVEGARDE
   Future<void> _handleSaveBackup() async {
-    await _backupService.exportBackup();
+    final result = await _backupService.saveBackup(
+      userService: _userService,
+      databaseService: _databaseService,
+      saveToUserSelectedLocation: true,
+    );
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text(
+            content: Text(result ??
                 AppLocalizations.of(context)!.configurationSavedSuccessfully)),
       );
     }
@@ -125,36 +123,34 @@ class SyncAccountScreenState extends State<SyncAccountScreen> {
 
     if (confirm != true) return;
 
-    // Allow user to pick a file
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['json'],
-    );
-
-    if (result == null || result.files.single.bytes == null) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content:
-                  Text(AppLocalizations.of(context)!.cancel)),
-        );
-      }
-      return;
-    }
-
-    final jsonString = utf8.decode(result.files.single.bytes!);
-    await _backupService.importBackup(jsonString);
+    final String? errorMessage = await _backupService.restoreFromBackup();
 
     // La logique de l'interface réagit au résultat
     if (mounted) {
-      await _userService.init();
-      // Succès : naviguer vers l'écran principal
-      if (!mounted) return;
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const ContactListScreen()),
-        (route) => false,
-      );
+      if (errorMessage == null) {
+        await _loadAllData();
+        // Succès : naviguer vers l'écran principal
+        if (!mounted) return;
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const ContactListScreen()),
+          (route) => false,
+        );
+      } else {
+        // Échec : afficher le message d'erreur
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMessage)),
+        );
+      }
     }
+  }
+
+  Future<void> _loadAllData() async {
+    await _userService.init();
+    _databaseService.getAllMessages();
+    await _databaseService.getAllContactsOrdered();
+    _userService.username;
+    _userService.userId;
   }
 
   @override
@@ -193,17 +189,14 @@ class SyncAccountScreenState extends State<SyncAccountScreen> {
                           Clipboard.setData(
                               ClipboardData(text: _generatedCode!));
                           ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                  content: Text(AppLocalizations.of(context)!
-                                      .codeCopied)));
+                               SnackBar(content: Text(AppLocalizations.of(context)!.codeCopied)));
                         },
                       ),
                       IconButton(
                         icon: const Icon(Icons.share),
                         onPressed: () {
-                          SharePlus.instance.share(ShareParams(
-                              text: AppLocalizations.of(context)!
-                                  .syncCodeShareText(_generatedCode!)));
+                          Share.share(
+                              AppLocalizations.of(context)!.syncCodeShareText(_generatedCode!));
                         },
                       ),
                     ],
@@ -216,8 +209,8 @@ class SyncAccountScreenState extends State<SyncAccountScreen> {
                 : ElevatedButton.icon(
                     onPressed: _generateCode,
                     icon: const Icon(Icons.screen_share_outlined),
-                    label: Text(
-                        AppLocalizations.of(context)!.generateExportCode),
+                    label:
+                        Text(AppLocalizations.of(context)!.generateExportCode),
                   ),
 
             const Divider(height: 40),
@@ -234,8 +227,7 @@ class SyncAccountScreenState extends State<SyncAccountScreen> {
             OutlinedButton.icon(
               onPressed: _clearDataAndNavigateToImport,
               icon: const Icon(Icons.download),
-              label: Text(
-                  AppLocalizations.of(context)!.importAccountButtonLabel),
+              label: Text(AppLocalizations.of(context)!.importAccountButtonLabel),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),
